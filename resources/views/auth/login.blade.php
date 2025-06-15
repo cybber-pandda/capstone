@@ -67,7 +67,7 @@
                 <i class="fa fa-google mr-2"></i>
                 <span class="font-weight-bold">Login with Google</span>
             </a>
-            <a href="#" class="btn btn-primary btn-block py-2 btn-twitter">
+            <a href="#" class="btn btn-primary btn-block py-2 btn-twitter d-none">
                 <i class="fa fa-facebook-f mr-2"></i>
                 <span class="font-weight-bold">Login with facebook</span>
             </a>

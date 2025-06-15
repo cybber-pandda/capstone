@@ -19,7 +19,7 @@ Route::get('/', function () {
 
    $page = "Welcome to TantucoCTC Hardware";
 
-   return view('pages.welcome', compact('page'));
+   return view('pages.home', compact('page'));
 })->name('welcome');
 
 // routes/web.php

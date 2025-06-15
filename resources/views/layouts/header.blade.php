@@ -11,6 +11,20 @@
             <ul class="header-links pull-right">
                 <li><a href="#"><i class="fa fa-dollar"></i> USD</a></li>
                 <li><a href="#"><i class="fa fa-user-o"></i> My Account</a></li>
+                @auth
+                <li>
+                <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form-admin').submit();">
+                    <i class="fa fa-sign-out"></i> Sign Out
+                </a>
+                <form id="logout-form-admin" action="{{ route('logout') }}" method="POST" class="d-none">
+                    @csrf
+                </form>
+                </li>
+                <li><a href="#">Hi, {{ Auth::user()->username }}</a></li>
+                @else
+                <li><a href="{{ route('login') }}">Sign-In</a></li>
+                @endauth
+               
             </ul>
         </div>
     </div>
