@@ -41,6 +41,7 @@ $(document).ready(function() {
                 $.each(errors, function (key, value) {
                     $('#' + key).addClass('border-danger is-invalid');
                     $('#' + key + '_error').html('<strong>' + value[0] + '</strong>');
+                    $("#" + key + "_prepend").addClass("border-danger");
                 });
             } else {
                 console.log(data);

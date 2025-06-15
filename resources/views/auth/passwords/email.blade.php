@@ -1,48 +1,42 @@
-@extends('layouts.app')
+@extends('layouts.auth')
 
 @section('content')
-<div class="row align-items-center justify-content-center g-0 min-vh-100">
-    <div class="col-12 col-md-8 col-lg-6 col-xxl-4 py-8 py-xl-0">
+<form id="forgotPasswordForm" method="POST" action="{{ route('password.email') }}">
+    @csrf
 
-        @include('components.toggle-theme')
+    <div class="row mt-0 desktop-mt align-items-center">
 
-        <!-- Card -->
-        <div class="card smooth-shadow-md">
-            <!-- Card body -->
-            <div class="card-body p-5">
-                <div class="mb-4">
-                    <a href="{{ url('/') }}">
-                        @if($companysettings)
-                        <img class="mb-2 text-inverse" src="{{ asset($companysettings->company_logo ?? '') }}" alt="logo" style="width: 130px; height: 100px;">
-                        @else
-                        Logo not found.
-                        @endif
-                    </a>
-                    <p class="mb-6">Don't worry, we'll send you an email to reset your password.</p>
-                </div>
-                <!-- Form -->
-                <form id="forgotPasswordForm" method="POST" action="{{ route('password.email') }}">
-                    @csrf
-
-                    <!-- Email -->
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" id="email" class="form-control" name="email" placeholder="Enter Your Email" value="{{ old('email') }}" autocomplete="email" autofocus />
-                        <span class="invalid-feedback d-block" role="alert" id="email_error"></span>
-                    </div>
-                    <!-- Button -->
-                    <div class="mb-3 d-grid">
-                        <button type="button" class="btn btn-primary" id="forgotAccount">{{ __('Send Password Reset Link') }}</button>
-                    </div>
-                    <span>
-                        Don't have an account?
-                        <a href="{{ route('login') }}">sign in</a>
-                    </span>
-                </form>
-            </div>
+        <div>
+            <h1 class="ml-3">Forgot Password?</h1>
+            <p class="ml-3 mb-5">Don't worry, we'll send you an email to reset your password.</p>
         </div>
+
+        <!-- Email Address -->
+        <div class="input-group col-lg-12 mb-4">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-white px-4 border-md border-right-0" id="email_prepend">
+                    <i class="fa fa-envelope text-muted"></i>
+                </span>
+            </div>
+            <input class="form-control bg-white border-left-0 border-md" type="email" id="email" name="email" value="{{ old('email') }}" autocomplete="email" placeholder="{{ __('Email Address') }}">
+            <span class="invalid-feedback d-block" role="alert" id="email_error"></span>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group col-lg-12 mx-auto mb-0">
+            <button type="button" class="btn btn-primary btn-block py-2" id="forgotAccount">
+                <span class="font-weight-bold">{{ __('Send Password Reset Link') }}</span>
+            </button>
+        </div>
+
+
+        <!-- Already Registered -->
+        <div class="text-center w-100">
+            <p class="text-muted font-weight-bold">Already have an account? <a href="{{ route('login') }}" class="text-primary ml-2">Login</a></p>
+        </div>
+
     </div>
-</div>
+</form>
 @endsection
 
 @push('scripts')

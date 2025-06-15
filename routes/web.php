@@ -22,21 +22,6 @@ Route::get('/', function () {
    return view('pages.welcome', compact('page'));
 })->name('welcome');
 
-Route::get('/shelter-details/{shelter_id}', function ($shelter_id) {
-    $menus = DB::table('frontmenu')->whereNull('deleted_at')->get();
-    $wcus = DB::table('wcu_section')->get();
-    $faqs = DB::table('faqs')->get();
-    $companysettings = DB::table('company_settings')->first();
-    $socialmedias = DB::table('socialmedias')->get();
-    $terms = DB::table('terms_conditions')
-        ->select('content_type', 'content')
-        ->get();
-
-    $shelter =  \App\Models\Shelter::with(['user', 'animals', 'adoptionApplications'])->findOrFail($shelter_id);
-
-    return view('pages.front.shelterdetails', compact('menus', 'wcus', 'faqs', 'companysettings', 'socialmedias', 'terms', 'shelter'));
-})->name('shelter.details');
-
 // routes/web.php
 Route::post('/login/ajax', [App\Http\Controllers\Auth\LoginController::class, 'ajaxLogin']);
 
@@ -47,12 +32,6 @@ Route::post('/verify/code',  [App\Http\Controllers\Auth\VerificationController::
 
 Route::get('/google/redirect', [App\Http\Controllers\GoogleLoginController::class, 'redirectToGoogle'])->name('google.redirect');
 Route::get('/google/callback', [App\Http\Controllers\GoogleLoginController::class, 'handleGoogleCallback'])->name('google.callback');
-
-// Route::get('/adopter/animals', [AdopterController::class, 'showAnimals'])->name('adopter.animals');
-
-
-
-Route::post('/partner-with-us', [App\Http\Controllers\WelcomeController::class, 'partner_store'])->name('partner.store');
 
 Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function () {
     Route::get('home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
@@ -161,5 +140,3 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::post('/adopter-reupload-form', [App\Http\Controllers\Adopter\HomeController::class, 'adopter_reupload_form']);
 });
 
-//place below the Dynamic route for front pages
-Route::get('/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('dynamic.page');

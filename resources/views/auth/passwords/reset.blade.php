@@ -1,63 +1,60 @@
-@extends('layouts.app')
+@extends('layouts.auth')
 
 @section('content')
-<div class="row align-items-center justify-content-center g-0 min-vh-100">
-    <div class="col-12 col-md-8 col-lg-6 col-xxl-4 py-8 py-xl-0">
+<form id="resetPasswordForm" action="{{ route('password.update') }}">
+    @csrf
 
-        @include('components.toggle-theme')
+    <input type="hidden" name="token" value="{{ $token }}">
 
-        <!-- Card -->
-        <div class="card smooth-shadow-md">
-            <!-- Card body -->
-            <div class="card-body p-6">
-                <div class="mb-4">
-                    <a href="{{ url('/') }}">
-                        @if($companysettings)
-                        <img class="mb-2 text-inverse" src="{{ asset($companysettings->company_logo ?? '') }}" alt="logo" style="width: 130px; height: 100px;">
-                        @else
-                        Logo not found.
-                        @endif
-                    </a>
-                    <p class="mb-6">Enter you're new password.</p>
-                </div>
-                <!-- Form -->
-                <form id="resetPasswordForm" action="{{ route('password.update') }}">
+    <div class="row mt-0 desktop-mt">
 
-
-                    <input type="hidden" name="token" value="{{ $token }}">
-
-                    <!-- Email -->
-                    <div class="mb-3">
-                        <label for="email" class="form-label">{{ __('Email') }}</label>
-                        <input type="email" class="form-control" name="email" id="email" value="{{ $email ?? old('email') }}" placeholder="Enter your email" autocomplete="email" autofocus />
-                        <span class="invalid-feedback d-block" role="alert" id="email_error"></span>
-                    </div>
-
-                    <!-- Password -->
-                    <div class="mb-3">
-                        <label for="password" class="form-label">{{ __('Password') }}</label>
-                        <input type="password" class="form-control" name="password" id="password" placeholder="**************" />
-                        <span class="invalid-feedback d-block" role="alert" id="password_error"></span>
-                    </div>
-
-                    <!-- Confirm Password -->
-                    <div class="mb-3">
-                        <label for="password-confirm" class="form-label">{{ __('Confirm Password') }}</label>
-                        <input type="password" class="form-control @error('password') is-invalid @enderror" name="password_confirmation" id="password-confirm" placeholder="**************" />
-                    </div>
-
-                    <div>
-                        <!-- Button -->
-                        <div class="d-grid">
-                            <button type="button" class="btn btn-primary" id="resetAccount">{{ __('Reset Password') }}</button>
-                        </div>
-
-                    </div>
-                </form>
-            </div>
+        <div>
+            <h1 class="ml-3">Reset Password</h1>
+            <p class="ml-3 mb-5">Enter you're new password.</p>
         </div>
+
+        <!-- Email Address -->
+        <div class="input-group col-lg-12 mb-4">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-white px-4 border-md border-right-0" id="email_prepend">
+                    <i class="fa fa-envelope text-muted"></i>
+                </span>
+            </div>
+            <input class="form-control bg-white border-left-0 border-md" name="email" id="email" value="{{ $email ?? old('email') }}" placeholder="{{ __('Email') }}" autocomplete="email" autofocus>
+            <span class="invalid-feedback d-block" role="alert" id="email_error"></span>
+        </div>
+
+        <!-- Password -->
+        <div class="input-group col-lg-12 mb-4">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-white px-4 border-md border-right-0" id="password_prepend">
+                    <i class="fa fa-lock text-muted"></i>
+                </span>
+            </div>
+            <input id="password" type="password" name="password" placeholder="{{ __('Password') }}" class="form-control bg-white border-left-0 border-md">
+            <span class="invalid-feedback d-block" role="alert" id="password_error"></span>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="input-group col-lg-12 mb-4">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-white px-4 border-md border-right-0">
+                    <i class="fa fa-lock text-muted"></i>
+                </span>
+            </div>
+            <input type="password" name="password_confirmation" id="password-confirm" placeholder="{{ __('Confirm Password') }}" class="form-control bg-white border-left-0 border-md">
+            <span class="invalid-feedback d-block" role="alert" id="password_error"></span>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group col-lg-12 mx-auto mb-0">
+            <button type="button" class="btn btn-primary btn-block py-2" id="resetAccount">
+                <span class="font-weight-bold">{{ __('Reset Password') }}</span>
+            </button>
+        </div>
+
     </div>
-</div>
+</form>
 @endsection
 
 @push('scripts')

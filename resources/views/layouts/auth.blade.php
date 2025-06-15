@@ -100,21 +100,22 @@
 <body>
     <!-- Navbar-->
     <header class="header">
-        <nav class="navbar navbar-expand-lg navbar-light py-3">
+        <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container">
                 <!-- Navbar Brand -->
                 <a href="#" class="navbar-brand">
-                    <img src="https://bootstrapious.com/i/snippets/sn-registeration/logo.svg" alt="logo" width="150">
+                    <img src="{{ asset('assets/shop/logo/TantucoCTC_Logo.png') }}" alt="logo" height="100" width="100">
                 </a>
             </div>
         </nav>
     </header>
 
     <div class="container">
-        <div class="row py-5 mt-4 align-items-center">
+        <div class="row align-items-center py-5 ">
             <div class="col-md-5 pr-lg-5 mb-5 mb-md-0">
-                <img src="https://bootstrapious.com/i/snippets/sn-registeration/illustration.svg" alt="hardware shop illustration" class="img-fluid mb-3 d-none d-md-block">
-                <h1>Join TantucoCTC and Access Top-Quality Hardware</h1>
+                <img src="{{ asset('assets/shop/img/tools.png') }}" alt="hardware shop illustration" class="img-fluid mb-3 d-none d-md-block">
+                <h2>Welcome to <b>Tantuco</b><span class="lead">CTC</span></h2>
+                <p>Access Top-Quality Hardware</p>
                 <p class="font-italic text-muted mb-0">Register to explore top-quality hardware tools, parts, and supplies for all your business and DIY needs.</p>
                 <p class="font-italic text-muted">Brought to you by <strong>TantucoCTC</strong></p>
             </div>
@@ -131,6 +132,7 @@
 
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="{{ asset('assets/js/global.js') }}"></script>
 
     <script>
         $(function() {

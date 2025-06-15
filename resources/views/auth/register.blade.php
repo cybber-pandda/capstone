@@ -100,6 +100,7 @@
                 name="cor"
                 accept="application/pdf">
 
+            <span class="invalid-feedback d-block" role="alert" id="cor_error"></span>
         </div>
 
 
@@ -113,7 +114,7 @@
                 id="businesspermit"
                 name="businesspermit"
                 accept="application/pdf">
-
+            <span class="invalid-feedback d-block" role="alert" id="businesspermit_error"></span>
         </div>
 
 
@@ -121,6 +122,7 @@
             <div class="form-check custom-checkbox">
                 <input type="checkbox" class="form-check-input" name="agree" id="agree" />
                 <label class="form-check-label text-muted" for="agree">{{ __('Agree to our Terms and Conditions') }}</label>
+                <span class="invalid-feedback d-block" role="alert" id="agree_error"></span>
             </div>
         </div>
 

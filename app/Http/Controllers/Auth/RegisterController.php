@@ -36,6 +36,7 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'cor' => ['required', 'file', 'mimes:pdf', 'max:5120'], // 5MB limit
             'businesspermit' => ['required', 'file', 'mimes:pdf', 'max:5120'], // 5MB limit
+            'agree' => 'accepted',
         ], [
             'phone_number.required' => 'Phone number is required.',
             'phone_number.regex' => 'Phone number must start with 09 and be exactly 11 digits.',
@@ -43,6 +44,7 @@ class RegisterController extends Controller
             'cor.mimes' => 'COR must be a PDF file.',
             'businesspermit.required' => 'Business Permit is required.',
             'businesspermit.mimes' => 'Business Permit must be a PDF file.',
+            'agree.accepted' => 'The terms and condition must be accepted.'
         ]);
     }
 

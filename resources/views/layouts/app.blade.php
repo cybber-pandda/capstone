@@ -48,7 +48,8 @@
         <script src="{{ asset('assets/shop/js/nouislider.min.js') }}"></script>
         <script src="{{ asset('assets/shop/js/jquery.zoom.min.js') }}"></script>
         <script src="{{ asset('assets/shop/js/main.js') }}"></script>
-         
+        <script src="{{ asset('assets/js/global.js') }}"></script>
+        
         @stack('scripts')
 
     </body>
