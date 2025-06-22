@@ -15,17 +15,20 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->string('profile')->nullable();
             $table->string('username')->unique();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->boolean('force_password_change')->default(false);
+            $table->boolean('created_by_admin')->default(false); 
             $table->enum('role', ['b2b','deliveryrider/admin', 'assistantsales/admin', 'salesofficer/superadmin'])->default('b2b');
             $table->string('otp_code')->nullable();
             $table->timestamp('otp_expire')->nullable();
             $table->rememberToken();
             $table->timestamps();
-            
+            $table->softDeletes();
         });
     }
 

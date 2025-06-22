@@ -255,9 +255,8 @@ $(document).ready(function () {
             cancelButtonText: "Cancel",
             allowOutsideClick: false,
             allowEscapeKey: false,
-            showLoaderOnConfirm: false, // just in case
+            showLoaderOnConfirm: false,
             didOpen: () => {
-                // Ensure no loader class is forced via CSS
                 $(".swal2-confirm").removeClass("swal2-loading");
             },
         }).then((result) => {

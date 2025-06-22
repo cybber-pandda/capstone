@@ -11,17 +11,19 @@ class UserCredentialsNotification extends Notification
 {
     use Queueable;
 
+    protected $name;
     protected $username;
     protected $email;
     protected $password;
-    protected $type;
+    protected $role;
 
-    public function __construct($username, $email, $type, $password = null)
+    public function __construct($name, $username, $email, $role, $password = null)
     {
+        $this->name = $name;
         $this->username = $username;
         $this->email = $email;
-        $this->password = $password; // Password is optional for updates
-        $this->type = $type;
+        $this->password = $password;
+        $this->role = $role;
     }
 
     public function via($notifiable)
@@ -32,19 +34,20 @@ class UserCredentialsNotification extends Notification
     public function toMail($notifiable)
     {
         $message = (new MailMessage)
-            ->subject('Hello! ' . $this->type)
-            ->line("Your Account Credentials")
-            ->line("Username: {$this->username}")
-            ->line("Email: {$this->email}");
+            ->subject('Your TanticoCTC Account Details')
+            ->greeting('Hello ' . $this->name . ',')
+            ->line("Welcome to TanticoCTC! You have been registered as a **{$this->role}**.")
+            ->line('Below are your account credentials:')
+            ->line("• **Username:** {$this->username}")
+            ->line("• **Email:** {$this->email}");
 
         if ($this->password) {
-            $message->line("Password: {$this->password}");
+            $message->line("• **Temporary Password:** {$this->password}");
         }
 
-        $message->line('Please keep your credentials safe.')
-        ->line('Change your password immediately for security purposes.');
+        $message->line('⚠️ For your security, please log in and change your password immediately.')
+            ->line('If you did not expect this email, please contact support.');
 
         return $message;
     }
-
 }

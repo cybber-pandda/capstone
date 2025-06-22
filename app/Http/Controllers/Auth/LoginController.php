@@ -50,6 +50,17 @@ class LoginController extends Controller
         $credentials = $this->credentials($request);
 
         if (Auth::attempt($credentials)) {
+             
+            $user = Auth::user();
+
+            $rolesToForceReset = ['b2b', 'assistantsales/admin', 'deliveryrider/admin'];
+
+            if ($user->force_password_change &&  $user->created_by_admin && in_array($user->role, $rolesToForceReset)) {
+                return response()->json([
+                    'message' => 'Password change required',
+                    //'redirect' => route('password.change.form')
+                ], 200);
+            }
 
             $redirect  = Auth::user()->role === 'b2b' ? '/' : '/home';
             return response()->json(['message' => 'Login successful','redirect' => $redirect], 200);

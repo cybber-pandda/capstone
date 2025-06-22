@@ -22,6 +22,7 @@ class SecureController extends Controller
             'user_report' => resource_path('function/user_report.js'),
             'delivery_report' => resource_path('function/delivery_report.js'),
             'inventory_report' => resource_path('function/inventory_report.js'),
+            'delivery_rider' => resource_path('function/delivery_rider.js'),
            
         ];
 
