@@ -1,0 +1,108 @@
+/* OTP */
+
+.otp-input-fields {
+    margin: auto;
+    /* background-color: white; */
+    max-width: 400px;
+    width: auto;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px;
+}
+
+.otp-input-fields input {
+    height: 40px;
+    width: 40px;
+    background-color: transparent;
+    border-radius: 4px;
+    border: 1px solid lightgray;
+    text-align: center;
+    outline: none;
+    font-size: 16px;
+    /* Firefox */
+}
+
+.otp-input-fields input::-webkit-outer-spin-button,
+.otp-input-fields input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.otp-input-fields input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.otp-input-fields input:focus {
+    border-width: 2px;
+    border-color: #287a1a;
+    font-size: 20px;
+}
+
+/* Loader */
+
+[class*=loader] {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    color: inherit;
+    vertical-align: middle;
+    pointer-events: none;
+}
+
+.loader {
+    border: 0.2em dotted currentcolor;
+    border-radius: 50%;
+    -webkit-animation: 1s loader linear infinite;
+    animation: 1s loader linear infinite;
+}
+
+@-webkit-keyframes loader {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes loader {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+/* Force scroll on modal body */
+.modal-dialog .modal-body {
+    max-height: 600px !important;
+    overflow-x: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 10px;
+    scrollbar-width: thin; /* For Firefox */
+    scrollbar-color: #888 transparent; /* Thumb visible, track transparent */
+}
+
+/* WebKit (Chrome, Safari) Scrollbar Styles */
+.modal-dialog .modal-body::-webkit-scrollbar {
+    width: 6px; /* small scrollbar width */
+    height: 20px; /* horizontal scrollbar height if needed */
+}
+
+.modal-dialog .modal-body::-webkit-scrollbar-track {
+    background: transparent !important; /* hide the track */
+}
+
+.modal-dialog .modal-body::-webkit-scrollbar-thumb {
+    background-color: #888 !important; /* show only the thumb */
+    border-radius: 10px;
+}
+
+.modal-dialog .modal-body::-webkit-scrollbar-thumb:hover {
+    background-color: #555 !important;
+}

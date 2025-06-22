@@ -13,6 +13,7 @@
     <!-- Bootstrap -->
     <link type="text/css" rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link type="text/css" rel="stylesheet" href="{{ asset('assets/css/modified.css') }}" />
 
     <style>
         /*
@@ -111,9 +112,9 @@
     </header>
 
     <div class="container">
-        <div class="row align-items-center py-5 ">
-            <div class="col-md-5 pr-lg-5 mb-5 mb-md-0">
-                <img src="{{ asset('assets/shop/img/tools.png') }}" alt="hardware shop illustration" class="img-fluid mb-3 d-none d-md-block">
+        <div class="row align-items-center py-2 ">
+            <div class="col-md-5 pr-lg-5 mb-2 mb-md-0">
+                <img src="{{ asset('assets/shop/img/tools.webp') }}" alt="hardware shop illustration" class="img-fluid d-none d-md-block mb-0">
                 <h2>Welcome to <b>Tantuco</b><span class="lead">CTC</span></h2>
                 <p>Access Top-Quality Hardware</p>
                 <p class="font-italic text-muted mb-0">Register to explore top-quality hardware tools, parts, and supplies for all your business and DIY needs.</p>

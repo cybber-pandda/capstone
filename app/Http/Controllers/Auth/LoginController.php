@@ -51,7 +51,7 @@ class LoginController extends Controller
 
         if (Auth::attempt($credentials)) {
 
-            $redirect  = Auth::user()->role === 'adopter' ? '/' : '/home';
+            $redirect  = Auth::user()->role === 'b2b' ? '/' : '/home';
             return response()->json(['message' => 'Login successful','redirect' => $redirect], 200);
         }
 

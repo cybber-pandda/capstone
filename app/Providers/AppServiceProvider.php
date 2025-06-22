@@ -17,9 +17,9 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         // Register company settings as a singleton
-        $this->app->singleton('companySettings', function () {
-            return DB::table('company_settings')->first();
-        });
+        // $this->app->singleton('companySettings', function () {
+        //     return DB::table('company_settings')->first();
+        // });
     }
 
     /**
@@ -30,37 +30,37 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         // Share company settings globally
-        $companySettings = app('companySettings');
-        View::share('companySettings', $companySettings);
+        // $companySettings = app('companySettings');
+        // View::share('companySettings', $companySettings);
 
-        // Use a view composer for adopter-specific data
-        View::composer('*', function ($view) {
-            if (Auth::check() && Auth::user()->role === 'adopter') {
-                $user = Auth::user();
+        // // Use a view composer for adopter-specific data
+        // View::composer('*', function ($view) {
+        //     if (Auth::check() && Auth::user()->role === 'adopter') {
+        //         $user = Auth::user();
                 
-                $userAdopter = DB::table('user_details')->where('user_id', $user->id)->first();
+        //         $userAdopter = DB::table('b2b_details')->where('user_id', $user->id)->first();
 
-                if ($userAdopter) {
-                    $adoptionApplicationCount = DB::table('adoption_applications')
-                        ->where('adopter_id', $userAdopter->id)
-                        ->whereIn('status', ['pending', 'rejected'])
-                        ->count();
+        //         // if ($userAdopter) {
+        //         //     $adoptionApplicationCount = DB::table('adoption_applications')
+        //         //         ->where('adopter_id', $userAdopter->id)
+        //         //         ->whereIn('status', ['pending', 'rejected'])
+        //         //         ->count();
 
-                    $adoptedPets = \App\Models\AdoptionApplication::with(['animal', 'adopter'])
-                        ->whereHas('adopter', function ($query) use ($user) {
-                            $query->where('user_id', $user->id)
-                                ->whereNull('deleted_at');
-                        })
-                        ->whereIn('status', ['pending', 'rejected','approved'])
-                        ->orderBy('id', 'DESC')
-                        ->limit(5)
-                        ->get();
+        //         //     $adoptedPets = \App\Models\AdoptionApplication::with(['animal', 'adopter'])
+        //         //         ->whereHas('adopter', function ($query) use ($user) {
+        //         //             $query->where('user_id', $user->id)
+        //         //                 ->whereNull('deleted_at');
+        //         //         })
+        //         //         ->whereIn('status', ['pending', 'rejected','approved'])
+        //         //         ->orderBy('id', 'DESC')
+        //         //         ->limit(5)
+        //         //         ->get();
 
-                    // Share adopter-specific data with views
-                    $view->with('adoptionApplicationCount', $adoptionApplicationCount)
-                         ->with('adoptedPets', $adoptedPets);
-                }
-            }
-        });
+        //         //     // Share adopter-specific data with views
+        //         //     $view->with('adoptionApplicationCount', $adoptionApplicationCount)
+        //         //          ->with('adoptedPets', $adoptedPets);
+        //         // }
+        //     }
+        // });
     }
 }

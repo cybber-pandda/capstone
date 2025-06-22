@@ -18,26 +18,11 @@ class SecureController extends Controller
             'verify' => resource_path('function/verify.js'),
             'company' => resource_path('function/company.js'),
             'account' => resource_path('function/account.js'),
-            'contentmenu' => resource_path('function/contentmenu.js'),
-            'animaltype' => resource_path('function/animaltype.js'),
-            'pets' => resource_path('function/pets.js'),
-            'adopters' => resource_path('function/adopters.js'),
-            'shelters' => resource_path('function/shelters.js'),
-            'mypet' => resource_path('function/mypet.js'),
-            'requirement' => resource_path('function/requirement.js'),
-            'matchingpet' => resource_path('function/matchingpet.js'),
-            'eventsettings' => resource_path('function/eventsettings.js'),
-            'volunteers' => resource_path('function/volunteers.js'),
-            'staff' => resource_path('function/staff.js'),
-            'staffschedule' => resource_path('function/staffschedule.js'),
-            'stafftask' => resource_path('function/stafftask.js'),
-            'expenses' => resource_path('function/expenses.js'),
-            'foodinventory' => resource_path('function/foodinventory.js'),
-            'donations' => resource_path('function/donations.js'),
-            'gcash' => resource_path('function/gcash.js'),
-            'characteristic' => resource_path('function/characteristic.js'),
-            'animalcare' => resource_path('function/animalcare.js'),
-            'adoptedpet' => resource_path('function/adoptedpet.js')
+            'productManagement' => resource_path('function/product_management.js'),
+            'user_report' => resource_path('function/user_report.js'),
+            'delivery_report' => resource_path('function/delivery_report.js'),
+            'inventory_report' => resource_path('function/inventory_report.js'),
+           
         ];
 
         if (!array_key_exists($filename, $jsFiles) || !file_exists($jsFiles[$filename])) {

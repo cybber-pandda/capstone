@@ -16,28 +16,36 @@ class UserSeeder extends Seeder
 
     public function run()
     {
-        // Admin user
+        // Sales Officer
         User::create([
-            'username' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password123'),
-            'role' => 'superadmin',
+            'username' => 'salesofficer',
+            'email' => 'salesofficer@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'salesofficer/superadmin',
         ]);
 
-        // Staff user
+        // Delivery Rider
         User::create([
-            'username' => 'Shelter User',
-            'email' => 'staff@example.com',
-            'password' => Hash::make('password123'),
-            'role' => 'shelterowner/admin',
+            'username' => 'deliveryrider',
+            'email' => 'deliveryrider@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'deliveryrider/admin',
         ]);
 
-        // Adopter user
+        // Assistant Sales Officer
         User::create([
-            'username' => 'Adopter User',
-            'email' => 'adopter@example.com',
-            'password' => Hash::make('password123'),
-            'role' => 'adopter',
+            'username' => 'assistantsales',
+            'email' => 'assistantsales@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'assistantsales/admin',
+        ]);
+
+        // B2B
+        User::create([
+            'username' => 'b2b',
+            'email' => 'b2b@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'b2b',
         ]);
     }
 }

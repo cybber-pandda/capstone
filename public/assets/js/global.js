@@ -1,7 +1,7 @@
 function toast(type, message) {
     const Toast = Swal.mixin({
         toast: true,
-        position: 'bottom-left',
+        position: 'top-right',
         showConfirmButton: false,
         timer: 3000,
         animation: false,
@@ -40,7 +40,6 @@ function clearValidation() {
 
 function clearInput(){
     $('.form-control').val('');
-    tinymce.get('description').setContent('');
 }
 
 function addRow(tableID) {
