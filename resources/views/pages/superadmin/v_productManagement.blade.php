@@ -39,21 +39,16 @@
         <div class="row">
             <div class="col-md-6">
                 @component('components.input', ['label' => 'Product Name', 'type' => 'text', 'name' => 'name', 'attributes' => '' ]) @endcomponent
-                @component('components.input', ['label' => 'Quantity', 'type' => 'number', 'name' => 'quantity', 'attributes' => '' ]) @endcomponent
-                @component('components.select', [
-                'label' => 'Stock Reason',
-                'name' => 'reason',
-                'selected' => '',
-                'options' => ['restock', 'sold', 'returned', 'damaged', 'stock update', 'other'],
-                'attributes' => ''
-                ]) @endcomponent
                 @component('components.input', ['label' => 'Expiry Date', 'type' => 'date', 'name' => 'expiry_date', 'attributes' => '' ]) @endcomponent
                 <button type="button" class="btn btn-sm btn-outline-secondary mb-2" id="clear-expiry">Clear Expiry Date</button>
             </div>
 
-            <div class="col-md-6">
+            <div class="col-md-6 mb-2">
                 @component('components.input', ['label' => 'Price', 'type' => 'number', 'name' => 'price', 'attributes' => '' ]) @endcomponent
-                @component('components.textarea', ['label' => 'Description', 'name' => 'description', 'attributes' => '']) @endcomponent
+                @component('components.textarea', ['label' => 'Description', 'rows' => 4, 'name' => 'description', 'attributes' => '']) @endcomponent
+            </div>
+
+            <div class="col-md-12">
                 @component('components.input', ['label' => 'Images', 'type' => 'file', 'name' => 'images[]', 'attributes' => 'multiple accept=.webp,.jpg,.png' ]) @endcomponent
 
                 <div id="imagePreviewContainer" class="row mt-3"></div>
@@ -83,5 +78,5 @@
 @endsection
 
 @push('scripts')
-<script src="{{ route('secure.js', ['filename' => 'productManagement']) }}"></script>
+<script src="{{ route('secure.js', ['filename' => 'product_management']) }}"></script>
 @endpush

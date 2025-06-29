@@ -22500,9 +22500,9 @@ div.tox .btn-icon-text.btn-lg.tox-button .btn-icon-prepend {
 }
 
 .table td img {
-    width: 36px;
-    height: 36px;
-    border-radius: 100%
+    width: 70px;
+    height: 70px;
+    /* border-radius: 100% */
 }
 
 .timeline {

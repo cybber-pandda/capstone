@@ -53,13 +53,19 @@ $(document).ready(function () {
                 orderable: false,
                 searchable: false,
                 width: "30%",
-                render: function (data, type, row, meta) {
+               render: function (data, type, row, meta) {
                     const chartId = `chart-${meta.row}`;
+
+                    if (!row.inventory_breakdown || row.inventory_breakdown.length === 0) {
+                        return `<span class="text-muted">Oops! No chart data right now.</span>`;
+                    }
+
                     setTimeout(() => {
                         renderPieChart(chartId, row.inventory_breakdown);
-                    }, 100); // delay render after row added
+                    }, 100);
+
                     return `<canvas id="${chartId}" height="100"></canvas>`;
-                },
+                }
             },
         ],
         drawCallback: function () {

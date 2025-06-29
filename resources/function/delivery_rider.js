@@ -97,35 +97,16 @@ $(document).ready(function () {
             '<input type="hidden" name="_method" value="PUT">'
         );
 
-        //     $.get(`/delivery-rider-creation/${deliveryRiderId}/edit`, function (response) {
-        //         $('#deliveryRiderForm input[name="name"]').val(response.product.name);
-        //         $('#deliveryRiderForm input[name="price"]').val(response.product.price);
-        //         $('#deliveryRiderForm input[name="expiry_date"]').val(
-        //             response.product.expiry_date
-        //         );
-        //         $('#deliveryRiderForm textarea[name="description"]').val(
-        //             response.product.description
-        //         );
-        //         $('#deliveryRiderForm input[name="quantity"]').val(response.quantity);
-        //         $('#deliveryRiderForm select[name="reason"]').val(response.reason);
-
-        //         imagePreview.empty();
-        //         response.images.forEach((img) => {
-        //             imagePreview.append(`
-        //     <div class="col-md-3 text-center">
-        //         <img src="/${
-        //             img.image_path
-        //         }" class="img-thumbnail mb-1" style="max-width: 100%;">
-        //         <div class="form-check">
-        //             <input class="form-check-input" type="radio" name="main_image_radio" value="${
-        //                 img.id
-        //             }" ${img.is_main ? "checked" : ""}>
-        //             <label class="form-check-label">Main</label>
-        //         </div>
-        //     </div>
-        // `);
-        //         });
-        //     });
+        $.get(`/delivery-rider-creation/${deliveryRiderId}/edit`,
+            function (response) {
+                const fullname = response.data.name.split(' ');
+                $('#deliveryRiderForm input[name="firstname"]').val(fullname[0]);
+                $('#deliveryRiderForm input[name="lastname"]').val(fullname[1]);
+                $('#deliveryRiderForm input[name="username"]').val(response.data.username);
+                $('#deliveryRiderForm input[name="email"]').val(response.data.email);
+                $('#deliveryRiderForm input[name="password"]').val('');
+            }
+        );
     });
 
     $(document).on("click", ".delete", function () {

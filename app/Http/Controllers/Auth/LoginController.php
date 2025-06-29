@@ -50,7 +50,7 @@ class LoginController extends Controller
         $credentials = $this->credentials($request);
 
         if (Auth::attempt($credentials)) {
-             
+
             $user = Auth::user();
 
             $rolesToForceReset = ['b2b', 'assistantsales/admin', 'deliveryrider/admin'];
@@ -63,7 +63,7 @@ class LoginController extends Controller
             }
 
             $redirect  = Auth::user()->role === 'b2b' ? '/' : '/home';
-            return response()->json(['message' => 'Login successful','redirect' => $redirect], 200);
+            return response()->json(['message' => 'Login successful', 'redirect' => $redirect], 200);
         }
 
         return response()->json(['errors' => ['password' => ['Invalid credentials']]], 422);
@@ -81,7 +81,7 @@ class LoginController extends Controller
 
         // Determine if the identifier is an email or a username
         $field = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
-        
+
         return [
             $field => $identifier,
             'password' => $request->input('password'),
@@ -101,6 +101,8 @@ class LoginController extends Controller
         if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && $user->email_verified_at === null) {
             $user->sendEmailVerificationNotification();
         }
+
+        session()->flash('checkCart', true);
     }
 
     public function username()

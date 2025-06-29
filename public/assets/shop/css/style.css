@@ -416,10 +416,22 @@ textarea.input {
   background-color: #1E1F29;
 }
 
+.header-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
 .header-links li {
   display: inline-block;
   margin-right: 15px;
   font-size: 12px;
+  white-space: normal;       /* allow wrapping */
+  word-break: break-word;    /* break long words/URLs */
+  max-width: 100%;           /* ensure fits in container */
 }
 
 .header-links li:last-child {
@@ -428,6 +440,7 @@ textarea.input {
 
 .header-links li a {
   color: #FFF;
+  display: inline-block;     /* ensure text behaves well */
 }
 
 .header-links li a:hover {
@@ -437,6 +450,19 @@ textarea.input {
 .header-links li i {
   color: #D10024;
   margin-right: 5px;
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .header-links {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-links li {
+    width: 100%;             /* full width for long text */
+    margin-right: 0;         /* avoid overflow */
+  }
 }
 
 /*----------------------------*\
@@ -457,36 +483,53 @@ textarea.input {
   display: block;
 }
 
-/*----------------------------*\
-	Search
-\*----------------------------*/
-
 .header-search {
   padding: 15px 0px;
 }
 
 .header-search form {
-  position: relative;
-}
-
-.header-search form .input-select {
-  margin-right: -4px;
-  border-radius: 40px 0px 0px 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  gap: 0;
 }
 
 .header-search form .input {
-  width: calc(100% - 260px);
-  margin-right: -4px;
+  flex: 1;
+  min-width: 0;
+  padding: 10px 15px;
+  border-radius: 40px 0 0 40px;
+  border: 1px solid #ccc;
 }
 
 .header-search form .search-btn {
-  height: 40px;
   width: 100px;
+  height: 40px;
   background: #D10024;
   color: #FFF;
   font-weight: 700;
   border: none;
-  border-radius: 0px 40px 40px 0px;
+  border-radius: 0 40px 40px 0;
+  white-space: nowrap;
+}
+
+/* Mobile adjustment */
+@media (max-width: 768px) {
+  .header-search form {
+    flex-wrap: nowrap;
+  }
+
+  .header-search form .input {
+    width: calc(100% - 100px); /* 100px is the width of the button */
+    border-radius: 40px 0 0 40px;
+  }
+
+  .header-search form .search-btn {
+    width: 100px;
+    border-radius: 0 40px 40px 0;
+  }
 }
 
 /*----------------------------*\
@@ -2187,4 +2230,56 @@ textarea.input {
     float: none;
     margin-top: 10px;
   }
+}
+
+/* Mobile-first: Stack pagination buttons */
+.pagination-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Common styling for pagination links and spans */
+.pagination-wrapper a,
+.pagination-wrapper span {
+    display: inline-block;
+    width: 100%; /* Full width on mobile */
+    max-width: 300px;
+    padding: 8px 16px;
+    font-size: 14px;
+    color: #333;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center;
+}
+
+/* Disabled state styling */
+.pagination-wrapper span[aria-disabled="true"],
+.pagination-wrapper span:not([href]) {
+    color: #999;
+    background-color: #f9f9f9;
+    cursor: not-allowed;
+}
+
+/* Hover effect */
+.pagination-wrapper a:hover {
+    background-color: #e6e6e6;
+    text-decoration: none;
+}
+
+/* Desktop view: inline pagination */
+@media (min-width: 768px) {
+    .pagination-wrapper {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .pagination-wrapper a,
+    .pagination-wrapper span {
+        width: auto;
+        margin: 2px;
+    }
 }

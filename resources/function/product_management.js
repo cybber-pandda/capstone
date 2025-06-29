@@ -95,30 +95,24 @@ $(document).ready(function () {
         $.get(`/product-management/${productId}/edit`, function (response) {
             $('#productForm input[name="name"]').val(response.product.name);
             $('#productForm input[name="price"]').val(response.product.price);
-            $('#productForm input[name="expiry_date"]').val(
-                response.product.expiry_date
-            );
-            $('#productForm textarea[name="description"]').val(
-                response.product.description
-            );
-            $('#productForm input[name="quantity"]').val(response.quantity);
-            $('#productForm select[name="reason"]').val(response.reason);
+            $('#productForm input[name="expiry_date"]').val(response.product.expiry_date);
+            $('#productForm textarea[name="description"]').val(response.product.description);
 
             imagePreview.empty();
             response.images.forEach((img) => {
-                imagePreview.append(`
-        <div class="col-md-3 text-center">
-            <img src="/${
-                img.image_path
-            }" class="img-thumbnail mb-1" style="max-width: 100%;">
-            <div class="form-check">
-                <input class="form-check-input" type="radio" name="main_image_radio" value="${
-                    img.id
-                }" ${img.is_main ? "checked" : ""}>
-                <label class="form-check-label">Main</label>
-            </div>
-        </div>
-    `);
+            imagePreview.append(`
+                    <div class="col-md-3 text-center">
+                        <img src="/${
+                            img.image_path
+                        }" class="img-thumbnail mb-1" style="max-width: 100%;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="main_image_radio" value="${
+                                img.id
+                            }" ${img.is_main ? "checked" : ""}>
+                            <label class="form-check-label">Main</label>
+                        </div>
+                    </div>
+                `);
             });
         });
     });

@@ -3,9 +3,11 @@
     <!-- top footer -->
     <div class="section">
         <!-- container -->
-        <div class="container">
+        <div class="container-fluid">
+
+         <div style="overflow:hidden;max-width:100%;width:100%;height:300px;"><div id="embedded-map-display" style="height:100%; width:100%;max-width:100%;"><iframe style="height:100%;width:100%;border:0;" frameborder="0" src="https://www.google.com/maps/embed/v1/place?q=National+Highway,+Barangay+Balubal,+Sariaya,+4322,+Quezon+Province,+Philippines&key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8"></iframe></div><a class="google-map-html" href="https://www.bootstrapskins.com/themes" id="auth-map-data">premium bootstrap themes</a><style>#embedded-map-display img{max-width:none!important;background:none!important;font-size: inherit;font-weight:inherit;}</style></div>
             <!-- row -->
-            <div class="row">
+            <!-- <div class="row">
                 <div class="col-md-3 col-xs-6">
                     <div class="footer">
                         <h3 class="footer-title">About Us</h3>
@@ -58,7 +60,7 @@
                         </ul>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <!-- /row -->
         </div>
         <!-- /container -->
@@ -71,19 +73,20 @@
             <!-- row -->
             <div class="row">
                 <div class="col-md-12 text-center">
-                    <ul class="footer-payments">
-                        <li><a href="#"><i class="fa fa-cc-visa"></i></a></li>
+                    <ul class="footer-payments p-0">
+                        <li> <img src="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}" width="200"></li>
+                        <!-- <li><a href="#"><i class="fa fa-cc-visa"></i></a></li>
                         <li><a href="#"><i class="fa fa-credit-card"></i></a></li>
                         <li><a href="#"><i class="fa fa-cc-paypal"></i></a></li>
                         <li><a href="#"><i class="fa fa-cc-mastercard"></i></a></li>
                         <li><a href="#"><i class="fa fa-cc-discover"></i></a></li>
-                        <li><a href="#"><i class="fa fa-cc-amex"></i></a></li>
+                        <li><a href="#"><i class="fa fa-cc-amex"></i></a></li> -->
                     </ul>
                     <span class="copyright">
                         <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
                         Copyright &copy;<script>
                             document.write(new Date().getFullYear());
-                        </script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+                        </script> All rights reserved | TantucoCTC
                         <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
                     </span>
                 </div>

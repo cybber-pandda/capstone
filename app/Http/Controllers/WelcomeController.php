@@ -7,38 +7,50 @@ use App\Models\Shelter;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use App\Models\Category;
+use App\Models\Product;
+
 class WelcomeController extends Controller
 {
-    public function partner_store(Request $request)
+    public function index(Request $request)
     {
-        
-        // Validate input data
-        $validated = $request->validate([
-            'partnerFullname' => 'required|string|max:255',
-            'partnerUsername' => 'required|string|max:255|unique:users,username',
-            'partnerEmail' => 'required|email|max:255|unique:users,email',
-            'partnerPhonenumber' => ['required', 'regex:/^09\d{9}$/'],
-        ]);
+        $page = "Welcome to TantucoCTC Hardware";
 
+        $categories = Category::select(['id', 'name', 'image', 'description'])->get();
 
-        $user = User::create([
-            'username' => $validated['partnerUsername'],
-            'email' =>  $validated['partnerEmail'],
-            'role' => 'shelterowner/admin'
-        ]);
+        $products = Product::with('category', 'productImages')
+            ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'created_at', 'expiry_date']);
 
-
-        if ($user) {
-            Shelter::create([
-                'user_id' => $user->id,
-                'owner_name' => $validated['partnerFullname'],
-                'owner_phone' => $validated['partnerPhonenumber']
-            ]);
-
+        if ($request->filled('search')) {
+            $products->where('name', 'like', '%' . $request->search . '%');
         }
 
+        if ($request->filled('category_id')) {
+            $products->where('category_id', $request->category_id);
+        }
+
+        $data = $products->paginate(8);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'html' => view('components.product-list', compact('data'))->render()
+            ]);
+        }
+
+        return view('pages.welcome', compact('page', 'categories', 'data'));
+    }
+
+    public function show($id)
+    {
+        $product = Product::with('category', 'productImages')->findOrFail($id);
+
         return response()->json([
-            'message' => 'Thank you! Your request has been submitted successfully.',
+            'id' => $product->id,
+            'name' => $product->name,
+            'price' => $product->price,
+            'description' => $product->description,
+            'category_name' => $product->category->name ?? null,
+            'image' => $product->productImages->first()->image_path ?? null,
         ]);
     }
 }

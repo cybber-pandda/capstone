@@ -26,6 +26,12 @@
                     <span class="link-title">Product Management</span>
                 </a>
             </li>
+             <li class="nav-item {{ Route::is('inventory') ? 'active' : '' }}">
+                <a href="{{ route('inventory') }}" class="nav-link">
+                    <i class="link-icon" data-lucide="message-square"></i>
+                    <span class="link-title">Inventory Management</span>
+                </a>
+            </li>
             <li class="nav-item {{ Route::is('user-management.*') ? 'active' : '' }}">
                 <a href="{{ route('user-management.index') }}" class="nav-link">
                     <i class="link-icon" data-lucide="users"></i>

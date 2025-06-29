@@ -15,10 +15,8 @@ use Illuminate\Support\Facades\DB;
 |
 */
 
-Route::get('/', function () {
-    $page = "Welcome to TantucoCTC Hardware";
-    return view('pages.welcome', compact('page'));
-})->name('welcome');
+Route::get('/', [App\Http\Controllers\WelcomeController::class, 'index'])->name('welcome');
+Route::get('/products/{id}', [App\Http\Controllers\WelcomeController::class, 'show']);
 
 // routes/web.php
 Route::post('/login/ajax', [App\Http\Controllers\Auth\LoginController::class, 'ajaxLogin']);
@@ -39,6 +37,8 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     /* SUPERADMIN */
     Route::resource('product-management', App\Http\Controllers\Superadmin\ProductManagementController::class);
     Route::resource('user-management', App\Http\Controllers\Superadmin\UserManagementController::class);
+    Route::get('inventory-management', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'index'])->name('inventory');
+    Route::post('inventory-management', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'store'])->name('inventory.store');
     
     Route::resource('b2b-creation', App\Http\Controllers\Superadmin\B2BController::class);
     Route::resource('delivery-rider-creation', App\Http\Controllers\Superadmin\DeliveryRiderController::class);

@@ -7,6 +7,9 @@ use App\Models\b2bDetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
+use App\Models\Category;
+use App\Models\Product;
+
 class HomeController extends Controller
 {
     /**
@@ -24,20 +27,48 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function index()
+    public function index(Request $request)
     {
         $page = 'TantucoCTC';
         $user = User::getCurrentUser();
+        $categories = null;
+        $data = null;
 
-        $view = match ($user->role) {
+        $role = $user->role ?? null;
+
+        $view = match ($role) {
             'b2b' => 'pages.b2b.index',
             'deliveryrider/admin', 'assistantsales/admin' => 'pages.admin.index',
             'salesofficer/superadmin' => 'pages.superadmin.index',
-            default => abort(404, 'Page not found.'),
+            default => 'pages.welcome', // fallback for guests or unknown roles
         };
 
-        return view($view, compact('page'));
+        if ($role === 'b2b') {
+            $categories = Category::select(['id', 'name', 'image', 'description'])->get();
+
+            $products = Product::with('category', 'productImages')
+                ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'created_at', 'expiry_date']);
+
+            if ($request->filled('search')) {
+                $products->where('name', 'like', '%' . $request->search . '%');
+            }
+
+            if ($request->filled('category_id')) {
+                $products->where('category_id', $request->category_id);
+            }
+
+            $data = $products->paginate(8);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'html' => view('components.product-list', compact('data'))->render()
+                ]);
+            }
+        }
+
+        return view($view, compact('page', 'categories', 'data'));
     }
+
 
 
     public function b2b_details_form(Request $request)

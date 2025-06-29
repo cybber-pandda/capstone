@@ -13,12 +13,18 @@ class Product extends Model
     protected $table = 'products';
 
     protected $fillable = [
+        'category_id',
         'name',
         'sku',
         'description',
         'price',
         'expiry_date'
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
     public function productImages()
     {
