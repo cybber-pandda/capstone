@@ -82,9 +82,6 @@ $(document).ready(function () {
             data: formData,
             contentType: false,
             processData: false,
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            },
             success: function (response) {
                 hideLoader(".saveInventory");
                 $("#inventoryMangementForm")[0].reset();

@@ -1,7 +1,7 @@
 <!-- FOOTER -->
 <footer id="footer">
     <!-- top footer -->
-    <div class="section">
+    <div class="section address-map-view">
         <!-- container -->
         <div class="container-fluid">
 
@@ -74,7 +74,6 @@
             <div class="row">
                 <div class="col-md-12 text-center">
                     <ul class="footer-payments p-0">
-                        <li> <img src="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}" width="200"></li>
                         <!-- <li><a href="#"><i class="fa fa-cc-visa"></i></a></li>
                         <li><a href="#"><i class="fa fa-credit-card"></i></a></li>
                         <li><a href="#"><i class="fa fa-cc-paypal"></i></a></li>

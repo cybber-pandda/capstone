@@ -70,7 +70,7 @@
     @component('components.modal', ['id' => 'viewProductModal', 'size' => 'lg', 'scrollable' => true])
     <div id="productDetails"></div>
     @slot('footer')
-    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-inverse-secondary" data-bs-dismiss="modal">Close</button>
     @endslot
     @endcomponent
 

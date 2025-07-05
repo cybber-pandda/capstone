@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Superadmin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class AccountSalesOfficerController extends Controller
+class SalesOfficerController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,8 +14,8 @@ class AccountSalesOfficerController extends Controller
      */
     public function index()
     {
-        return view('pages.superadmin.v_accountSalesOfficer', [
-            'page' => 'Account Sales Officer',
+        return view('pages.superadmin.v_salesOfficer', [
+            'page' => 'Sales Officer',
             'pageCategory' => 'Account Creation',
         ]);
     }

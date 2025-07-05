@@ -23,7 +23,7 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->boolean('force_password_change')->default(false);
             $table->boolean('created_by_admin')->default(false); 
-            $table->enum('role', ['b2b','deliveryrider/admin', 'assistantsales/admin', 'salesofficer/superadmin'])->default('b2b');
+            $table->enum('role', ['b2b','deliveryrider', 'salesofficer', 'superadmin'])->default('b2b');
             $table->string('otp_code')->nullable();
             $table->timestamp('otp_expire')->nullable();
             $table->rememberToken();

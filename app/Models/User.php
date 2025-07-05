@@ -56,17 +56,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return auth()->user();
     }
 
-
-    public function adopter()
-    {
-        return $this->hasOne(Adopter::class, 'user_id');
-    }
-
-    public function shelter()
-    {
-        return $this->hasOne(Shelter::class, 'user_id');
-    }
-
     public function sendEmailVerificationNotification()
     {    
 
@@ -90,10 +79,4 @@ class User extends Authenticatable implements MustVerifyEmail
         // Send the OTP notification
         $this->notify(new OTPVerifyEmail($otpCode));
     }
-
-    public function userDetails()
-    {
-        return $this->hasOne(UserDetails::class, 'user_id');
-    }
-
 }

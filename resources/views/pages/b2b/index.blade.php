@@ -29,7 +29,7 @@
 <!-- /SECTION -->
 
 <!-- SECTION -->
-<div class="section">
+<div class="section section-scrollable">
     <div class="container">
         <div class="section-title" style="display: none;">
             <h3 class="title">Tantuco CTC</h3>
@@ -85,6 +85,7 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+
         let selectedCategory = '';
         let searchQuery = '';
 
@@ -105,7 +106,8 @@
             });
         }
 
-        $('#search-btn').on('click', function() {
+        $(document).on('click', '#search-btn', function(e) {
+            e.preventDefault();
             searchQuery = $('#search_value').val();
             fetchProducts();
         });
@@ -131,11 +133,11 @@
             fetchProducts(url);
         });
 
-        $('.quick-view').click(function() {
+        $(document).on('click', '.quick-view', function() {
             var productId = $(this).data('id');
 
             $.ajax({
-                url: '/products/' + productId, // your endpoint (see controller below)
+                url: '/b2b/products/' + productId, // your endpoint (see controller below)
                 type: 'GET',
                 success: function(product) {
                     $('#modal-title').text(product.name);
@@ -150,6 +152,76 @@
                 }
             });
         });
+
+        $(document).on('click', '.purchase-request-btn', function(e) {
+            e.preventDefault();
+
+            const productId = $(this).data('id');
+            const $quantityInput = $(`#qty-${productId}`);
+            const quantity = $quantityInput.val();
+
+            if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
+                alert('Please enter a valid quantity greater than 0.');
+                return;
+            }
+
+            $.ajax({
+                url: '/b2b/purchase-requests/store',
+                method: 'POST',
+                data: {
+                    product_id: productId,
+                    quantity: quantity
+                },
+                success: function(response) {
+                    toast('success', response.message);
+                    $quantityInput.val('');
+
+                    window.purchaseRequestCart = {
+                        items: response.items,
+                        total_quantity: response.total_quantity,
+                        subtotal: response.subtotal
+                    };
+
+                    updateCartDropdown();
+
+                    const count = response.pending_count;
+                    const $counter = $('#purchase-request-count');
+
+                    if (count > 0) {
+                        $counter.text(count).removeClass('d-none');
+                    } else {
+                        $counter.text('0').addClass('d-none');
+                    }
+                },
+                error: function(xhr) {
+                    toast('error', 'Something went wrong.');
+                }
+            });
+
+        });
+
+        $(document).on('click', '.delete-purchase-request', function() {
+
+            alert('test')
+            const itemId = $(this).data('id');
+
+            $.ajax({
+                url: `/b2b/purchase-requests/items/${itemId}`,
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    toast('success', response.message);
+                    updateCartDropdown();
+                },
+                error: function(xhr) {
+                    toast('error', 'Failed to delete item.');
+                }
+            });
+        });
+
+
     });
 </script>
 @endpush

@@ -16,9 +16,18 @@ class CreateB2bAddressTable extends Migration
         Schema::create('b2b_address', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->text('delivery_address');
+
+            $table->string('street')->nullable();
+            $table->string('barangay')->nullable();
+            $table->string('city')->nullable();
+            $table->string('province')->nullable();
+            $table->string('zip_code')->nullable();
+
+            $table->text('full_address')->nullable();
+
             $table->decimal('delivery_address_lat', 10, 7)->nullable();
             $table->decimal('delivery_address_lng', 10, 7)->nullable();
+
             $table->enum('status', ['inactive', 'active'])->default('inactive');
             $table->timestamps();
         });

@@ -1,3 +1,4 @@
+@if(!empty($data) && count($data) > 0)
 @foreach ($data as $product)
 <div class="col-md-3 col-sm-6 mb-4">
     <div class="product">
@@ -21,15 +22,18 @@
             <h4 class="product-price">₱{{ number_format($product->price, 2) }}</h4>
             <div class="product-btns">
                 <!-- <button class="add-to-wishlist"><i class="fa fa-heart-o"></i></button>
-                <button class="add-to-compare"><i class="fa fa-exchange"></i></button> -->
+                    <button class="add-to-compare"><i class="fa fa-exchange"></i></button> -->
                 <button class="quick-view" data-toggle="modal" data-target="#productModal" data-id="{{ $product->id }}"><i class="fa fa-eye"></i></button>
             </div>
+
+            <input type="number" id="qty-{{ $product->id }}" class="qty-input form-control" placeholder="Enter purchase qty.">
+
         </div>
         <div class="add-to-cart">
             @auth
-            <button class="add-to-cart-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> add to cart</button>
+            <button class="add-to-cart-btn purchase-request-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
             @else
-            <button class="add-to-cart-btn guest-cart-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> add to cart</button>
+            <button class="add-to-cart-btn guest-purchase-request-btn-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
             @endauth
         </div>
     </div>
@@ -44,3 +48,9 @@
         </div>
     </div>
 </div>
+
+@else
+<div class="col-12 text-center">
+    <p>No products available.</p>
+</div>
+@endif

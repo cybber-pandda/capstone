@@ -33,9 +33,6 @@ class LoginController extends Controller
 
     public function ajaxLogin(Request $request)
     {
-        // Log request data
-        Log::info('Login request data:', $request->all());
-
         // Validate the input
         $validator = Validator::make($request->all(), [
             'identifier' => 'required|string',
@@ -53,7 +50,7 @@ class LoginController extends Controller
 
             $user = Auth::user();
 
-            $rolesToForceReset = ['b2b', 'assistantsales/admin', 'deliveryrider/admin'];
+            $rolesToForceReset = ['b2b', 'salesofficer', 'deliveryrider'];
 
             if ($user->force_password_change &&  $user->created_by_admin && in_array($user->role, $rolesToForceReset)) {
                 return response()->json([

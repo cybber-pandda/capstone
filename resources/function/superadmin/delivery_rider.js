@@ -27,7 +27,7 @@ $(document).ready(function () {
         scrollCollapse: true,
         scrollX: true,
         scrollY: 600,
-        ajax: "/delivery-rider-creation",
+        ajax: "/deliveryrider-creation",
         autoWidth: false,
         columns: [
             {
@@ -89,7 +89,7 @@ $(document).ready(function () {
         $("#deliveryRiderModal").modal("show");
         $("#deliveryRiderForm").attr(
             "action",
-            `/delivery-rider-creation/${deliveryRiderId}`
+            `/deliveryrider-creation/${deliveryRiderId}`
         );
         $("#deliveryRiderForm").attr("method", "POST");
         $("#deliveryRiderForm").find('input[name="_method"]').remove();
@@ -97,7 +97,7 @@ $(document).ready(function () {
             '<input type="hidden" name="_method" value="PUT">'
         );
 
-        $.get(`/delivery-rider-creation/${deliveryRiderId}/edit`,
+        $.get(`/deliveryrider-creation/${deliveryRiderId}/edit`,
             function (response) {
                 const fullname = response.data.name.split(' ');
                 $('#deliveryRiderForm input[name="firstname"]').val(fullname[0]);
@@ -156,9 +156,6 @@ $(document).ready(function () {
             data: formData,
             contentType: false,
             processData: false,
-            headers: {
-                "X-CSRF-TOKEN": $('meta[name="csrf-token"]').attr("content"),
-            },
             success: function (response) {
                 hideLoader(".saveDeliveryRider");
                 $("#deliveryRiderForm")[0].reset();
@@ -191,7 +188,7 @@ $(document).ready(function () {
     function removeDeliveryRider(id) {
         $.ajax({
             type: "DELETE",
-            url: `/delivery-rider-creation/${id}`,
+            url: `/deliveryrider-creation/${id}`,
             dataType: "json",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader(

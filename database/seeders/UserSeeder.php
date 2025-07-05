@@ -18,11 +18,11 @@ class UserSeeder extends Seeder
     {
         // Sales Officer
         User::create([
-            'name' => 'John SalesOfficer',
-            'username' => 'salesofficer',
-            'email' => 'salesofficer@example.com',
+            'name' => 'John Superadmin',
+            'username' => 'superadmin',
+            'email' => 'superadmin@example.com',
             'password' => Hash::make('password'),
-            'role' => 'salesofficer/superadmin',
+            'role' => 'superadmin',
         ]);
 
         // Delivery Rider
@@ -31,16 +31,16 @@ class UserSeeder extends Seeder
             'username' => 'deliveryrider',
             'email' => 'deliveryrider@example.com',
             'password' => Hash::make('password'),
-            'role' => 'deliveryrider/admin',
+            'role' => 'deliveryrider',
         ]);
 
         // Assistant Sales Officer
         User::create([
-            'name' => 'John AssistantSales',
-            'username' => 'assistantsales',
-            'email' => 'assistantsales@example.com',
+            'name' => 'John SalesOfficer',
+            'username' => 'salesofficer',
+            'email' => 'salesofficer@example.com',
             'password' => Hash::make('password'),
-            'role' => 'assistantsales/admin',
+            'role' => 'salesofficer',
         ]);
 
         // B2B

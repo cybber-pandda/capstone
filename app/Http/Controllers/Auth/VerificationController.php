@@ -80,8 +80,8 @@ class VerificationController extends Controller
 
     // Mark the user as verified
     $user->email_verified_at = now();
-    $user->otp_code = null; // Clear OTP code
-    $user->otp_expire = null; // Clear OTP expiration
+    //$user->otp_code = null; // Clear OTP code
+   // $user->otp_expire = null; // Clear OTP expiration
     $user->save(); 
      
     $redirect  = Auth::user()->role === 'adopter' ? route('welcome') : route('home');

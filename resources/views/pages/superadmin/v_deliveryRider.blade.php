@@ -35,7 +35,7 @@
     </div>
 
     @component('components.modal', ['id' => 'deliveryRiderModal', 'size' => '', 'scrollable' => true])
-    <form id="deliveryRiderForm" action="{{ route('delivery-rider-creation.store') }}" method="POST">
+    <form id="deliveryRiderForm" action="{{ route('deliveryrider-creation.store') }}" method="POST">
 
         @component('components.input', ['label' => 'First Name', 'type' => 'text', 'name' => 'firstname', 'attributes' => '' ]) @endcomponent
         @component('components.input', ['label' => 'Last Name', 'type' => 'text', 'name' => 'lastname', 'attributes' => '' ]) @endcomponent

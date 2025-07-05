@@ -29,7 +29,7 @@
 <!-- /SECTION -->
 
 <!-- SECTION -->
-<div class="section">
+<div class="section section-scrollable">
     <div class="container">
         <div class="section-title">
             <h3 class="title">Tantuco CTC</h3>
@@ -105,7 +105,8 @@
             });
         }
 
-        $('#search-btn').on('click', function() {
+        $(document).on('click', '#search-btn', function(e) {
+            e.preventDefault();
             searchQuery = $('#search_value').val();
             fetchProducts();
         });
@@ -125,7 +126,7 @@
             fetchProducts(url);
         });
 
-        $('.quick-view').click(function() {
+        $(document).on('click', '.quick-view', function() {
             var productId = $(this).data('id');
 
             $.ajax({
@@ -145,7 +146,7 @@
             });
         });
 
-        $(document).on('click', '.guest-cart-btn', function(e) {
+        $(document).on('click', '.guest-purchase-request-btn', function(e) {
             e.preventDefault();
             const productId = $(this).data('id');
 

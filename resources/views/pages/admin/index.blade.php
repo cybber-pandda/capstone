@@ -5,9 +5,17 @@
 
     <div class="d-flex justify-content-between align-items-center flex-wrap grid-margin">
         <div>
-            <h4 class="mb-3 mb-md-0">Welcome to Dashboard</h4>
+            <h4 class="mb-3 mb-md-0">Welcome
+                @if(Auth::user()->role === 'assistantsales/admin')
+                Assistant Sales Offcer
+                @elseif(Auth::user()->role === 'deliveryrider/admin')
+                Delivery Rider
+                @else
+                Anonymous
+                @endif
+            </h4>
         </div>
-        <div class="d-flex align-items-center flex-wrap text-nowrap">
+        <!-- <div class="d-flex align-items-center flex-wrap text-nowrap">
             <div class="input-group flatpickr w-200px me-2 mb-2 mb-md-0" id="dashboardDate">
                 <span class="input-group-text input-group-addon bg-transparent border-primary" data-toggle><i data-lucide="calendar" class="text-primary"></i></span>
                 <input type="text" class="form-control bg-transparent border-primary" placeholder="Select date" data-input>
@@ -20,7 +28,7 @@
                 <i class="btn-icon-prepend" data-lucide="download-cloud"></i>
                 Download Report
             </button>
-        </div>
+        </div> -->
     </div>
 
     <div class="row">
@@ -135,7 +143,7 @@
         </div>
     </div> <!-- row -->
 
-    <div class="row">
+    <!-- <div class="row">
         <div class="col-12 col-xl-12 grid-margin stretch-card">
             <div class="card overflow-hidden">
                 <div class="card-body">
@@ -171,7 +179,8 @@
                 </div>
             </div>
         </div>
-    </div> <!-- row -->
+    </div> -->
+    <!-- row -->
 
     <div class="row">
         <div class="col-lg-7 col-xl-8 grid-margin stretch-card">
@@ -238,7 +247,7 @@
         </div>
     </div> <!-- row -->
 
-    <div class="row">
+    <!-- <div class="row">
         <div class="col-lg-5 col-xl-4 grid-margin grid-margin-lg-0 stretch-card">
             <div class="card">
                 <div class="card-body">
@@ -416,7 +425,8 @@
                 </div>
             </div>
         </div>
-    </div> <!-- row -->
+    </div>  -->
+    <!-- row -->
 
 </div>
 @endsection

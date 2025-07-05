@@ -26,7 +26,7 @@
     <link rel="shortcut icon" href="{{ asset('assets/dashboard/images/favicon.png') }}" />
 
     @auth
-    @if(Auth::user()->role === 'salesofficer/superadmin' )
+    @if(Auth::user()->role === 'superadmin' )
     <link rel="stylesheet" href="{{ asset('assets/dashboard/css/vertical.css') }}">
     @else
     <link rel="stylesheet" href="{{ asset('assets/dashboard/css/horizontal.css') }}">
@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="{{ asset('assets/dashboard/vendors/sweetalert2/sweetalert2.min.css') }}">
 
     <link type="text/css" rel="stylesheet" href="{{ asset('assets/css/modified.css') }}" />
-
+    
     <style>
         td.dt-left-int,
         th.dt-left-int {
@@ -72,7 +72,7 @@
     <div class="main-wrapper">
         @auth
         @php
-        $isSuperAdmin = Auth::user()->role === 'salesofficer/superadmin';
+        $isSuperAdmin = Auth::user()->role === 'superadmin';
         @endphp
 
         @if($isSuperAdmin)
@@ -108,11 +108,20 @@
     <script src="{{ asset('assets/dashboard/vendors/sweetalert2/sweetalert2.min.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
 
     <script src="{{ asset('assets/js/global.js') }}"></script>
     <script src="{{ asset('assets/dashboard/js/app.js') }}"></script>
     <script src="{{ asset('assets/dashboard/js/dashboard.js') }}"></script>
-
+    
+    <script>
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+    </script>
 
     @stack('scripts')
 

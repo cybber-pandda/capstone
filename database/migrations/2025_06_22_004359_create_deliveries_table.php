@@ -26,8 +26,8 @@ class CreateDeliveriesTable extends Migration
             $table->enum('status', ['pending', 'assigned', 'picked_up', 'on_the_way', 'shipped', 'delivered', 'cancelled'])->default('pending');
             $table->timestamp('delivery_date')->nullable();
 
-            $table->decimal('rider_latitude', 10, 7)->nullable();
-            $table->decimal('rider_longitude', 10, 7)->nullable();
+            $table->decimal('delivery_latitude', 10, 7)->nullable();
+            $table->decimal('delivery_longitude', 10, 7)->nullable();
 
             $table->timestamps();
         });

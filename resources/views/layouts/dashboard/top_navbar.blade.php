@@ -14,14 +14,14 @@
                     <img src="{{ asset('assets/dashboard/images/logo-mini-dark.png') }}" class="logo-mini logo-mini-dark" alt="logo">
                 </div>
 
-                <form class="search-form">
+                <!-- <form class="search-form">
                     <div class="input-group">
                         <div class="input-group-text">
                             <i data-lucide="search"></i>
                         </div>
                         <input type="text" class="form-control" id="navbarForm" placeholder="Search here...">
                     </div>
-                </form>
+                </form> -->
 
                 <ul class="navbar-nav">
                     <li class="theme-switcher-wrapper nav-item">
@@ -36,7 +36,7 @@
                             </div>
                         </label>
                     </li>
-                    <li class="nav-item dropdown">
+                    <!-- <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <img src="https://nobleui.com/html/template/assets/images/flags/us.svg" class="w-20px" title="us" alt="flag">
                             <span class="ms-2 d-none d-md-inline-block">English</span>
@@ -48,8 +48,8 @@
                             <a href="javascript:;" class="dropdown-item py-2 d-flex"><img src="https://nobleui.com/html/template/assets/images/flags/pt.svg" class="w-20px" title="pt" alt="pt"> <span class="ms-2"> Portuguese </span></a>
                             <a href="javascript:;" class="dropdown-item py-2 d-flex"><img src="https://nobleui.com/html/template/assets/images/flags/es.svg" class="w-20px" title="es" alt="es"> <span class="ms-2"> Spanish </span></a>
                         </div>
-                    </li>
-                    <li class="nav-item dropdown">
+                    </li> -->
+                    <!-- <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="appsDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i data-lucide="layout-grid"></i>
                         </a>
@@ -84,8 +84,8 @@
                                 <a href="javascript:;">View all</a>
                             </div>
                         </div>
-                    </li>
-                    <li class="nav-item dropdown">
+                    </li> -->
+                    <!-- <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="messageDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i data-lucide="mail"></i>
                         </a>
@@ -160,7 +160,7 @@
                                 <a href="javascript:;">View all</a>
                             </div>
                         </div>
-                    </li>
+                    </li> -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i data-lucide="bell"></i>
@@ -287,13 +287,48 @@
     <nav class="bottom-navbar">
         <div class="container">
             <ul class="nav page-navigation">
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.html">
+                <li class="nav-item {{ Route::is('home') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('home') }}">
                         <i class="link-icon" data-lucide="box"></i>
                         <span class="menu-title">Dashboard</span>
                     </a>
                 </li>
+
+                @if(Auth::user()->role === 'salesofficer')
+
                 <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="link-icon" data-lucide="users"></i>
+                        <span class="menu-title">B2B Customers</span>
+                    </a>
+                </li>
+
+                <li class="nav-item {{ Route::is('assistant-sales-officer.purchase-requests.index') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('assistant-sales-officer.purchase-requests.index') }}">
+                        <i class="link-icon" data-lucide="box"></i>
+                        <span class="menu-title">Pending Purchase Request</span>
+                    </a>
+                </li>
+
+                <li class="nav-item {{ Route::is('assistant-sales-officer.sent-quotations.index') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('assistant-sales-officer.send-quotations.index') }}">
+                        <i class="link-icon" data-lucide="box"></i>
+                        <span class="menu-title">Sent Quotations</span>
+                    </a>
+                </li>
+
+                <li class="nav-item {{ Route::is('assistant-sales-officer.submitted-order.index') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('assistant-sales-officer.submitted-order.index') }}">
+                        <i class="link-icon" data-lucide="box"></i>
+                        <span class="menu-title">Submitted Purchase Orders</span>
+                    </a>
+                </li>
+
+                @elseif(Auth::user()->role === 'deliveryrider/admin')
+                @else
+                @endif
+
+                <!-- <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="link-icon" data-lucide="mail"></i>
                         <span class="menu-title">Apps</span>
@@ -497,7 +532,7 @@
                     <a href="https://nobleui.com/html/documentation/docs.html" target="_blank" class="nav-link">
                         <i class="link-icon" data-lucide="hash"></i>
                         <span class="menu-title">Documentation</span></a>
-                </li>
+                </li> -->
             </ul>
         </div>
     </nav>

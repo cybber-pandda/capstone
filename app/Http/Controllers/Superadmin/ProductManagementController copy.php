@@ -32,7 +32,7 @@ class ProductManagementController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     return '
-                    <button type="button" class="btn btn-sm btn-info view-details p-2" data-id="' . $row->id . '"><i class="link-icon" data-lucide="eye"></i></button>
+                    <button type="button" class="btn btn-sm btn-inverse-info view-details p-2" data-id="' . $row->id . '"><i class="link-icon" data-lucide="eye"></i></button>
                     <button type="button" class="btn btn-sm btn-inverse-light mx-1 edit p-2" data-id="' . $row->id . '"><i class="link-icon" data-lucide="edit-3"></i></button>
                     <button type="button" class="btn btn-sm btn btn-inverse-danger delete p-2" data-id="' . $row->id . '"> <i class="link-icon" data-lucide="trash-2"></i></button>
                     ';

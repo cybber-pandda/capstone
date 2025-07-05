@@ -26,6 +26,12 @@
                     <span class="link-title">Product Management</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="link-icon" data-lucide="message-square"></i>
+                    <span class="link-title">Category Management</span>
+                </a>
+            </li>
              <li class="nav-item {{ Route::is('inventory') ? 'active' : '' }}">
                 <a href="{{ route('inventory') }}" class="nav-link">
                     <i class="link-icon" data-lucide="message-square"></i>
@@ -45,16 +51,16 @@
                     <span class="link-title">B2B</span>
                 </a>
             </li>
-           <li class="nav-item {{ Route::is('delivery-rider-creation.*') ? 'active' : '' }}">
-                <a href="{{ route('delivery-rider-creation.index') }}" class="nav-link">
+           <li class="nav-item {{ Route::is('deliveryrider-creation.*') ? 'active' : '' }}">
+                <a href="{{ route('deliveryrider-creation.index') }}" class="nav-link">
                     <i class="link-icon" data-lucide="message-square"></i>
                     <span class="link-title">Delivery Rider</span>
                 </a>
             </li>
-            <li class="nav-item {{ Route::is('account-sales-creation.*') ? 'active' : '' }}">
-                <a href="{{ route('account-sales-creation.index') }}" class="nav-link">
+            <li class="nav-item {{ Route::is('salesofficer-creation.*') ? 'active' : '' }}">
+                <a href="{{ route('salesofficer-creation.index') }}" class="nav-link">
                     <i class="link-icon" data-lucide="message-square"></i>
-                    <span class="link-title">Account Sales Officer</span>
+                    <span class="link-title">Sales Officer</span>
                 </a>
             </li>
             <li class="nav-item nav-category">Reports</li>
@@ -78,15 +84,22 @@
             </li>
             <li class="nav-item nav-category">Tracking</li>
             <li class="nav-item">
+                <a href="{{ route('tracking.submitted-po') }}" class="nav-link">
+                    <i class="link-icon" data-lucide="message-square"></i>
+                    <span class="link-title">Submitted PO</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a href="pages/apps/chat.html" class="nav-link">
                     <i class="link-icon" data-lucide="message-square"></i>
                     <span class="link-title">Track Deliveries</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="pages/apps/chat.html" class="nav-link">
+            <li class="nav-item  {{ Route::is('tracking.delivery-personnel') ? 'active' : '' }}">
+                <a href="{{ route('tracking.delivery-personnel') }}" class="nav-link">
                     <i class="link-icon" data-lucide="message-square"></i>
-                    <span class="link-title">Assign Delivery Driver</span>
+                    <span class="link-title">Assign Delivery</span>
                 </a>
             </li>
 
