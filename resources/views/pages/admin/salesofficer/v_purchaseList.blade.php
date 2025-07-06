@@ -8,9 +8,6 @@
             @component('components.card', [
             'title' => 'Pending Purchase Request List',
             'cardtopAddButton' => false,
-            'cardtopAddButtonTitle' => '',
-            'cardtopAddButtonId' => '',
-            'cardtopButtonMode' => ''
             ])
 
             @component('components.table', [

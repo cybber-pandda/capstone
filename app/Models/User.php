@@ -57,13 +57,13 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     public function sendEmailVerificationNotification()
-    {    
+    {
 
         if ($this->otp_code && $this->otp_expire > now()) {
             // OTP is already set and valid, skip generating a new one
             return;
         }
-        
+
         // Generate a unique OTP code
         $otpCode = rand(100000, 999999);
 
@@ -78,5 +78,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
         // Send the OTP notification
         $this->notify(new OTPVerifyEmail($otpCode));
+    }
+
+    public function userLog()
+    {
+        return $this->hasMany(UserLog::class);
     }
 }

@@ -17,8 +17,9 @@ class Delivery extends Model
         'tracking_number',
         'status',
         'delivery_date',
-        'rider_latitude',
-        'rider_longtitude',
+        'proof_delivery',
+        'delivery_latitude',
+        'delivery_longtitude',
     ];
 
     protected $attributes = [
@@ -43,4 +44,15 @@ class Delivery extends Model
     {
         return $this->belongsTo(Order::class);
     }
+
+    public function histories()
+    {
+        return $this->hasMany(DeliveryHistory::class);
+    }
+
+    public function latestHistory()
+    {
+        return $this->hasOne(DeliveryHistory::class)->latestOfMany('logged_at');
+    }
+
 }

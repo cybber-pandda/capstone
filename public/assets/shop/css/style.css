@@ -702,7 +702,8 @@ textarea.input {
 \*----------------------------*/
 
 .main-nav>li+li {
-  margin-left: 30px
+  margin-left:9px;
+  font-size: 12px;
 }
 
 .main-nav>li>a {
@@ -713,6 +714,7 @@ textarea.input {
 .main-nav>li>a:focus,
 .main-nav>li.active>a {
   color: #D10024;
+  font-size: 12px;
   background-color: transparent;
 }
 

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\VerifiesEmails;
-use Illuminate\Support\Facades\Auth; 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class VerificationController extends Controller
@@ -45,54 +45,50 @@ class VerificationController extends Controller
     }
 
     public function show(Request $request)
-    {   
+    {
 
         $page = 'Verify Email';
-        $companysettings = DB::table('company_settings')->first(); 
+        $companysettings = DB::table('company_settings')->first();
 
         return $request->user()->hasVerifiedEmail()
-                        ? redirect($this->redirectPath())
-                        : view('auth.verify', compact('page', 'companysettings'));
+            ? redirect($this->redirectPath())
+            : view('auth.verify', compact('page', 'companysettings'));
     }
 
     public function otp_verify(Request $request)
-{
-    $this->validate($request, [
-        'code' => 'required'
-    ]);
+    {
+        $this->validate($request, [
+            'code' => 'required'
+        ]);
 
-    // Retrieve the currently authenticated user
-    $user = auth()->user();
+        // Retrieve the currently authenticated user
+        $user = auth()->user();
 
-    if (!$user) {
-        return response()->json(['message' => 'User not found.'], 404);
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
+
+        // Check if the OTP is expired
+        if (now()->greaterThan($user->otp_expire)) {
+            return response()->json(['message' => 'Verification code has expired.'], 422);
+        }
+
+        // Verify the OTP code
+        if (trim($request->input('code')) !== trim($user->otp_code)) {
+            return response()->json(['message' => 'Invalid verification code.'], 422);
+        }
+
+        // Mark the user as verified
+        $user->email_verified_at = now();
+        //$user->otp_code = null; // Clear OTP code
+        // $user->otp_expire = null; // Clear OTP expiration
+        $user->save();
+
+        $redirect  = Auth::user()->role === 'adopter' ? route('welcome') : route('home');
+
+        return response()->json([
+            'message' => 'Account Verified!',
+            'redirect' => $redirect
+        ]);
     }
-
-    // Check if the OTP is expired
-    if (now()->greaterThan($user->otp_expire)) {
-        return response()->json(['message' => 'Verification code has expired.'], 422);
-    }
-
-    // Verify the OTP code
-    if (trim($request->input('code')) !== trim($user->otp_code)) {
-        return response()->json(['message' => 'Invalid verification code.'], 422);
-    }
-
-    // Mark the user as verified
-    $user->email_verified_at = now();
-    //$user->otp_code = null; // Clear OTP code
-   // $user->otp_expire = null; // Clear OTP expiration
-    $user->save(); 
-     
-    $redirect  = Auth::user()->role === 'adopter' ? route('welcome') : route('home');
-
-    return response()->json([
-        'message' => 'Account Verified!',
-        'redirect' => $redirect
-    ]);
-
-}
-
-    
-
 }

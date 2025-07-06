@@ -105,7 +105,8 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap.min.js"></script>
 
     <script src="{{ asset('assets/dashboard/vendors/sweetalert2/sweetalert2.min.js') }}"></script>
-
+    
+    <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
     @auth
     <script>
         $.ajaxSetup({
@@ -114,9 +115,7 @@
             }
         });
 
-        window.purchaseRequestCart = {
-            !!$cartJson!!
-        };
+        window.purchaseRequestCart = {!! $cartJson !!};
 
         $(document).ready(function() {
             updateCartDropdown();

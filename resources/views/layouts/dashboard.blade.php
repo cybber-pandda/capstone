@@ -39,7 +39,12 @@
     <link rel="stylesheet" href="{{ asset('assets/dashboard/vendors/sweetalert2/sweetalert2.min.css') }}">
 
     <link type="text/css" rel="stylesheet" href="{{ asset('assets/css/modified.css') }}" />
-    
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+
+
     <style>
         td.dt-left-int,
         th.dt-left-int {
@@ -64,10 +69,46 @@
         .swal2-loader {
             display: none !important;
         }
+
+        @media (max-width: 767.98px) {
+            .leaflet-routing-container {
+                display: none !important;
+            }
+        }
+
+        .ps--active-x>.ps__rail-x {
+            display: none !important;
+            background-color: transparent;
+        }
+
+        @media (max-width: 991.98px) {
+
+            /* Force full height layout on mobile */
+            .chat-wrapper,
+            .chat-wrapper .card,
+            .chat-wrapper .card-body,
+            .chat-content,
+            .chat-aside {
+                height: 86vh;
+                max-height: 86vh;
+                overflow: hidden;
+            }
+
+            .chat-content {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .chat-body {
+                flex-grow: 1;
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
+        }
     </style>
 </head>
 
-<body>
+<body @if(request()->routeIs('chat.index')) style="overflow: hidden;" @endif>
 
     <div class="main-wrapper">
         @auth
@@ -108,19 +149,33 @@
     <script src="{{ asset('assets/dashboard/vendors/sweetalert2/sweetalert2.min.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/dayjs/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs/plugin/relativeTime.js"></script>
 
     <script src="{{ asset('assets/js/global.js') }}"></script>
     <script src="{{ asset('assets/dashboard/js/app.js') }}"></script>
     <script src="{{ asset('assets/dashboard/js/dashboard.js') }}"></script>
-    
+    <script src="{{ asset('assets/dashboard/js/chat.js') }}"></script>
+
+    <script>
+        dayjs.extend(dayjs_plugin_relativeTime);
+    </script>
+
     <script>
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
+
+        //const CURRENT_USER_ID = {{ auth()->id() }};
     </script>
 
     @stack('scripts')

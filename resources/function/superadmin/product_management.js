@@ -35,6 +35,7 @@ $(document).ready(function () {
         columns: [
             { data: "sku", name: "sku", width: "10%" },
             { data: "name", name: "name", width: "20%" },
+            { data: "category", name: "category", width: "10%" },
             {
                 data: "created_at",
                 name: "created_at",
@@ -96,6 +97,7 @@ $(document).ready(function () {
             $('#productForm input[name="name"]').val(response.product.name);
             $('#productForm input[name="price"]').val(response.product.price);
             $('#productForm input[name="expiry_date"]').val(response.product.expiry_date);
+            $('#productForm select[name="category_id"]').val(response.product.category_id).trigger('change');
             $('#productForm textarea[name="description"]').val(response.product.description);
 
             imagePreview.empty();

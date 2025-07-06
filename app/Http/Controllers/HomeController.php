@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 use App\Models\Product;
+use App\Models\Order;
+use App\Models\Message;
+
 class HomeController extends Controller
 {
     /**
@@ -30,14 +33,15 @@ class HomeController extends Controller
         $page = 'TantucoCTC';
         $user = User::getCurrentUser();
         $data = null;
-
+        $deliveries = [];
+        
         $role = $user->role ?? null;
 
         $view = match ($role) {
             'b2b' => 'pages.b2b.index',
             'deliveryrider', 'salesofficer' => 'pages.admin.index',
             'superadmin' => 'pages.superadmin.index',
-            default => 'pages.welcome', // fallback for guests or unknown roles
+            default => 'pages.welcome',
         };
 
         if ($role === 'b2b') {
@@ -61,7 +65,25 @@ class HomeController extends Controller
             }
         }
 
-        return view($view, compact('page', 'data'));
-    }
+        if ($role === 'deliveryrider') {
 
+            $deliveries = Order::with([
+                'user',
+                'b2bAddress',
+                'delivery.deliveryUser',
+                'items.product'
+            ])->whereHas('delivery', function ($q) use ($user) {
+                    $q->where('delivery_rider_id', $user->id)
+                        ->where('status', 'assigned');
+            })->get();
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'html' => view('components.delivery-list', compact('deliveries'))->render()
+                ]);
+            }
+        }
+
+        return view($view, compact('page', 'data', 'deliveries'));
+    }
 }

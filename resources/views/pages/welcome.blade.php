@@ -31,18 +31,7 @@
 <!-- SECTION -->
 <div class="section section-scrollable">
     <div class="container">
-        <div class="section-title">
-            <h3 class="title">Tantuco CTC</h3>
-            <div class="section-nav">
-                <ul class="section-tab-nav tab-nav">
-                    <li class="active"><a href="#" class="category-btn" data-id="">All</a></li>
-                    @foreach($categories as $category)
-                    <li><a href="#" class="category-btn" data-id="{{ $category->id }}">{{ $category->name }}</a></li>
-                    @endforeach
-                </ul>
-            </div>
-        </div>
-
+    
         <!-- Product List -->
         <div class="row" id="product-list">
             @include('components.product-list', ['data' => $data])

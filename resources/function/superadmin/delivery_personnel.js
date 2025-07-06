@@ -85,15 +85,6 @@ $(document).ready(function () {
         $("#assignDeliveryModal").modal("show");
     });
 
-    $(document).on("click", ".view-full-address", function () {
-        const fullAddress = $(this).data("address");
-
-        $(".modal-title").text("Full Delivery Address");
-        $("#addressDetails").text(`${fullAddress}`);
-
-        $("#viewAddressModal").modal("show");
-    });
-
     $("#assignDeliverySubmit").on("click", function (e) {
         e.preventDefault();
 

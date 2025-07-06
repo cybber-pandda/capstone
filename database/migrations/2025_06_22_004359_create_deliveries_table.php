@@ -23,11 +23,12 @@ class CreateDeliveriesTable extends Migration
 
             $table->unsignedInteger('quantity')->default(0);
             $table->string('tracking_number')->nullable();
-            $table->enum('status', ['pending', 'assigned', 'picked_up', 'on_the_way', 'shipped', 'delivered', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'assigned', 'on_the_way', 'delivered', 'cancelled'])->default('pending');
             $table->timestamp('delivery_date')->nullable();
+            $table->string('proof_delivery')->nullable();
 
-            $table->decimal('delivery_latitude', 10, 7)->nullable();
-            $table->decimal('delivery_longitude', 10, 7)->nullable();
+            $table->decimal('delivery_latitude', 10, 7)->default('13.9655000'); // we keep this in as default store lat
+            $table->decimal('delivery_longitude', 10, 7)->default('121.5348000'); // we keep this in as default store lng
 
             $table->timestamps();
         });

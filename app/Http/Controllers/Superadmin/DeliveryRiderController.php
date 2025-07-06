@@ -29,9 +29,9 @@ class DeliveryRiderController extends Controller
             return DataTables::of($deliveryRiders)
                 ->addColumn('profile', function ($row) {
                     if ($row->profile) {
-                        return '<img src="' . asset($row->profile) . '" alt="Profile" class="img-thumbnail">';
+                        return '<img src="' . asset($row->profile) . '" alt="Profile" class="img-thumbnail" width="80">';
                     }
-                    return '<img src="' . asset('assets/dashboard/images/noimage.png') . '" alt="No image" class="img-thumbnail">';
+                    return '<img src="' . asset('assets/dashboard/images/noimage.png') . '" alt="No image" class="img-thumbnail" width="80">';
                 })
                 ->addColumn('action', function ($row) {
                     return '

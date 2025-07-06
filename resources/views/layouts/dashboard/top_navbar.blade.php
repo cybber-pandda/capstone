@@ -85,82 +85,38 @@
                             </div>
                         </div>
                     </li> -->
-                    <!-- <li class="nav-item dropdown">
+                    <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="messageDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i data-lucide="mail"></i>
                         </a>
                         <div class="dropdown-menu p-0" aria-labelledby="messageDropdown">
                             <div class="px-3 py-2 d-flex align-items-center justify-content-between border-bottom">
-                                <p>9 New Messages</p>
+                                <p>{{ $recentMessages->count() }} New Message{{ $recentMessages->count() !== 1 ? 's' : '' }}</p>
                                 <a href="javascript:;" class="text-secondary">Clear all</a>
                             </div>
                             <div class="p-1">
-                                <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
+                                @forelse ($recentMessages as $msg)
+                                <a href="{{ route('chat.index') }}" class="dropdown-item d-flex align-items-center py-2">
                                     <div class="me-3">
-                                        <img class="w-30px h-30px rounded-circle" src="{{ asset('assets/dashboard/images/faces/face2.jpg') }}" alt="userr">
+                                        <img class="w-30px h-30px rounded-circle" src="{{ $msg->sender->profile ? asset($msg->sender->profile) : asset('assets/avatars/' . rand(1, 17) . '.avif') }}" alt="user">
                                     </div>
                                     <div class="d-flex justify-content-between flex-grow-1">
                                         <div class="me-4">
-                                            <p>Leonardo Payne</p>
-                                            <p class="fs-12px text-secondary">Project status</p>
+                                            <p class="mb-0">{{ $msg->sender->name }}</p>
+                                            <p class="fs-12px text-secondary mb-0">{{ \Illuminate\Support\Str::limit($msg->text, 30) }}</p>
                                         </div>
-                                        <p class="fs-12px text-secondary">2 min ago</p>
+                                        <p class="fs-12px text-secondary mb-0">{{ $msg->created_at->diffForHumans() }}</p>
                                     </div>
                                 </a>
-                                <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-                                    <div class="me-3">
-                                        <img class="w-30px h-30px rounded-circle" src="{{ asset('assets/dashboard/images/faces/face3.jpg') }}" alt="userr">
-                                    </div>
-                                    <div class="d-flex justify-content-between flex-grow-1">
-                                        <div class="me-4">
-                                            <p>Carl Henson</p>
-                                            <p class="fs-12px text-secondary">Client meeting</p>
-                                        </div>
-                                        <p class="fs-12px text-secondary">30 min ago</p>
-                                    </div>
-                                </a>
-                                <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-                                    <div class="me-3">
-                                        <img class="w-30px h-30px rounded-circle" src="{{ asset('assets/dashboard/images/faces/face4.jpg') }}" alt="userr">
-                                    </div>
-                                    <div class="d-flex justify-content-between flex-grow-1">
-                                        <div class="me-4">
-                                            <p>Jensen Combs</p>
-                                            <p class="fs-12px text-secondary">Project updates</p>
-                                        </div>
-                                        <p class="fs-12px text-secondary">1 hrs ago</p>
-                                    </div>
-                                </a>
-                                <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-                                    <div class="me-3">
-                                        <img class="w-30px h-30px rounded-circle" src="{{ asset('assets/dashboard/images/faces/face5.jpg') }}" alt="userr">
-                                    </div>
-                                    <div class="d-flex justify-content-between flex-grow-1">
-                                        <div class="me-4">
-                                            <p>Amiah Burton</p>
-                                            <p class="fs-12px text-secondary">Project deatline</p>
-                                        </div>
-                                        <p class="fs-12px text-secondary">2 hrs ago</p>
-                                    </div>
-                                </a>
-                                <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-                                    <div class="me-3">
-                                        <img class="w-30px h-30px rounded-circle" src="{{ asset('assets/dashboard/images/faces/face6.jpg') }}" alt="userr">
-                                    </div>
-                                    <div class="d-flex justify-content-between flex-grow-1">
-                                        <div class="me-4">
-                                            <p>Yaretzi Mayo</p>
-                                            <p class="fs-12px text-secondary">New record</p>
-                                        </div>
-                                        <p class="fs-12px text-secondary">5 hrs ago</p>
-                                    </div>
-                                </a>
+                                @empty
+                                <div class="dropdown-item py-2 text-center text-muted">No new messages</div>
+                                @endforelse
                             </div>
                             <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
-                                <a href="javascript:;">View all</a>
+                                <a href="{{ route('chat.index') }}">View all</a>
                             </div>
                         </div>
-                    </li> -->
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i data-lucide="bell"></i>
@@ -289,7 +245,7 @@
             <ul class="nav page-navigation">
                 <li class="nav-item {{ Route::is('home') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('home') }}">
-                        <i class="link-icon" data-lucide="box"></i>
+                        <i class="link-icon" data-lucide="layout-dashboard"></i>
                         <span class="menu-title">Dashboard</span>
                     </a>
                 </li>
@@ -303,28 +259,57 @@
                     </a>
                 </li>
 
-                <li class="nav-item {{ Route::is('assistant-sales-officer.purchase-requests.index') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('assistant-sales-officer.purchase-requests.index') }}">
+                <li class="nav-item {{ Route::is('salesofficer.purchase-requests.index') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('salesofficer.purchase-requests.index') }}">
                         <i class="link-icon" data-lucide="box"></i>
                         <span class="menu-title">Pending Purchase Request</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ Route::is('assistant-sales-officer.sent-quotations.index') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('assistant-sales-officer.send-quotations.index') }}">
+                <li class="nav-item {{ Route::is('salesofficer.sent-quotations.index') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('salesofficer.send-quotations.index') }}">
                         <i class="link-icon" data-lucide="box"></i>
                         <span class="menu-title">Sent Quotations</span>
                     </a>
                 </li>
 
-                <li class="nav-item {{ Route::is('assistant-sales-officer.submitted-order.index') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('assistant-sales-officer.submitted-order.index') }}">
+                <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">
                         <i class="link-icon" data-lucide="box"></i>
                         <span class="menu-title">Submitted Purchase Orders</span>
                     </a>
                 </li>
 
-                @elseif(Auth::user()->role === 'deliveryrider/admin')
+                @elseif(Auth::user()->role === 'deliveryrider')
+
+                <li class="nav-item {{ Route::is('deliveryrider.delivery.orders') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('deliveryrider.delivery.orders') }}">
+                        <i class="link-icon" data-lucide="box"></i>
+                        <span class="menu-title">Delivery Orders</span>
+                    </a>
+                </li>
+
+                <li class="nav-item {{ Route::is('deliveryrider.delivery.histories') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('deliveryrider.delivery.histories') }}">
+                        <i class="link-icon" data-lucide="clock"></i>
+                        <span class="menu-title">Delivery History</span>
+                    </a>
+                </li>
+
+                <li class="nav-item  {{ Route::is('deliveryrider.delivery.location') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('deliveryrider.delivery.location') }}">
+                        <i class="link-icon" data-lucide="truck"></i>
+                        <span class="menu-title">Location Tracking</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="link-icon" data-lucide="star"></i>
+                        <span class="menu-title">Ratings</span>
+                    </a>
+                </li>
+
                 @else
                 @endif
 

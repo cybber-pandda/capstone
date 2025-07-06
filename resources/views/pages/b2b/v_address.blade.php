@@ -70,12 +70,7 @@
 </div>
 @endsection
 
-@push('styles')
-<link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
-@endpush
-
 @push('scripts')
-<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 <script>
     let map, marker, lat, lon;
     const addressModal = $('#addressModal');

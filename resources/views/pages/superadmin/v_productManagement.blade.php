@@ -21,6 +21,7 @@
             <tr>
                 <th>SKU</th>
                 <th>Name</th>
+                <th>Category</th>
                 <th>Date Created</th>
                 <th>Price</th>
                 <th>Stock</th>
@@ -41,11 +42,20 @@
                 @component('components.input', ['label' => 'Product Name', 'type' => 'text', 'name' => 'name', 'attributes' => '' ]) @endcomponent
                 @component('components.input', ['label' => 'Expiry Date', 'type' => 'date', 'name' => 'expiry_date', 'attributes' => '' ]) @endcomponent
                 <button type="button" class="btn btn-sm btn-outline-secondary mb-2" id="clear-expiry">Clear Expiry Date</button>
+                
+                @component('components.select', [
+                    'label' => 'Category',
+                    'name' => 'category_id',
+                    'selected' => old('category_id', ''),
+                    'options' => $category_select->pluck('name', 'id')->toArray(),
+                    'attributes' => 'required'
+                ])
+                @endcomponent
             </div>
 
             <div class="col-md-6 mb-2">
                 @component('components.input', ['label' => 'Price', 'type' => 'number', 'name' => 'price', 'attributes' => '' ]) @endcomponent
-                @component('components.textarea', ['label' => 'Description', 'rows' => 4, 'name' => 'description', 'attributes' => '']) @endcomponent
+                @component('components.textarea', ['label' => 'Description', 'rows' => 7, 'name' => 'description', 'attributes' => '']) @endcomponent
             </div>
 
             <div class="col-md-12">

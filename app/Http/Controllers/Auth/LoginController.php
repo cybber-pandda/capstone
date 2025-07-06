@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
+use App\Models\UserLog;
+use App\Models\User;
+
 class LoginController extends Controller
 {
     use AuthenticatesUsers;
@@ -76,12 +79,12 @@ class LoginController extends Controller
     {
         $identifier = $request->input('identifier');
 
-        // Determine if the identifier is an email or a username
         $field = filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         return [
             $field => $identifier,
             'password' => $request->input('password'),
+            'status' => 1,
         ];
     }
 
@@ -95,9 +98,18 @@ class LoginController extends Controller
 
     protected function authenticated(Request $request, $user)
     {
+
         if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && $user->email_verified_at === null) {
             $user->sendEmailVerificationNotification();
         }
+
+        UserLog::create([
+            'user_id' => $user->id,
+            'event' => 'login',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'logged_at' => now(),
+        ]);
 
         session()->flash('checkCart', true);
     }
@@ -105,5 +117,34 @@ class LoginController extends Controller
     public function username()
     {
         return 'identifier';
+    }
+
+    public function logout(Request $request)
+    {
+        $user = Auth::user();
+
+        // Log the logout
+        if ($user) {
+            UserLog::create([
+                'user_id' => $user->id,
+                'event' => 'logout',
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'logged_at' => now(),
+            ]);
+        }
+
+        $this->guard()->logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        if ($response = $this->loggedOut($request)) {
+            return $response;
+        }
+
+        return $request->wantsJson()
+            ? response()->json([], 204)
+            : redirect('/');
     }
 }

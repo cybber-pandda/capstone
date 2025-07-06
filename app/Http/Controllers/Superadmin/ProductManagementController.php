@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+
 use App\Models\User;
 use App\Models\Product;
+use App\Models\Category;
 
 class ProductManagementController extends Controller
 {
@@ -16,12 +18,15 @@ class ProductManagementController extends Controller
         $page = 'Product Management';
         $pageCategory = 'Management';
         $user = User::getCurrentUser();
+        
+        $category_select = Category::select('name', 'id')->get();
 
         if ($request->ajax()) {
-            $products = Product::with('inventories')->select(['id', 'sku', 'name', 'description', 'price', 'expiry_date', 'created_at']);
-
+           $products = Product::with('inventories', 'category')->select(['id', 'sku', 'name', 'description', 'price', 'expiry_date', 'created_at', 'category_id']);
+            
             return DataTables::of($products)
                 ->addColumn('current_stock', fn($row) => $row->current_stock)
+                ->addColumn('category', fn($row) => optional($row->category)->name ?? 'N/A')
                 ->addColumn('action', function ($row) {
                     return '
                         <button type="button" class="btn btn-sm btn-info view-details p-2" data-id="' . $row->id . '"><i class="link-icon" data-lucide="eye"></i></button>
@@ -32,7 +37,7 @@ class ProductManagementController extends Controller
                 ->make(true);
         }
 
-        return view('pages.superadmin.v_productManagement', compact('page', 'pageCategory'));
+        return view('pages.superadmin.v_productManagement', compact('page', 'pageCategory', 'category_select'));
     }
 
     public function store(Request $request)
@@ -41,6 +46,7 @@ class ProductManagementController extends Controller
             'name' => 'required|string',
             'price' => 'required|numeric',
             'expiry_date' => 'nullable|date',
+            'category_id' => 'required|numeric',
             'description' => 'nullable|string',
             'images.*' => 'image|mimes:png,jpg,webp|max:2048',
         ]);
@@ -102,6 +108,7 @@ class ProductManagementController extends Controller
             'name' => 'required|string',
             'price' => 'required|numeric',
             'expiry_date' => 'nullable|date',
+            'category_id' => 'required|numeric',
             'description' => 'nullable|string',
             'images.*' => 'image|mimes:png,jpg,webp|max:2048',
             'main_image_index' => 'nullable|integer',
@@ -115,6 +122,7 @@ class ProductManagementController extends Controller
                 'name' => $validated['name'],
                 'price' => $validated['price'],
                 'expiry_date' => $validated['expiry_date'],
+                'category_id' => $validated['category_id'],
                 'description' => $validated['description'] ?? null,
             ]);
 

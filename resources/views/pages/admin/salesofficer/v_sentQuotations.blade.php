@@ -8,9 +8,6 @@
             @component('components.card', [
             'title' => 'Sent Quotation List',
             'cardtopAddButton' => false,
-            'cardtopAddButtonTitle' => '',
-            'cardtopAddButtonId' => '',
-            'cardtopButtonMode' => ''
             ])
 
             @component('components.table', [

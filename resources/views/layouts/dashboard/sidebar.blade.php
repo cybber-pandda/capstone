@@ -15,26 +15,26 @@
             <li class="nav-item nav-category">Main</li>
             <li class="nav-item {{ Route::is('home') ? 'active' : '' }}">
                 <a href="{{ route('home') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="box"></i>
+                    <i class="link-icon" data-lucide="layout-dashboard"></i>
                     <span class="link-title">Dashboard</span>
                 </a>
             </li>
             <li class="nav-item nav-category">Management</li>
             <li class="nav-item {{ Route::is('product-management.*') ? 'active' : '' }}">
                 <a href="{{ route('product-management.index') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="box"></i>
                     <span class="link-title">Product Management</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+            <li class="nav-item {{ Route::is('category-management.*') ? 'active' : '' }}">
+                <a href="{{ route('category-management.index') }}" class="nav-link">
+                    <i class="link-icon" data-lucide="list"></i>
                     <span class="link-title">Category Management</span>
                 </a>
             </li>
              <li class="nav-item {{ Route::is('inventory') ? 'active' : '' }}">
                 <a href="{{ route('inventory') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="package"></i>
                     <span class="link-title">Inventory Management</span>
                 </a>
             </li>
@@ -47,58 +47,58 @@
             <li class="nav-item nav-category">Account Creation</li>
             <li class="nav-item {{ Route::is('b2b-creation.*') ? 'active' : '' }}">
                 <a href="{{ route('b2b-creation.index') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="user"></i>
                     <span class="link-title">B2B</span>
                 </a>
             </li>
            <li class="nav-item {{ Route::is('deliveryrider-creation.*') ? 'active' : '' }}">
                 <a href="{{ route('deliveryrider-creation.index') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="user"></i>
                     <span class="link-title">Delivery Rider</span>
                 </a>
             </li>
             <li class="nav-item {{ Route::is('salesofficer-creation.*') ? 'active' : '' }}">
                 <a href="{{ route('salesofficer-creation.index') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="user"></i>
                     <span class="link-title">Sales Officer</span>
                 </a>
             </li>
             <li class="nav-item nav-category">Reports</li>
             <li class="nav-item {{ Route::is('user.report') ? 'active' : '' }}">
                 <a href="{{ route('user.report') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="chart-spline"></i>
                     <span class="link-title">User Reports</span>
                 </a>
             </li>
             <li class="nav-item {{ Route::is('delivery.report') ? 'active' : '' }}">
                 <a href="{{ route('delivery.report') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="chart-no-axes-combined"></i>
                     <span class="link-title">Delivery Reports</span>
                 </a>
             </li>
             <li class="nav-item {{ Route::is('inventory.report') ? 'active' : '' }}">
                 <a href="{{ route('inventory.report') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="chart-bar-decreasing"></i>
                     <span class="link-title">Inventory Reports</span>
                 </a>
             </li>
             <li class="nav-item nav-category">Tracking</li>
-            <li class="nav-item">
+            <li class="nav-item {{ Route::is('tracking.submitted-po') ? 'active' : '' }}">
                 <a href="{{ route('tracking.submitted-po') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="shopping-bag"></i>
                     <span class="link-title">Submitted PO</span>
                 </a>
             </li>
 
-            <li class="nav-item">
-                <a href="pages/apps/chat.html" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+            <li class="nav-item {{ Route::is('tracking.delivery.location') ? 'active' : '' }}">
+                <a href="{{ route('tracking.delivery.location') }}" class="nav-link">
+                    <i class="link-icon" data-lucide="map-pinned"></i>
                     <span class="link-title">Track Deliveries</span>
                 </a>
             </li>
             <li class="nav-item  {{ Route::is('tracking.delivery-personnel') ? 'active' : '' }}">
                 <a href="{{ route('tracking.delivery-personnel') }}" class="nav-link">
-                    <i class="link-icon" data-lucide="message-square"></i>
+                    <i class="link-icon" data-lucide="truck"></i>
                     <span class="link-title">Assign Delivery</span>
                 </a>
             </li>

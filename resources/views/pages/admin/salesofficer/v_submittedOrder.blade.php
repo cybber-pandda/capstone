@@ -8,9 +8,6 @@
             @component('components.card', [
             'title' => 'Submitted Order List',
             'cardtopAddButton' => false,
-            'cardtopAddButtonTitle' => '',
-            'cardtopAddButtonId' => '',
-            'cardtopButtonMode' => ''
             ])
 
             @component('components.table', [

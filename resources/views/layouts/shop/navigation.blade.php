@@ -15,7 +15,7 @@
                 <li><a href="#">Cameras</a></li>
                 <li><a href="#">Accessories</a></li> -->
 
-            @if (Route::is('home'))
+            @if (Route::is('home') || Route::is('welcome') )
             <ul class="main-nav nav navbar-nav">
                 <li class="active"><a href="#" class="category-btn" data-id="">All</a></li>
                 @foreach($categories as $category)
@@ -34,6 +34,15 @@
                 <li class="filter-btn" data-status="invoice_sent"><a href="#">Invoice Sent</a></li>
             </ul>
             @endif
+
+            @else
+
+            <ul class="main-nav nav navbar-nav">
+                <li class="active"><a href="#" class="category-btn" data-id="">All</a></li>
+                @foreach($categories as $category)
+                <li><a href="#" class="category-btn" data-id="{{ $category->id }}">{{ $category->name }}</a></li>
+                @endforeach
+            </ul>
 
 
             @endauth

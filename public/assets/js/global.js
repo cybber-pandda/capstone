@@ -69,7 +69,11 @@ function deleteRow(row) {
 }
 
 function updateCartDropdown() {
-    if (!window.purchaseRequestCart || !Array.isArray(window.purchaseRequestCart.items)) return;
+    if (
+        !window.purchaseRequestCart ||
+        !Array.isArray(window.purchaseRequestCart.items)
+    )
+        return;
 
     let cartHtml = "";
     const items = window.purchaseRequestCart.items;
@@ -81,13 +85,21 @@ function updateCartDropdown() {
             cartHtml += `
                 <div class="product-widget">
                     <div class="product-img">
-                        <img src="${item.product_image}" alt="" style="width: 50px; height: 50px; object-fit: cover;">
+                        <img src="${
+                            item.product_image
+                        }" alt="" style="width: 50px; height: 50px; object-fit: cover;">
                     </div>
                     <div class="product-body">
-                        <h3 class="product-name"><a href="#">${item.product_name}</a></h3>
-                        <h4 class="product-price"><span class="qty">${item.quantity}x</span> ₱${parseFloat(item.price).toFixed(2)}</h4>
+                        <h3 class="product-name"><a href="#">${
+                            item.product_name
+                        }</a></h3>
+                        <h4 class="product-price"><span class="qty">${
+                            item.quantity
+                        }x</span> ₱${parseFloat(item.price).toFixed(2)}</h4>
                     </div>
-                    <button class="delete delete-purchase-request" style="display:none" data-id="${item.id}">
+                    <button class="delete delete-purchase-request" style="display:none" data-id="${
+                        item.id
+                    }">
                         <i class="fa fa-close"></i>
                     </button>
                 </div>
@@ -96,10 +108,41 @@ function updateCartDropdown() {
     }
 
     $("#cart-list").html(cartHtml);
-    $("#cart-total-quantity").text(`${window.purchaseRequestCart.total_quantity} Item(s) selected`);
-    $("#cart-subtotal").text(`GRAND TOTAL: ₱${parseFloat(window.purchaseRequestCart.subtotal).toFixed(2)}`);
+    $("#cart-total-quantity").text(
+        `${window.purchaseRequestCart.total_quantity} Item(s) selected`
+    );
+    $("#cart-subtotal").text(
+        `GRAND TOTAL: ₱${parseFloat(
+            window.purchaseRequestCart.subtotal
+        ).toFixed(2)}`
+    );
     $("#purchase-request-count")
         .text(window.purchaseRequestCart.total_quantity)
         .toggleClass("d-none", window.purchaseRequestCart.total_quantity === 0);
 }
 
+$(document).on("click", ".view-full-address", function () {
+    const fullAddress = $(this).data("address");
+
+    $(".modal-title").text("Full Delivery Address");
+    $("#addressDetails").text(`${fullAddress}`);
+
+    $("#viewAddressModal").modal("show");
+});
+
+function getStatusFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("status") || "pending";
+}
+
+function activateStatusTab(status) {
+    const $tab = $('#statusTabs .nav-link[data-status="' + status + '"]');
+
+    if ($tab.length) {
+        $("#statusTabs .nav-link").removeClass("active");
+        $tab.addClass("active");
+    }
+}
+
+const selectedStatus = getStatusFromURL();
+activateStatusTab(selectedStatus); // Set tab active on page load

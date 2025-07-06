@@ -35,35 +35,58 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::post('b2b-details-form', [App\Http\Controllers\HomeController::class, 'b2b_details_form']);
 
 
-    /* Sales Officer */
+    /* Super Admin */
+    //Route::prefix('superadmin')->name('superadmin.')->group(function () {
+
+    // Management
     Route::resource('product-management', App\Http\Controllers\Superadmin\ProductManagementController::class);
+    Route::resource('category-management', App\Http\Controllers\Superadmin\CategoryController::class);
     Route::resource('user-management', App\Http\Controllers\Superadmin\UserManagementController::class);
     Route::get('inventory-management', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'index'])->name('inventory');
     Route::post('inventory-management', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'store'])->name('inventory.store');
 
+    // Account Creation
     Route::resource('b2b-creation', App\Http\Controllers\Superadmin\B2BController::class);
     Route::resource('deliveryrider-creation', App\Http\Controllers\Superadmin\DeliveryRiderController::class);
     Route::resource('salesofficer-creation', App\Http\Controllers\Superadmin\SalesOfficerController::class);
 
+    // Report
     Route::get('user-report', [App\Http\Controllers\Superadmin\ReportController::class, 'user_report'])->name('user.report');
     Route::get('delivery-report', [App\Http\Controllers\Superadmin\ReportController::class, 'delivery_report'])->name('delivery.report');
     Route::get('inventory-report', [App\Http\Controllers\Superadmin\ReportController::class, 'inventory_report'])->name('inventory.report');
 
+    // Tracking
     Route::get('submitted_po', [App\Http\Controllers\Superadmin\TrackingController::class, 'submitted_po'])->name('tracking.submitted-po');
     Route::get('/purchase-requests/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'show']);
     Route::put('/process-so/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'process_so']);
+
+    Route::get('/delivery/location', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_location'])->name('tracking.delivery.location');
+    Route::get('/delivery/tracking/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_tracking'])->name('tracking.delivery.tracking');
+    Route::post('/delivery/upload-proof', [App\Http\Controllers\Superadmin\TrackingController::class, 'upload_proof'])->name('tracking.delivery.upload-proof');
+
     Route::get('/delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_personnel'])->name('tracking.delivery-personnel');
     Route::post('/assign-delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'assign_delivery_personnel'])->name('tracking.assign-delivery-personnel');
+    //});
 
     /* Sales Officer */
     Route::prefix('salesofficer')->name('salesofficer.')->group(function () {
         Route::get('/purchase-requests/all', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
         Route::get('/purchase-requests/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'show']);
         Route::put('/purchase-requests/send-quotation/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'purchase-requests.update']);
-        
         Route::get('/send-quotations/all', [App\Http\Controllers\SalesOfficer\QuotationsController::class, 'index'])->name('send-quotations.index');
-
         Route::get('/submitted-order/all', [App\Http\Controllers\SalesOfficer\OrderController::class, 'index'])->name('submitted-order.index');
+    });
+
+    /* Delivery */
+    Route::prefix('deliveryrider')->name('deliveryrider.')->group(function () {
+        Route::put('/delivery/pickup/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'delivery_pickup']);
+        Route::get('/delivery/location', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'delivery_location'])->name('delivery.location');
+        Route::get('/delivery/tracking/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'delivery_tracking'])->name('delivery.tracking');
+        Route::get('/delivery/orders', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'delivery_orders'])->name('delivery.orders');
+        Route::get('/delivery/orders/{id}/items', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'getOrderItems'])->name('delivery.orderItems');
+        Route::get('/delivery/histories', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'delivery_histories'])->name('delivery.histories');
+        Route::get('/delivery/history/{order}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'getDeliveryDetails']);
+        Route::post('/delivery/upload-proof', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'upload_proof'])->name('delivery.upload-proof');
     });
 
     /* B2B */
@@ -71,7 +94,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/purchase-requests', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
         Route::post('/purchase-requests/store', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'store'])->name('purchase-requests.store');
         Route::delete('/purchase-requests/items/{id}', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'destroyItem'])->name('purchase-requests.destroyItem');
-        
+
         Route::get('/quotations/review', [App\Http\Controllers\B2B\QuotationController::class, 'review'])->name('quotations.review');
         Route::get('/quotations/review/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'show'])->name('quotations.show');
         Route::post('/quotations/submit/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'submit_quotation'])->name('quotations.submit');
@@ -93,4 +116,12 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::post('generalsettings-profile', [App\Http\Controllers\GeneralSettingsController::class, 'profile']);
     Route::post('generalsettings-account', [App\Http\Controllers\GeneralSettingsController::class, 'account']);
     Route::post('generalsettings-password', [App\Http\Controllers\GeneralSettingsController::class, 'password']);
+});
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/chat', [App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
+    Route::get('/chat/users', [App\Http\Controllers\ChatController::class, 'getUsers']);
+    Route::get('/chat/messages/{recipientId}', [App\Http\Controllers\ChatController::class, 'getMessages']);
+    Route::post('/chat/send', [App\Http\Controllers\ChatController::class, 'sendMessage']);
 });

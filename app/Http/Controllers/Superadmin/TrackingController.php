@@ -246,4 +246,108 @@ class TrackingController extends Controller
             ], 500);
         }
     }
+
+    public function delivery_location(Request $request)
+    {
+        $status = $request->get('status');
+
+        if ($request->ajax()) {
+            $query = Order::with([
+                'user',
+                'b2bAddress',
+                'items.product',
+                'delivery'
+            ])
+                ->whereHas('delivery', function ($q) use ($status) {
+                    if (!empty($status)) {
+                        $q->where('status', $status);
+                    }
+                })
+                ->latest();
+
+            return datatables()->of($query)
+                ->addColumn('order_number', fn($order) => $order->order_number ?? 'N/A')
+                ->addColumn('customer_name', fn($order) => optional($order->user)->name ?? 'N/A')
+                ->addColumn('total_items', fn($order) => $order->items->sum('quantity') ?? 0)
+                ->addColumn('grand_total', function ($order) {
+                    $total = $order->items->sum(function ($item) {
+                        return $item->quantity * ($item->product->price ?? 0);
+                    });
+                    return '₱' . number_format($total, 2);
+                })
+                ->addColumn('address', fn($order) => optional($order->b2bAddress)->full_address ?? 'N/A')
+                ->addColumn('action', function ($order) {
+                    $status = $order->delivery->status ?? 'unknown';
+
+                    $messages = [
+                        'pending'     => 'Waiting for admin to assign a rider',
+                        'assigned'    => 'Waiting to be accepted by deliveryman',
+                        'delivered'   => 'Delivery completed',
+                        'cancelled'   => 'Delivery was cancelled',
+                    ];
+
+                    $badgeColors = [
+                        'pending'     => 'warning',
+                        'assigned'    => 'info',
+                        'delivered'   => 'success',
+                        'cancelled'   => 'danger',
+                    ];
+
+                    if ($status === 'on_the_way') {
+                        $trackBtn = '<a href="' . route('tracking.delivery.tracking', $order->delivery->id) . '" class="btn btn-sm btn-inverse-primary me-1">
+                                        <i class="link-icon" data-lucide="truck"></i> Track
+                                    </a>';
+
+                        // $markDeliveredBtn = '<button type="button" class="btn btn-sm btn-inverse-success mark-delivered-btn"
+                        //                         data-id="' . $order->delivery->id . '">
+                        //                         <i class="link-icon" data-lucide="check-circle"></i> Mark as Delivered
+                        //                     </button>';
+
+                        // return $trackBtn . $markDeliveredBtn;
+                        return $trackBtn;
+                    }
+
+                    $badgeText = $messages[$status] ?? ucfirst($status);
+                    $badgeClass = $badgeColors[$status] ?? 'secondary';
+
+                    $badge = '<span class="badge bg-' . $badgeClass . '">' . $badgeText . '</span>';
+
+                    if ($status === 'delivered' && $order->delivery->proof_delivery) {
+                        $proofBtn = '<button class="btn btn-sm btn-inverse-info ms-2 view-proof-btn" 
+                            data-proof="' . asset($order->delivery->proof_delivery) . '">
+                        <i class="link-icon" data-lucide="eye"></i> View Proof
+                     </button>';
+                        return $badge . $proofBtn;
+                    }
+
+                    return $badge;
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
+        return view('pages.superadmin.v_deliveryTracking', [
+            'page' => 'Track Deliveries',
+            'pageCategory' => 'Tracking',
+        ]);
+    }
+
+    public function delivery_tracking($id)
+    {
+        $delivery = Delivery::with(['order.b2bAddress'])->findOrFail($id);
+        $customerLat = $delivery->order->b2bAddress->delivery_address_lat ?? null;
+        $customerLng = $delivery->order->b2bAddress->delivery_address_lng ?? null;
+        $deliveryManLat = $delivery->delivery_latitude;
+        $deliveryManLng = $delivery->delivery_longitude;
+
+        return view('pages.superadmin.v_deliveryShowTracks', [
+            'page' => 'Location Tracking',
+            'pageCategory' => 'Tracking',
+            'delivery' => $delivery,
+            'deliveryManLat' => $deliveryManLat,
+            'deliveryManLng' => $deliveryManLng,
+            'customerLat' => $customerLat,
+            'customerLng' => $customerLng,
+        ]);
+    }
 }

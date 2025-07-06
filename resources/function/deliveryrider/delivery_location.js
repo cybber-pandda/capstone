@@ -1,0 +1,139 @@
+$(document).ready(function () {
+    const table = $("#deliveryLocationTable").DataTable({
+        processing: true,
+        serverSide: true,
+        paginationType: "simple_numbers",
+        responsive: true,
+        aLengthMenu: [
+            [5, 10, 30, 50, -1],
+            [5, 10, 30, 50, "All"],
+        ],
+        iDisplayLength: 10,
+        language: { search: "" },
+        fixedHeader: { header: true },
+        scrollCollapse: true,
+        scrollX: true,
+        scrollY: 600,
+        ajax: {
+            url: "/deliveryrider/delivery/location",
+            data: function (d) {
+                d.status =
+                    $("#statusTabs .nav-link.active").data("status") ||
+                    "pending";
+            },
+        },
+        autoWidth: false,
+        columns: [
+            { data: "order_number", name: "order_number", width: "15%" },
+            { data: "customer_name", name: "customer_name", width: "20%" },
+            {
+                data: "total_items",
+                name: "total_items",
+                className: "dt-left-int",
+                orderable: false,
+                searchable: false,
+                width: "10%",
+            },
+            {
+                data: "grand_total",
+                name: "grand_total",
+                className: "dt-left-int",
+                orderable: false,
+                searchable: false,
+                width: "10%",
+            },
+            {
+                data: "address",
+                name: "address",
+                width: "10%",
+                render: function (data, type, row) {
+                    const shortText =
+                        data.length > 20 ? data.slice(0, 20) + "..." : data;
+                    return `
+                        <span class="view-full-address text-primary" style="cursor:pointer" data-address="${_.escape(
+                            data
+                        )}" title="Click to view full address">
+                            ${_.escape(shortText)}
+                        </span>
+                    `;
+                },
+            },
+            {
+                data: "action",
+                name: "action",
+                orderable: false,
+                searchable: false,
+                width: "20%",
+            },
+        ],
+        drawCallback: function () {
+            if (typeof lucide !== "undefined") {
+                lucide.createIcons();
+            }
+        },
+    });
+
+    $("#statusTabs .nav-link").on("click", function (e) {
+        e.preventDefault();
+        $("#statusTabs .nav-link").removeClass("active");
+        $(this).addClass("active");
+
+        const newStatus = $(this).data("status");
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.set("status", newStatus);
+        history.replaceState(null, "", newUrl.toString());
+
+        table.ajax.reload();
+    });
+
+    $(document).on("click", ".mark-delivered-btn", function () {
+        const deliveryId = $(this).data("id");
+        $("#delivery_id").val(deliveryId);
+        $("#proofImage").val("");
+        $("#uploadProofModal").modal("show");
+        $(".modal-title").text("Proof of Delivery");
+    });
+
+    $("#uploadProofBtn").on("click", function (e) {
+        e.preventDefault();
+
+        let form = $("#uploadProofForm")[0];
+        let url = $(form).attr("action");
+        let method = $(form).attr("method");
+
+        let formData = new FormData(form);
+
+        showLoader(".uploadProofBtn");
+        $("#uploadProofBtn").prop("disabled", true);
+
+        $.ajax({
+            url: url,
+            method: method,
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                toast("success", response.message);
+
+                hideLoader(".uploadProofBtn");
+                $("#uploadProofBtn").prop("disabled", false);
+
+                $("#uploadProofModal").modal("hide");
+                setTimeout(function () {
+                    window.location.href = "/location?status=delivered";
+                }, 3000);
+            },
+            error: function (xhr) {
+                hideLoader(".uploadProofBtn");
+                $("#uploadProofBtn").prop("disabled", false);
+                toast("error", xhr.responseJSON?.message || "Upload failed.");
+            },
+        });
+    });
+
+    $(document).on("click", ".view-proof-btn", function () {
+        const imageUrl = $(this).data("proof");
+        $("#proofImagePreview").attr("src", imageUrl);
+        $("#viewProofModal").modal("show");
+    });
+});

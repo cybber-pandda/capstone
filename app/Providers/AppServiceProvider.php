@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Models\PurchaseRequest;
 use App\Models\Category;
+use App\Models\Message;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -38,25 +39,39 @@ class AppServiceProvider extends ServiceProvider
         View::share('companySettings', $companySettings);
 
         View::composer('*', function ($view) {
+            $user = Auth::user();
+
+            // Recent Messages
+            $recentMessages = collect();
+            if ($user) {
+                $recentMessages = Message::with('sender')
+                    ->where('recipient_id', $user->id)
+                    ->latest()
+                    ->take(5)
+                    ->get();
+            }
+
+            // Default Values
             $pendingRequestCount = 0;
             $sentQuotationCount = 0;
-            $categories = Category::select(['id', 'name', 'image', 'description'])->get(); // ✅ always load
+            $categories = Category::select(['id', 'name', 'image', 'description'])->get();
             $cartJson = json_encode([
                 'items' => [],
                 'total_quantity' => 0,
                 'subtotal' => 0
             ]);
 
-            if (Auth::check() && Auth::user()->role === 'b2b') {
-                $pendingRequestCount = PurchaseRequest::where('customer_id', Auth::id())
+            // 🧾 B2B-specific logic
+            if ($user && $user->role === 'b2b') {
+                $pendingRequestCount = PurchaseRequest::where('customer_id', $user->id)
                     ->where('status', 'pending')
                     ->count();
 
-                $purchaseRequest = PurchaseRequest::where('customer_id', Auth::id())
+                $purchaseRequest = PurchaseRequest::where('customer_id', $user->id)
                     ->where('status', 'pending')
                     ->first();
 
-                $sentQuotationCount = PurchaseRequest::where('customer_id', Auth::id())
+                $sentQuotationCount = PurchaseRequest::where('customer_id', $user->id)
                     ->where('status', 'quotation_sent')
                     ->count();
 
@@ -81,10 +96,11 @@ class AppServiceProvider extends ServiceProvider
                         'subtotal' => $items->sum(fn($i) => $i->quantity * $i->product->price),
                     ]);
                 }
-
             }
 
+            // Share globally
             $view->with([
+                'recentMessages' => $recentMessages,
                 'pendingRequestCount' => $pendingRequestCount,
                 'sentQuotationCount' =>  $sentQuotationCount,
                 'categories' => $categories,
