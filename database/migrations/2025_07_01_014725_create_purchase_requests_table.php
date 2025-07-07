@@ -23,7 +23,10 @@ class CreatePurchaseRequestsTable extends Migration
                 'so_created',        // sales officer generated a sales order
                 'delivery_in_progress', // delivery driver assigned
                 'delivered',         // delivery completed
-                'invoice_sent'       // sales invoice sent
+                'invoice_sent',       // sales invoice sent
+                'cancelled',           // purchase request cancelled
+                'returned',            // customer returned the item
+                'refunded'             // refund processed
             ])->default('pending');
             $table->timestamps();
 

@@ -44,6 +44,13 @@
                     <span class="link-title">User Management</span>
                 </a>
             </li>
+             <li class="nav-item {{ Route::is('user-management.*') ? 'active' : '' }}">
+                <a href="{{ route('user-management.index') }}" class="nav-link">
+                    <i class="link-icon" data-lucide="landmark"></i>
+                    <span class="link-title">Bank Management</span>
+                </a>
+            </li>
+
             <li class="nav-item nav-category">Account Creation</li>
             <li class="nav-item {{ Route::is('b2b-creation.*') ? 'active' : '' }}">
                 <a href="{{ route('b2b-creation.index') }}" class="nav-link">
@@ -63,6 +70,7 @@
                     <span class="link-title">Sales Officer</span>
                 </a>
             </li>
+
             <li class="nav-item nav-category">Reports</li>
             <li class="nav-item {{ Route::is('user.report') ? 'active' : '' }}">
                 <a href="{{ route('user.report') }}" class="nav-link">
@@ -82,6 +90,7 @@
                     <span class="link-title">Inventory Reports</span>
                 </a>
             </li>
+
             <li class="nav-item nav-category">Tracking</li>
             <li class="nav-item {{ Route::is('tracking.submitted-po') ? 'active' : '' }}">
                 <a href="{{ route('tracking.submitted-po') }}" class="nav-link">
@@ -100,6 +109,20 @@
                 <a href="{{ route('tracking.delivery-personnel') }}" class="nav-link">
                     <i class="link-icon" data-lucide="truck"></i>
                     <span class="link-title">Assign Delivery</span>
+                </a>
+            </li>
+
+            <li class="nav-item nav-category">Settings</li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="link-icon" data-lucide="handshake"></i>
+                    <span class="link-title">Terms & Condition</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <i class="link-icon" data-lucide="building-2"></i>
+                    <span class="link-title">Company Details</span>
                 </a>
             </li>
 

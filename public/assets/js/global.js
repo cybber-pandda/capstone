@@ -146,3 +146,112 @@ function activateStatusTab(status) {
 
 const selectedStatus = getStatusFromURL();
 activateStatusTab(selectedStatus); // Set tab active on page load
+
+
+function refreshRecentMessages() {
+    $.get('/recent-messages', function (response) {
+        const messages = response.messages;
+        const currentUserId = response.current_user_id;
+        renderRecentMessagesDropdown(messages, currentUserId);
+    });
+}
+
+function renderRecentMessagesDropdown(messages, currentUserId) {
+    const $container = $('#recentMessagesList');
+    const $count = $('#messageCount');
+    const $indicator = $('#messageIndicator');
+
+    $container.empty();
+
+    if (!messages.length) {
+        $container.append(`<div class="dropdown-item py-2 text-center text-muted">No new messages</div>`);
+        $count.text("0 New Messages");
+        $indicator.addClass('d-none');
+        return;
+    }
+
+    let hasUnread = false;
+
+    messages.forEach(msg => {
+        const isUnread = msg.recipient_id === currentUserId;
+        if (isUnread) hasUnread = true;
+
+        const profile = msg.sender?.profile
+            ? msg.sender.profile
+            : `/assets/avatars/${Math.floor(Math.random() * 17 + 1)}.avif`;
+
+        const name = msg.sender?.name ?? 'Unknown';
+        const text = msg.text?.substring(0, 30) ?? '';
+        const time = dayjs(msg.created_at).fromNow();
+
+        const html = `
+            <a href="/chat" class="dropdown-item d-flex align-items-center py-2">
+                <div class="me-3">
+                    <img class="w-30px h-30px rounded-circle" src="${profile}" alt="user">
+                </div>
+                <div class="d-flex justify-content-between flex-grow-1">
+                    <div class="me-4">
+                        <p class="mb-0">${name}</p>
+                        <p class="fs-12px text-secondary mb-0">${text}</p>
+                    </div>
+                    <p class="fs-12px text-secondary mb-0">${time}</p>
+                </div>
+            </a>
+        `;
+        $container.append(html);
+    });
+
+    $count.text(`${messages.length} New Message${messages.length !== 1 ? 's' : ''}`);
+    if (hasUnread) {
+        $indicator.removeClass('d-none');
+    } else {
+        $indicator.addClass('d-none');
+    }
+}
+
+
+function fetchNotifications() {
+    $.get('/notifications', function(res) {
+        const $list = $('#notificationItems');
+        const $count = $('#notificationCount');
+        const $indicator = $('#notificationIndicator');
+
+        $list.empty();
+
+        if (res.notifications.length === 0) {
+            $list.append(`<div class="text-center py-2 text-muted">No notifications</div>`);
+            $count.text('0 New Notifications');
+            $indicator.hide();
+        } else {
+            res.notifications.forEach(noti => {
+                $list.append(`
+                    <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
+                        <div class="w-30px h-30px d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
+                            <i class="icon-sm text-white" data-lucide="bell"></i>
+                        </div>
+                        <div class="flex-grow-1 me-2">
+                            <p>${noti.message}</p>
+                            <p class="fs-12px text-secondary">${noti.time}</p>
+                        </div>
+                    </a>
+                `);
+            });
+
+            $count.text(`${res.count} New Notification${res.count > 1 ? 's' : ''}`);
+            $indicator.show();
+        }
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+}
+
+function markAllNotificationsRead() {
+    $.post('/notifications/mark-all-read', {
+        _token: $('meta[name="csrf-token"]').attr('content')
+    }, function() {
+        fetchNotifications();
+    });
+}
+
+
+

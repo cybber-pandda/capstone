@@ -15,7 +15,7 @@ use App\Models\DeliveryHistory;
 
 class DeliveryController extends Controller
 {
-    public function delivery_pickup(Request $request, $id)
+    public function deliveryPickup(Request $request, $id)
     {
         $delivery = Delivery::findOrFail($id);
         $delivery->status = 'on_the_way';
@@ -24,7 +24,7 @@ class DeliveryController extends Controller
         return response()->json(['message' => 'Status updated successfully.']);
     }
 
-    public function delivery_orders(Request $request)
+    public function deliveryOrders(Request $request)
     {
         $user = User::getCurrentUser();
         $status = $request->get('status');
@@ -75,7 +75,7 @@ class DeliveryController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function delivery_histories(Request $request)
+    public function deliveryHistories(Request $request)
     {
         $user = User::getCurrentUser();
 
@@ -126,7 +126,7 @@ class DeliveryController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function delivery_location(Request $request)
+    public function deliveryLocation(Request $request)
     {
         $user = User::getCurrentUser();
         $status = $request->get('status');
@@ -212,7 +212,7 @@ class DeliveryController extends Controller
         ]);
     }
 
-    public function delivery_tracking($id)
+    public function deliveryTracking($id)
     {
         $delivery = Delivery::with(['order.b2bAddress'])->findOrFail($id);
         $customerLat = $delivery->order->b2bAddress->delivery_address_lat ?? null;
@@ -250,7 +250,7 @@ class DeliveryController extends Controller
         return response()->json(['message' => 'Location logged']);
     }
 
-    public function delivery_tracking_sse($id)
+    public function deliveryTrackingSSE($id)
     {
         header('Content-Type: text/event-stream');
         header('Cache-Control: no-cache');
@@ -271,7 +271,7 @@ class DeliveryController extends Controller
         }
     }
 
-    public function upload_proof(Request $request)
+    public function uploadProof(Request $request)
     {
         $request->validate([
             'delivery_id' => 'required|exists:deliveries,id',

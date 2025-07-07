@@ -54,7 +54,7 @@ class PurchaseRequestController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function update_send_quotation($id)
+    public function updateSendQuotation($id)
     {
         $purchaseRequest = PurchaseRequest::findOrFail($id);
 

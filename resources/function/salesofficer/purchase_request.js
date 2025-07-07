@@ -94,7 +94,7 @@ $(document).ready(function () {
         $("#sendQuotationBtn").prop("disabled", true);
 
         $.ajax({
-            url: "/salesofficer/purchase-requests/send-quotation/" + id,
+            url: "/salesofficer/purchase-requests/s-q/" + id,
             method: "PUT",
             success: function (response) {
                 hideLoader(".sendQuotationBtn");

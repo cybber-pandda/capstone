@@ -33,9 +33,9 @@ $avatar = $user->profile
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="searchForm" placeholder="Search here...">
                                             <span class="input-group-text bg-transparent">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" class="lucide lucide-search cursor-pointer">
-                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" class="lucide lucide-search cursor-pointer">
                                                     <path d="m21 21-4.34-4.34"></path>
+                                                    <circle cx="11" cy="11" r="8"></circle>
                                                 </svg>
                                             </span>
                                         </div>
@@ -44,6 +44,7 @@ $avatar = $user->profile
                                 <div class="aside-body">
                                     <!-- <p class="text-secondary mb-1">Active</p> -->
                                     <ul class="list-unstyled chat-list px-1 mt-4" id="chat-user-list"></ul>
+                                    <p class="text-center text-muted mt-3" id="no-users-message" style="display:none;">No users found.</p>
                                 </div>
                             </div>
                         </div>
@@ -52,7 +53,7 @@ $avatar = $user->profile
                                 <div class="d-flex align-items-center">
                                     <i class="d-lg-none me-2 text-secondary" id="backToUserList" style="cursor:pointer;" data-lucide="corner-up-left"></i>
                                     <figure class="mb-0 me-2">
-                                        <img src="/assets/images/faces/face2.jpg" class="img-sm rounded-circle" alt="image">
+                                        <img src="{{ asset('assets/dashboard/images/noprofile.png') }}" class="img-sm rounded-circle" alt="image">
                                         <div class="status online"></div>
                                     </figure>
                                     <div>
@@ -84,40 +85,40 @@ $avatar = $user->profile
 
 @push('scripts')
 <script>
-    const CURRENT_USER_ID = @json(auth()->id());
     let currentRecipientId = null;
 
-    function loadUsers() {
+    function loadUsers(isInitialLoad = false) {
         $.get('/chat/users', function(users) {
             const $userList = $('#chat-user-list');
+            $('#no-users-message').hide();
             $userList.empty();
 
             users.forEach((user) => {
                 const profile = user.profile ? user.profile : `/assets/avatars/${Math.floor(Math.random() * 17 + 1)}.avif`;
                 const lastMessage = user.last_message?.text || 'Click to chat';
-                const lastTime = user.last_message?.created_at 
-                    ? dayjs(user.last_message.created_at).fromNow()
-                    : '';
+                const lastTime = user.last_message?.created_at ?
+                    dayjs(user.last_message.created_at).fromNow() :
+                    '';
 
                 $userList.append(`
-                    <li class="chat-item pe-1 mb-1" data-id="${user.id}" data-name="${user.name}" data-profile="${profile}">
-                        <a href="javascript:;" class="d-flex align-items-center">
-                            <figure class="mb-0 me-2">
-                                <img src="${profile}" class="img-xs rounded-circle" alt="user">
-                                <div class="status ${user.online ? 'online' : 'offline'}"></div>
-                            </figure>
-                            <div class="d-flex justify-content-between flex-grow-1 border-bottom">
-                                <div>
-                                    <p class="text-body fw-bold mb-0">${user.name}</p>
-                                    <p class="text-secondary fs-13px mb-1 text-truncate" style="max-width: 150px;">${lastMessage}</p>
-                                </div>
-                                <div class="d-flex flex-column align-items-end">
-                                    <p class="text-secondary fs-13px mb-1">${lastTime}</p>
-                                </div>
+                <li class="chat-item pe-1 mb-1" data-id="${user.id}" data-name="${user.name}" data-profile="${profile}">
+                    <a href="javascript:;" class="d-flex align-items-center">
+                        <figure class="mb-0 me-2">
+                            <img src="${profile}" class="img-xs rounded-circle" alt="user">
+                            <div class="status ${user.online ? 'online' : 'offline'}"></div>
+                        </figure>
+                        <div class="d-flex justify-content-between flex-grow-1 border-bottom">
+                            <div>
+                                <p class="text-body fw-bold mb-0">${user.name}</p>
+                                <p class="text-secondary fs-13px mb-1 text-truncate" style="max-width: 150px;">${lastMessage}</p>
                             </div>
-                        </a>
-                    </li>
-                `);
+                            <div class="d-flex flex-column align-items-end">
+                                <p class="text-secondary fs-13px mb-1">${lastTime}</p>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            `);
             });
 
             $('.chat-item').off('click').on('click', function() {
@@ -128,54 +129,70 @@ $avatar = $user->profile
                 $('#chat-user-name').text(userName);
                 $(".chat-header figure img").attr('src', userProfile);
 
+                currentRecipientId = userId;
                 toggleToChatView();
                 loadMessages(userId);
             });
 
-            if (users.length > 0) {
+            if (isInitialLoad && users.length > 0 && currentRecipientId === null) {
                 $('.chat-item').first().trigger('click');
             }
         });
     }
 
+    let chatScrollbar = null;
+
     function loadMessages(recipientId) {
         currentRecipientId = recipientId;
+
         $.get(`/chat/messages/${recipientId}`, function(messages) {
             const $chatBody = $(".chat-body .messages");
+            const chatBodyEl = document.querySelector('.chat-content .chat-body');
+
+            // Clear old scrollbar
+            if (chatScrollbar) {
+                chatScrollbar.destroy();
+                chatScrollbar = null;
+            }
+
             $chatBody.empty();
+            chatBodyEl.scrollTop = 0;
 
             if (messages.length === 0) {
                 $chatBody.append(`
                 <div class="d-flex justify-content-center align-items-center text-muted w-100 h-100" style="min-height: 300px;">
                     <p class="m-0">No messages found.</p>
                 </div>
-                `);
-
-                $(".chat-body").scrollTop(0);
-            } else {
-                messages.forEach(msg => {
-                    const isMe = msg.sender_id === CURRENT_USER_ID;
-                    const profile = msg.sender_profile ?
-                        msg.sender_profile :
-                        `/assets/avatars/${Math.floor(Math.random() * 17 + 1)}.avif`;
-
-                    $chatBody.append(`
-                    <li class="message-item ${isMe ? 'me' : 'friend'}">
-                        <img src="${profile}" class="img-xs rounded-circle" alt="avatar">
-                        <div class="content">
-                            <div class="message">
-                                <div class="bubble">
-                                    <p>${msg.text ?? ''}</p>
-                                </div>
-                                <span>${new Date(msg.created_at).toLocaleTimeString()}</span>
-                            </div>
-                        </div>
-                    </li>
-                `);
-                });
+            `);
+                return;
             }
 
-            $(".chat-body").scrollTop($(".chat-body")[0].scrollHeight);
+            messages.forEach(msg => {
+                const isMe = msg.sender_id === CURRENT_USER_ID;
+                const profile = msg.sender_profile ? msg.sender_profile : `/assets/avatars/${Math.floor(Math.random() * 17 + 1)}.avif`;
+
+                $chatBody.append(`
+                <li class="message-item ${isMe ? 'me' : 'friend'}">
+                    <img src="${profile}" class="img-xs rounded-circle" alt="avatar">
+                    <div class="content">
+                        <div class="message">
+                            <div class="bubble">
+                                <p>${msg.text ?? ''}</p>
+                            </div>
+                            <span>${new Date(msg.created_at).toLocaleTimeString()}</span>
+                        </div>
+                    </div>
+                </li>
+            `);
+            });
+
+            // Only apply scrollbar if there are more than 5 messages
+            if (messages.length > 5) {
+                chatScrollbar = new PerfectScrollbar(chatBodyEl);
+                chatBodyEl.scrollTop = chatBodyEl.scrollHeight;
+            } else {
+                chatBodyEl.scrollTop = 0;
+            }
         });
     }
 
@@ -193,37 +210,38 @@ $avatar = $user->profile
         }
     }
 
-    // Bind toggle on chat item click
-    $(document).on('click', '.chat-item', function() {
-        const userId = $(this).data('id');
-        const userName = $(this).data('name');
-        const userProfile = $(this).data('profile');
+    function filterUsers(keyword) {
+        let hasMatch = false;
 
-        $('#chat-user-name').text(userName);
-        $(".chat-header figure img").attr('src', userProfile);
+        $('#chat-user-list .chat-item').each(function() {
+            const name = $(this).data('name')?.toLowerCase() || '';
+            const isMatch = name.includes(keyword.toLowerCase());
 
-        toggleToChatView();
-        loadMessages(userId);
-    });
+            $(this).toggle(isMatch);
 
-    // Bind back button
-    $('#backToUserList').on('click', function() {
-        toggleToUserList();
-    });
+            if (isMatch) hasMatch = true;
+        });
 
-
-    // Handle click on send button
-    $('#sendBtn').on('click', function () {
-        sendMessage();
-    });
-
-    // Handle Enter key press inside chat input
-    $('#chatForm').on('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // Prevent newline
-            sendMessage();
+        if (hasMatch) {
+            $('#no-users-message').hide();
+        } else {
+            $('#no-users-message').show();
         }
-    });
+    }
+
+    // Optional: debounce for better performance
+    function debounce(func, delay) {
+        let timer;
+        return function() {
+            clearTimeout(timer);
+            timer = setTimeout(() => func.apply(this, arguments), delay);
+        };
+    }
+
+    const debouncedSearch = debounce(function() {
+        const keyword = $('#searchForm').val();
+        filterUsers(keyword);
+    }, 200);
 
     // Shared send logic
     function sendMessage() {
@@ -234,20 +252,57 @@ $avatar = $user->profile
             _token: $('meta[name="csrf-token"]').attr('content'),
             recipient_id: currentRecipientId,
             text: message
-        }, function () {
+        }, function() {
             $('#chatForm').val('');
-            loadUsers();
+            loadUsers(false); // dont trigger auto select true trigger auto select
             loadMessages(currentRecipientId);
+            refreshRecentMessages();
         });
     }
 
     $(document).ready(function() {
         loadUsers();
 
+        // Bind search
+        $('#searchForm').on('input', debouncedSearch);
+
         if (window.innerWidth < 992) {
             $('.chat-content').hide();
             $('.chat-aside').show();
         }
+
+        // Bind toggle on chat item click
+        $(document).on('click', '.chat-item', function() {
+            const userId = $(this).data('id');
+            const userName = $(this).data('name');
+            const userProfile = $(this).data('profile');
+
+            $('#chat-user-name').text(userName);
+            $(".chat-header figure img").attr('src', userProfile);
+
+            toggleToChatView();
+            loadMessages(userId);
+        });
+
+        // Bind back button
+        $('#backToUserList').on('click', function() {
+            toggleToUserList();
+        });
+
+
+        // Handle click on send button
+        $('#sendBtn').on('click', function() {
+            sendMessage();
+        });
+
+        // Handle Enter key press inside chat input
+        $('#chatForm').on('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Prevent newline
+                sendMessage();
+            }
+        });
+
     });
 </script>
 @endpush

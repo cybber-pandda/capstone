@@ -81,6 +81,27 @@
             background-color: transparent;
         }
 
+        .chat-wrapper,
+        .chat-wrapper .card,
+        .chat-wrapper .card-body,
+        .chat-content,
+        .chat-aside {
+            height: 79vh;
+            max-height: 79vh;
+            overflow: hidden;
+        }
+
+        .chat-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-body {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
         @media (max-width: 991.98px) {
 
             /* Force full height layout on mobile */
@@ -175,7 +196,12 @@
             }
         });
 
-        //const CURRENT_USER_ID = {{ auth()->id() }};
+        const CURRENT_USER_ID = <?= auth()->id() ?>;
+
+        $(document).ready(function() {
+            refreshRecentMessages();
+            fetchNotifications();
+        });
     </script>
 
     @stack('scripts')

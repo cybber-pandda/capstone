@@ -41,16 +41,6 @@ class AppServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             $user = Auth::user();
 
-            // Recent Messages
-            $recentMessages = collect();
-            if ($user) {
-                $recentMessages = Message::with('sender')
-                    ->where('recipient_id', $user->id)
-                    ->latest()
-                    ->take(5)
-                    ->get();
-            }
-
             // Default Values
             $pendingRequestCount = 0;
             $sentQuotationCount = 0;
@@ -100,7 +90,6 @@ class AppServiceProvider extends ServiceProvider
 
             // Share globally
             $view->with([
-                'recentMessages' => $recentMessages,
                 'pendingRequestCount' => $pendingRequestCount,
                 'sentQuotationCount' =>  $sentQuotationCount,
                 'categories' => $categories,

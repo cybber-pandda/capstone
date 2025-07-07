@@ -12,7 +12,7 @@ class ChatController extends Controller
 {
     public function index()
     {
-        return view('pages.v_chat', [
+        return view('pages.chat', [
             'page' => 'Messages'
         ]);
     }
@@ -86,5 +86,46 @@ class ChatController extends Controller
         ]);
 
         return response()->json($message);
+    }
+
+    public function recentMessage()
+    {
+        $user = Auth::user();
+
+        $recentMessages = Message::with('sender')
+            ->where(function ($query) use ($user) {
+                $query->where('recipient_id', $user->id)
+                    ->orWhere('sender_id', $user->id);
+            })
+            ->orderByDesc('created_at')
+            ->get()
+            ->groupBy(function ($msg) {
+                return collect([$msg->sender_id, $msg->recipient_id])->sort()->join('-');
+            })
+            ->map(function ($group) use ($user) {
+                $latest = $group->first();
+                return $latest->recipient_id === $user->id ? $latest : null;
+            })
+            ->filter()
+            ->sortByDesc('created_at')
+            ->take(5)
+            ->values()
+            ->map(function ($msg) {
+                return [
+                    'id' => $msg->id,
+                    'text' => $msg->text,
+                    'recipient_id' => $msg->recipient_id,
+                    'created_at' => $msg->created_at->toISOString(),
+                    'sender' => [
+                        'name' => $msg->sender->name ?? 'Unknown',
+                        'profile' => $msg->sender->profile ?? null,
+                    ],
+                ];
+            });
+
+        return response()->json([
+            'current_user_id' => $user->id,
+            'messages' => $recentMessages,
+        ]);
     }
 }

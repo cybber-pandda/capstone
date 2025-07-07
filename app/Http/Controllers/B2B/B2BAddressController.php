@@ -39,7 +39,7 @@ class B2BAddressController extends Controller
         ]);
     }
 
-    public function geocode(Request $request)
+    public function geoCode(Request $request)
     {
         $address = $request->input('q');
 

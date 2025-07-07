@@ -72,7 +72,7 @@ class QuotationController extends Controller
         return view('pages.b2b.v_quotation_show', compact('quotation', 'page'));
     }
 
-    public function submit_quotation($id)
+    public function submitQuotation($id)
     {
         try {
             $userId = auth()->id();
