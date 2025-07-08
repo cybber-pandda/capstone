@@ -44,8 +44,8 @@
                     <span class="link-title">User Management</span>
                 </a>
             </li>
-             <li class="nav-item {{ Route::is('user-management.*') ? 'active' : '' }}">
-                <a href="{{ route('user-management.index') }}" class="nav-link">
+             <li class="nav-item {{ Route::is('bank-management.*') ? 'active' : '' }}">
+                <a href="{{ route('bank-management.index') }}" class="nav-link">
                     <i class="link-icon" data-lucide="landmark"></i>
                     <span class="link-title">Bank Management</span>
                 </a>
@@ -113,8 +113,8 @@
             </li>
 
             <li class="nav-item nav-category">Settings</li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
+            <li class="nav-item {{ Route::is('terms.*') ? 'active' : '' }}">
+                <a href="{{ route('terms.index') }}" class="nav-link">
                     <i class="link-icon" data-lucide="handshake"></i>
                     <span class="link-title">Terms & Condition</span>
                 </a>

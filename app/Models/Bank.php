@@ -6,13 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class TermCondition extends Model
+class Bank extends Model
 {
-     use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes;
 
-    protected $table = 'terms_conditions';
+    protected $table = 'banks';
 
-    protected $fillable = [
-        'page_type','content_type', 'content'
+     protected $fillable = [
+        'name',
+        'image',
+        'account_number',
     ];
+
 }

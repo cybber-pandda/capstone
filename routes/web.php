@@ -31,10 +31,6 @@ Route::get('/google/callback', [App\Http\Controllers\Auth\GoogleLoginController:
 
 Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function () {
 
-    Route::get('home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
-    Route::post('b2b-details-form', [App\Http\Controllers\HomeController::class, 'b2b_details_form']);
-
-
     /* Super Admin */
     //Route::prefix('superadmin')->name('superadmin.')->group(function () {
 
@@ -44,6 +40,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::resource('user-management', App\Http\Controllers\Superadmin\UserManagementController::class);
     Route::get('inventory-management', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'index'])->name('inventory');
     Route::post('inventory-management', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'store'])->name('inventory.store');
+    Route::resource('bank-management', App\Http\Controllers\Superadmin\BankManagementController::class);
 
     // Account Creation
     Route::resource('b2b-creation', App\Http\Controllers\Superadmin\B2BController::class);
@@ -59,11 +56,9 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::get('submitted_po', [App\Http\Controllers\Superadmin\TrackingController::class, 'submitted_po'])->name('tracking.submitted-po');
     Route::get('/purchase-requests/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'show']);
     Route::put('/process-so/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'process_so']);
-
     Route::get('/delivery/location', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_location'])->name('tracking.delivery.location');
     Route::get('/delivery/tracking/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_tracking'])->name('tracking.delivery.tracking');
     Route::post('/delivery/upload-proof', [App\Http\Controllers\Superadmin\TrackingController::class, 'upload_proof'])->name('tracking.delivery.upload-proof');
-
     Route::get('/delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_personnel'])->name('tracking.delivery-personnel');
     Route::post('/assign-delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'assign_delivery_personnel'])->name('tracking.assign-delivery-personnel');
     //});
@@ -105,7 +100,6 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::post('/address/set-default', [App\Http\Controllers\B2B\B2BAddressController::class, 'setDefault']);
 
         Route::get('/delivery', [App\Http\Controllers\B2B\DeliveryController::class, 'index'])->name('delivery.index');
-
         Route::get('/profile', [App\Http\Controllers\B2B\B2BController::class, 'index'])->name('profile.index');
     });
 
@@ -118,8 +112,13 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::get('/recent-messages', [App\Http\Controllers\ChatController::class, 'recentMessage']);
 
     //Notification
-    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index']);
-    Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead']);
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notification.index');
+    Route::get('/notifications/api', [App\Http\Controllers\NotificationController::class, 'notificationsApi']);
+    Route::post('/notifications/mark-all-selected', [App\Http\Controllers\NotificationController::class, 'markSelectedAsRead']);
+
+    Route::get('home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    Route::post('b2b-details-form', [App\Http\Controllers\HomeController::class, 'b2b_details_form']);
+    Route::resource('terms', App\Http\Controllers\TermsController::class);
     
     //General Setting
     Route::get('generalsettings', [App\Http\Controllers\GeneralSettingsController::class, 'index'])->name('generalsettings');

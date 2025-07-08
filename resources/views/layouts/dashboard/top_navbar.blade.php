@@ -72,7 +72,7 @@
                                 <div class="text-center py-2 text-muted">Loading...</div>
                             </div>
                             <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
-                                <a href="/notifications">View all</a>
+                                <a href="{{ route('notification.index') }}">View all</a>
                             </div>
                         </div>
                     </li>

@@ -2,13 +2,44 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notification;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
+
+use App\Models\Notification;
 
 class NotificationController extends Controller
 {
-    public function index()
+
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = Notification::where('user_id', Auth::id())
+                ->latest();
+
+            return DataTables::of($query)
+                ->addColumn('message', fn($noti) => $noti->message)
+                ->addColumn('type', fn($noti) => $noti->type)
+                ->addColumn('time', fn($noti) => $noti->created_at->diffForHumans())
+                ->addColumn('read_at', fn($noti) => $noti->read_at ? $noti->read_at->diffForHumans() : 'Unread')
+                ->addColumn('checkbox', function ($noti) {
+                    if (!$noti->read_at) {
+                        return '<input type="checkbox" class="notification-checkbox" value="' . $noti->id . '">';
+                    }
+                    return '';
+                })
+                ->rawColumns(['checkbox', 'read_at']) // Allow HTML
+                ->make(true);
+        }
+
+        return view('pages.notification', [
+            'page' => 'Notifications',
+        ]);
+    }
+
+    public function notificationsApi()
     {
         $user = Auth::user();
 
@@ -31,9 +62,12 @@ class NotificationController extends Controller
         ]);
     }
 
-    public function markAllAsRead()
+    public function markSelectedAsRead(Request $request)
     {
-        Notification::where('user_id', Auth::id())
+        $ids = $request->input('ids', []);
+
+        Notification::whereIn('id', $ids)
+            ->where('user_id', Auth::id())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 

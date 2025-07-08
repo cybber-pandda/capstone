@@ -211,7 +211,7 @@ function renderRecentMessagesDropdown(messages, currentUserId) {
 
 
 function fetchNotifications() {
-    $.get('/notifications', function(res) {
+    $.get('/notifications/api', function(res) {
         const $list = $('#notificationItems');
         const $count = $('#notificationCount');
         const $indicator = $('#notificationIndicator');

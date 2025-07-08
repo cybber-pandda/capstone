@@ -15,9 +15,11 @@ class CreateTermsConditionsTable extends Migration
     {
         Schema::create('terms_conditions', function (Blueprint $table) {
             $table->id();
+            $table->string('page_type', 100);
             $table->string('content_type', 100);
             $table->text('content');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
