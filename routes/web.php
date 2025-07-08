@@ -48,19 +48,19 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::resource('salesofficer-creation', App\Http\Controllers\Superadmin\SalesOfficerController::class);
 
     // Report
-    Route::get('user-report', [App\Http\Controllers\Superadmin\ReportController::class, 'user_report'])->name('user.report');
-    Route::get('delivery-report', [App\Http\Controllers\Superadmin\ReportController::class, 'delivery_report'])->name('delivery.report');
-    Route::get('inventory-report', [App\Http\Controllers\Superadmin\ReportController::class, 'inventory_report'])->name('inventory.report');
+    Route::get('user-report', [App\Http\Controllers\Superadmin\ReportController::class, 'userReport'])->name('user.report');
+    Route::get('delivery-report', [App\Http\Controllers\Superadmin\ReportController::class, 'deliveryReport'])->name('delivery.report');
+    Route::get('inventory-report', [App\Http\Controllers\Superadmin\ReportController::class, 'inventoryReport'])->name('inventory.report');
 
     // Tracking
-    Route::get('submitted_po', [App\Http\Controllers\Superadmin\TrackingController::class, 'submitted_po'])->name('tracking.submitted-po');
+    Route::get('submitted_po', [App\Http\Controllers\Superadmin\TrackingController::class, 'submittedPO'])->name('tracking.submitted-po');
     Route::get('/purchase-requests/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'show']);
-    Route::put('/process-so/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'process_so']);
-    Route::get('/delivery/location', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_location'])->name('tracking.delivery.location');
-    Route::get('/delivery/tracking/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_tracking'])->name('tracking.delivery.tracking');
-    Route::post('/delivery/upload-proof', [App\Http\Controllers\Superadmin\TrackingController::class, 'upload_proof'])->name('tracking.delivery.upload-proof');
-    Route::get('/delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'delivery_personnel'])->name('tracking.delivery-personnel');
-    Route::post('/assign-delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'assign_delivery_personnel'])->name('tracking.assign-delivery-personnel');
+    Route::put('/process-so/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'processSO']);
+    Route::get('/delivery/location', [App\Http\Controllers\Superadmin\TrackingController::class, 'deliveryLocation'])->name('tracking.delivery.location');
+    Route::get('/delivery/tracking/{id}', [App\Http\Controllers\Superadmin\TrackingController::class, 'deliveryTracking'])->name('tracking.delivery.tracking');
+    Route::post('/delivery/upload-proof', [App\Http\Controllers\Superadmin\TrackingController::class, 'uploadProof'])->name('tracking.delivery.upload-proof');
+    Route::get('/delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'deliveryPersonnel'])->name('tracking.delivery-personnel');
+    Route::post('/assign-delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'assignDeliveryPersonnel'])->name('tracking.assign-delivery-personnel');
     //});
 
     /* Sales Officer */

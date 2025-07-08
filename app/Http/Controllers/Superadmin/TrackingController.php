@@ -19,7 +19,7 @@ use App\Models\User;
 
 class TrackingController extends Controller
 {
-    public function submitted_po(Request $request)
+    public function submittedPO(Request $request)
     {
         if ($request->ajax()) {
             $query = PurchaseRequest::with(['customer', 'items.product'])
@@ -67,7 +67,7 @@ class TrackingController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function process_so($id)
+    public function processSO($id)
     {
         DB::beginTransaction();
 
@@ -146,7 +146,7 @@ class TrackingController extends Controller
         }
     }
 
-    public function delivery_personnel(Request $request)
+    public function deliveryPersonnel(Request $request)
     {
 
         $deliveryman_select = User::select('name', 'id')->where('role', 'deliveryrider/admin')->get();
@@ -210,7 +210,7 @@ class TrackingController extends Controller
         ]);
     }
 
-    public function assign_delivery_personnel(Request $request)
+    public function assignDeliveryPersonnel(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'delivery_id' => 'required|exists:deliveries,id',
@@ -247,7 +247,7 @@ class TrackingController extends Controller
         }
     }
 
-    public function delivery_location(Request $request)
+    public function deliveryLocation(Request $request)
     {
         $status = $request->get('status');
 
@@ -332,7 +332,7 @@ class TrackingController extends Controller
         ]);
     }
 
-    public function delivery_tracking($id)
+    public function deliveryTracking($id)
     {
         $delivery = Delivery::with(['order.b2bAddress'])->findOrFail($id);
         $customerLat = $delivery->order->b2bAddress->delivery_address_lat ?? null;

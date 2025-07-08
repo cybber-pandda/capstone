@@ -13,7 +13,7 @@ use App\Models\Delivery;
 class ReportController extends Controller
 {
 
-    public function user_report(Request $request)
+    public function userReport(Request $request)
     {
 
         if ($request->ajax()) {
@@ -38,7 +38,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function delivery_report(Request $request)
+    public function deliveryReport(Request $request)
     {
         if ($request->ajax()) {
             $deliveries = Delivery::with(['order', 'deliveryUser', 'latestHistory']);
@@ -73,7 +73,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function inventory_report(Request $request)
+    public function inventoryReport(Request $request)
     {
         if ($request->ajax()) {
             $products = Product::with('inventories')->get();
