@@ -7,21 +7,66 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
 
-use App\Models\Product;
+use App\Models\User;
+use App\Models\Delivery;
 
 class ReportController extends Controller
 {
 
     public function user_report(Request $request)
     {
+
+        if ($request->ajax()) {
+            $users = User::select(['id', 'name', 'username', 'email', 'role', 'status', 'created_at'])
+                ->where('role', '!=', 'superadmin');
+
+            return DataTables::of($users)
+                ->addColumn('status', fn($row) => $row->status ? 'Active' : 'Inactive')
+                ->make(true);
+        }
+
+        $userCounts = [
+            'b2b' => User::where('role', 'b2b')->count(),
+            'deliveryrider' => User::where('role', 'deliveryrider')->count(),
+            'salesofficer' => User::where('role', 'salesofficer')->count(),
+        ];
+
         return view('pages.superadmin.v_userReport', [
             'page' => 'User Report',
             'pageCategory' => 'Reports',
+            'userCounts' => $userCounts
         ]);
     }
 
     public function delivery_report(Request $request)
     {
+        if ($request->ajax()) {
+            $deliveries = Delivery::with(['order', 'deliveryUser', 'latestHistory']);
+
+            return DataTables::of($deliveries)
+                ->addColumn('order_number', fn($d) => optional($d->order)->order_number)
+                ->addColumn('rider', fn($d) => optional($d->deliveryUser)->name ?? 'Unassigned')
+                ->addColumn('status', fn($d) => ucfirst(str_replace('_', ' ', $d->status)))
+                ->addColumn('location', function ($d) {
+                    if ($d->latestHistory) {
+                        $lat = $d->latestHistory->latitude;
+                        $lng = $d->latestHistory->longitude;
+                        return "<a href='https://www.google.com/maps?q={$lat},{$lng}' target='_blank'>{$lat}, {$lng}</a>";
+                    }
+                    return 'N/A';
+                })
+                ->addColumn('remarks', fn($d) => optional($d->latestHistory)->remarks ?? 'N/A')
+                ->addColumn('logged_at', fn($d) => optional($d->latestHistory)?->logged_at?->format('Y-m-d H:i:s') ?? 'N/A')
+                ->addColumn('proof_delivery', function ($d) {
+                    if ($d->proof_delivery) {
+                        return '<a href="' . asset($d->proof_delivery) . '" target="_blank">View</a>';
+                    }
+                    return 'N/A';
+                })
+                ->rawColumns(['proof_delivery', 'location'])
+                ->make(true);
+        }
+
         return view('pages.superadmin.v_deliveryReport', [
             'page' => 'Delivery Report',
             'pageCategory' => 'Reports',
