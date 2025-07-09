@@ -9,7 +9,7 @@ class PurchaseRequest extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['customer_id', 'status'];
+    protected $fillable = ['customer_id', 'status', 'pr_remarks'];
 
     public function customer()
     {
@@ -19,5 +19,9 @@ class PurchaseRequest extends Model
     public function items()
     {
         return $this->hasMany(PurchaseRequestItem::class);
+    }
+    public function bank()
+    {
+        return $this->belongsTo(Bank::class);
     }
 }

@@ -1,69 +1,77 @@
-
 function loadCompanyData() {
-    // Parse the JSON data into a JavaScript object
-    const companySetting = JSON.parse(companySettingJson);
+    $.ajax({
+        url: '/company/settings',
+        type: 'GET',
+        dataType: 'json',
+        success: function (response) {
+            const companySetting = response.companySetting;
 
-    $('#company-logo-img').attr('src', 'assets/back/images/brand/logo/noimage.jpg').css('width', '100px');
-     
-    if (companySetting) {
+            const tableHtml = `
+                <tr>
+                    <td><img src="${companySetting.company_logo || '/assets/dashboard/images/noimage.png'}" width="60"></td>
+                    <td>${companySetting.company_email || '-'}</td>
+                    <td>${companySetting.company_phone || '-'}</td>
+                    <td>${companySetting.company_address || '-'}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-info" id="editCompanyBtn">
+                            <i class="fa fa-edit"></i> Edit
+                        </button>
+                    </td>
+                </tr>
+            `;
 
-        const companyLogo = companySetting.company_logo;
+            $('#companyTable tbody').html(tableHtml);
 
-        if (companyLogo) {
-            $('#company-logo-img').attr('src', companyLogo);
-        } 
-
-        $('#company_email').val( companySetting.company_email || '');
-        $('#company_phone').val( companySetting.company_phone || '');
-        $('#company_address').val( companySetting.company_address || '');
-    }
+            $('#editCompanyBtn').on('click', function () {
+                $('#editCompanyModal').modal('show');
+                $('#company-logo-img').attr('src', '/' + (companySetting.company_logo || 'assets/dashboard/images/noimage.png'));
+                $('#company_email').val(companySetting.company_email || '');
+                $('#company_phone').val(companySetting.company_phone || '');
+                $('#company_address').val(companySetting.company_address || '');
+            });
+        },
+        error: function () {
+            toast('error', 'Failed to load company data');
+        }
+    });
 }
 
+
 $(document).ready(function () {
+    loadCompanyData();
 
     $('#companyForm').on('submit', function (e) {
         e.preventDefault();
+        $('.invalid-feedback').html('');
+        $('.form-control').removeClass('is-invalid');
 
-        showLoader('.company');
-
-        // Create FormData object
         var formData = new FormData(this);
 
         $.ajax({
-            url: '/generalsettings-company',
+            url: '/company/update',
             type: 'POST',
             data: formData,
             contentType: false,
             processData: false,
             success: function (response) {
-                // Handle success
                 if (response.success) {
-                    
-                    hideLoader('.company');
-
-                    toast('success', response.success);
-
-                    // Update companySettingJson with new data from the response
                     companySettingJson = JSON.stringify(response.companySetting);
                     loadCompanyData();
+                    $('#editCompanyModal').modal('hide');
+                    toast('success', response.success);
                 }
             },
             error: function (response) {
                 if (response.status === 422) {
-
-                    hideLoader('.company');
-                    
                     var errors = response.responseJSON.errors;
                     $.each(errors, function (key, value) {
-                        $('#' + key).addClass('border-danger is-invalid');
-                        $('#' + key + '_error').html('<strong>' + value[0] + '</strong>');
+                        $('#' + key).addClass('is-invalid');
+                        $('#' + key + '_error').html(value[0]);
                     });
                 } else {
-                    console.log(response);
+                    toast('error', 'Something went wrong!');
                 }
             }
         });
     });
-
-    loadCompanyData();
 });

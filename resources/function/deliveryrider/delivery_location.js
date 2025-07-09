@@ -51,8 +51,8 @@ $(document).ready(function () {
                         data.length > 20 ? data.slice(0, 20) + "..." : data;
                     return `
                         <span class="view-full-address text-primary" style="cursor:pointer" data-address="${_.escape(
-                            data
-                        )}" title="Click to view full address">
+                        data
+                    )}" title="Click to view full address">
                             ${_.escape(shortText)}
                         </span>
                     `;
@@ -136,4 +136,48 @@ $(document).ready(function () {
         $("#proofImagePreview").attr("src", imageUrl);
         $("#viewProofModal").modal("show");
     });
+
+    $(document).on("click", ".cancel-delivery-btn", function () {
+        const deliveryId = $(this).data("id");
+        $("#cancel_delivery_id").val(deliveryId);
+        $("#cancel_remarks").val("");
+        $("#cancelDeliveryModal").modal("show");
+    });
+
+    $("#submitCancelDeliveryBtn").on("click", function (e) {
+        e.preventDefault();
+
+        const deliveryId = $("#cancel_delivery_id").val();
+        const remarks = $("#cancel_remarks").val();
+
+        if (!remarks.trim()) {
+            toast("warning", "Please provide a reason.");
+            return;
+        }
+
+        showLoader(".submitCancelDeliveryBtn");
+        $("#submitCancelDeliveryBtn").prop("disabled", true);
+
+        $.ajax({
+            url: `/deliveryrider/delivery/cancel/${deliveryId}`,
+            type: "POST",
+            data: {
+                _token: $("meta[name='csrf-token']").attr("content"),
+                remarks: remarks,
+            },
+            success: function (res) {
+                toast("success", res.message);
+                $("#cancelDeliveryModal").modal("hide");
+                table.ajax.reload(null, false);
+            },
+            error: function (xhr) {
+                toast("error", xhr.responseJSON?.message || "Cancel failed.");
+            },
+            complete: function () {
+                hideLoader(".submitCancelDeliveryBtn");
+                $("#submitCancelDeliveryBtn").prop("disabled", false);
+            },
+        });
+    });
+
 });

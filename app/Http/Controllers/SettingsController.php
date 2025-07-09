@@ -14,15 +14,63 @@ use App\Models\CompanySetting;
 
 class SettingsController extends Controller
 {
-    public function company()
+    public function company(Request $request)
     {
         $page = 'Company Setting';
         $pageCategory = 'Settings';
 
         $companySetting = CompanySetting::first();
 
+        if ($request->ajax()) {
+            return response()->json([
+                'companySetting' => $companySetting
+            ]);
+        }
+
         return view('pages.company', compact('page', 'pageCategory', 'companySetting'));
     }
+
+    public function updateCompany(Request $request)
+    {
+        $request->validate([
+            'company_email' => 'required|email',
+            'company_phone' => 'required|string|max:20',
+            'company_address' => 'required|string|max:255',
+            'company_logo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $companySetting = CompanySetting::first();
+
+        if ($request->hasFile('company_logo')) {
+            $file = $request->file('company_logo');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $destinationPath = public_path('assets/upload');
+
+            // create directory if not exist
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0755, true);
+            }
+
+            // delete old file
+            if ($companySetting->company_logo && file_exists(public_path($companySetting->company_logo))) {
+                unlink(public_path($companySetting->company_logo));
+            }
+
+            $file->move($destinationPath, $filename);
+            $companySetting->company_logo = 'assets/upload/' . $filename;
+        }
+
+        $companySetting->company_email = $request->company_email;
+        $companySetting->company_phone = $request->company_phone;
+        $companySetting->company_address = $request->company_address;
+        $companySetting->save();
+
+        return response()->json([
+            'success' => 'Company details updated successfully.',
+            'companySetting' => $companySetting
+        ]);
+    }
+
 
     public function profile()
     {

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 
+use App\Models\Notification;
 use App\Models\PurchaseRequest;
 
 class PurchaseRequestController extends Controller
@@ -66,6 +67,15 @@ class PurchaseRequestController extends Controller
         }
 
         $purchaseRequest->update(['status' => 'quotation_sent']);
+
+        // Notify customer
+        if ($purchaseRequest->customer) {
+            Notification::create([
+                'user_id' => $purchaseRequest->customer->id,
+                'type' => 'quotation_sent',
+                'message' => 'A quotation has been sent for your purchase request #' . $purchaseRequest->id,
+            ]);
+        }
 
         return response()->json([
             'type' => 'success',

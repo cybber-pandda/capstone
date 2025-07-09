@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Order;
 use App\Models\Delivery;
 use App\Models\DeliveryHistory;
+use App\Models\Notification;
 
 class DeliveryController extends Controller
 {
@@ -20,6 +21,16 @@ class DeliveryController extends Controller
         $delivery = Delivery::findOrFail($id);
         $delivery->status = 'on_the_way';
         $delivery->save();
+
+        // Notify customer
+        $user = $delivery->order?->user;
+        if ($user) {
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'delivery',
+                'message' => 'Your order #' . $delivery->order->order_number . ' is now on the way.',
+            ]);
+        }
 
         return response()->json(['message' => 'Status updated successfully.']);
     }
@@ -162,17 +173,17 @@ class DeliveryController extends Controller
                     $status = $order->delivery->status ?? 'unknown';
 
                     $messages = [
-                        'pending'     => 'Waiting for admin to assign a rider',
-                        'assigned'    => 'Waiting to be accepted by deliveryman',
-                        'delivered'   => 'Delivery completed',
-                        'cancelled'   => 'Delivery was cancelled',
+                        'pending' => 'Waiting for admin to assign a rider',
+                        'assigned' => 'Waiting to be accepted by deliveryman',
+                        'delivered' => 'Delivery completed',
+                        'cancelled' => 'Delivery was cancelled',
                     ];
 
                     $badgeColors = [
-                        'pending'     => 'warning',
-                        'assigned'    => 'info',
-                        'delivered'   => 'success',
-                        'cancelled'   => 'danger',
+                        'pending' => 'warning',
+                        'assigned' => 'info',
+                        'delivered' => 'success',
+                        'cancelled' => 'danger',
                     ];
 
                     if ($status === 'on_the_way') {
@@ -185,7 +196,12 @@ class DeliveryController extends Controller
                                                 <i class="link-icon" data-lucide="check-circle"></i> Mark as Delivered
                                             </button>';
 
-                        return $trackBtn . $markDeliveredBtn;
+                        $cancelBtn = '<button type="button" class="btn btn-sm btn-inverse-danger cancel-delivery-btn"
+                                        data-id="' . $order->delivery->id . '">
+                                        <i class="link-icon" data-lucide="x"></i> Cancel
+                                    </button>';
+
+                        return $trackBtn . $markDeliveredBtn . $cancelBtn;
                     }
 
                     $badgeText = $messages[$status] ?? ucfirst($status);
@@ -306,9 +322,33 @@ class DeliveryController extends Controller
             ]);
         }
 
+        $user = $delivery->order?->user;
+        if ($user) {
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'delivery',
+                'message' => 'Your order #' . $delivery->order->order_number . ' has been delivered.',
+            ]);
+        }
+
         return response()->json([
             'success' => false,
             'message' => 'No file was uploaded.'
         ], 400);
+    }
+
+    public function cancelDelivery(Request $request, $id)
+    {
+        $delivery = Delivery::findOrFail($id);
+
+        if ($delivery->status === 'delivered') {
+            return response()->json(['message' => 'This delivery has already been completed.'], 400);
+        }
+
+        $delivery->status = 'cancelled';
+        $delivery->remarks = $request->remarks ?? 'Cancelled by rider.';
+        $delivery->save();
+
+        return response()->json(['message' => 'Delivery has been cancelled.']);
     }
 }

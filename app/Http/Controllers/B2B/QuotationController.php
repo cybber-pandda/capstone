@@ -9,6 +9,8 @@ use Carbon\Carbon;
 
 use App\Models\PurchaseRequest;
 use App\Models\B2BAddress;
+use App\Models\Notification;
+use App\Models\User;
 
 class QuotationController extends Controller
 {
@@ -45,8 +47,12 @@ class QuotationController extends Controller
                         case 'quotation_sent':
                         default:
                             return '<a href="/b2b/quotations/review/' . $pr->id . '" class="btn btn-sm btn-primary review-pr">
-                        <i class="link-icon" data-lucide="eye"></i> Review Quotation
-                    </a>';
+                                        <i class="link-icon" data-lucide="eye"></i> Review Quotation
+                                    </a>
+                                    <button class="btn btn-sm btn-danger cancel-pr-btn" data-id="' . $pr->id . '">
+                                        <i class="link-icon" data-lucide="x-circle"></i> Cancel
+                                    </button>
+                                    ';
                     }
                 })
                 ->rawColumns(['action'])
@@ -72,48 +78,145 @@ class QuotationController extends Controller
         return view('pages.b2b.v_quotation_show', compact('quotation', 'page'));
     }
 
-    public function submitQuotation($id)
+    // public function submitQuotation($id)
+    // {
+    //     try {
+    //         $userId = auth()->id();
+
+    //         $hasAddress = B2BAddress::where('user_id', $userId)->exists();
+    //         if (!$hasAddress) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'You must add an address before submitting a quotation.'
+    //             ], 400);
+    //         }
+
+    //         $hasActiveAddress = B2BAddress::where('user_id', $userId)
+    //             ->where('status', 'active')
+    //             ->exists();
+
+    //         if (!$hasActiveAddress) {
+    //             return response()->json([
+    //                 'success' => false,
+    //                 'message' => 'Please select or set a default address before submitting.'
+    //             ], 400);
+    //         }
+
+    //         $purchaseRequest = PurchaseRequest::where('id', $id)
+    //             ->where('customer_id', $userId)
+    //             ->where('status', 'quotation_sent')
+    //             ->firstOrFail();
+
+    //         $purchaseRequest->status = 'po_submitted';
+    //         $purchaseRequest->save();
+
+    //         $salesOfficers = User::where('role', 'salesofficer')->get();
+    //         foreach ($salesOfficers as $officer) {
+    //             Notification::create([
+    //                 'user_id' => $officer->id,
+    //                 'type' => 'purchase_request',
+    //                 'message' => "A Purchase Order (ID: {$purchaseRequest->id}) has been submitted by {$purchaseRequest->customer->name}.",
+    //             ]);
+    //         }
+
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => 'Purchase Order successfully submitted.'
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Something went wrong. Please try again.',
+    //         ], 500);
+    //     }
+    // }
+    public function cancelQuotation(Request $request, $id)
     {
-        try {
-            $userId = auth()->id();
+        $userId = auth()->id();
 
-            $hasAddress = B2BAddress::where('user_id', $userId)->exists();
-            if (!$hasAddress) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'You must add an address before submitting a quotation.'
-                ], 400);
-            }
+        $pr = PurchaseRequest::where('id', $id)
+            ->where('customer_id', $userId)
+            ->whereIn('status', ['quotation_sent', 'po_submitted'])
+            ->first();
 
-            $hasActiveAddress = B2BAddress::where('user_id', $userId)
-                ->where('status', 'active')
-                ->exists();
+        if (!$pr) {
+            return response()->json(['message' => 'This quotation cannot be cancelled.'], 404);
+        }
 
-            if (!$hasActiveAddress) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Please select or set a default address before submitting.'
-                ], 400);
-            }
+        $pr->status = 'cancelled';
+        $pr->pr_remarks = $request->remarks ?? 'Cancelled by customer.';
+        $pr->save();
 
-            $purchaseRequest = PurchaseRequest::where('id', $id)
-                ->where('customer_id', $userId)
-                ->where('status', 'quotation_sent')
-                ->firstOrFail();
-
-            $purchaseRequest->status = 'po_submitted';
-            $purchaseRequest->save();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Purchase Order successfully submitted.'
+        // Optional: notify the sales officers
+        $officers = User::where('role', 'salesofficer')->get();
+        foreach ($officers as $officer) {
+            Notification::create([
+                'user_id' => $officer->id,
+                'type' => 'purchase_request',
+                'message' => "A PR (ID: {$pr->id}) was cancelled by {$pr->customer->name}.",
             ]);
-        } catch (\Exception $e) {
+        }
+
+        return response()->json(['message' => 'Quotation cancelled successfully.']);
+    }
+
+
+    public function uploadPaymentProof(Request $request)
+    {
+        $request->validate([
+            'quotation_id' => 'required|exists:purchase_requests,id',
+            'bank_id' => 'required|exists:banks,id',
+            'proof_payment' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
+
+        $userId = auth()->id();
+
+        $hasAddress = B2BAddress::where('user_id', $userId)->exists();
+        if (!$hasAddress) {
             return response()->json([
                 'success' => false,
-                'message' => 'Something went wrong. Please try again.',
-            ], 500);
+                'message' => 'You must add an address before submitting a quotation.'
+            ], 400);
         }
+
+        $hasActiveAddress = B2BAddress::where('user_id', $userId)
+            ->where('status', 'active')
+            ->exists();
+
+        if (!$hasActiveAddress) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please select or set a default address before submitting.'
+            ], 400);
+        }
+
+        $pr = PurchaseRequest::where('id', $request->quotation_id)
+            ->where('customer_id', auth()->id())
+            ->firstOrFail();
+
+        if ($pr->status !== 'quotation_sent') {
+            return response()->json(['message' => 'Quotation cannot be paid now.'], 400);
+        }
+
+        $path = $request->file('proof_payment')->store('proofs', 'public');
+
+        $pr->update([
+            'bank_id' => $request->bank_id,
+            'proof_payment' => $path,
+            'status' => 'po_submitted',
+        ]);
+
+        // Notify sales officers
+        $officers = User::where('role', 'salesofficer')->get();
+        foreach ($officers as $officer) {
+            Notification::create([
+                'user_id' => $officer->id,
+                'type' => 'purchase_request',
+                'message' => "A PO (ID: {$pr->id}) was submitted by {$pr->customer->name}.",
+            ]);
+        }
+
+        return response()->json(['message' => 'Payment uploaded successfully.']);
     }
 
     public function checkStatus($id)

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
 use App\Models\User;
+use App\Models\Notification;
 
 class UserManagementController extends Controller
 {
@@ -130,11 +131,19 @@ class UserManagementController extends Controller
         if ($request->has('action')) {
             if ($request->action === 'activate') {
                 $user->status = 1;
+                $message = 'Your account has been activated. You may now log in.';
             } elseif ($request->action === 'deactivate') {
                 $user->status = 0;
+                $message = 'Your account has been deactivated. Please contact support for more information.';
             }
 
             $user->save();
+
+            Notification::create([
+                'user_id' => $user->id,
+                'type' => 'account',
+                'message' => $message,
+            ]);
 
             return response()->json(['success' => true]);
         }

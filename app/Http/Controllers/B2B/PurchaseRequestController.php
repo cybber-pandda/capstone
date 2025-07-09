@@ -8,7 +8,8 @@ use Yajra\DataTables\Facades\DataTables;
 
 use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestItem;
-
+use App\Models\Notification;
+use App\Models\User;
 class PurchaseRequestController extends Controller
 {
 
@@ -77,6 +78,21 @@ class PurchaseRequestController extends Controller
             ]);
         }
 
+        $salesOfficers = User::where('role', 'salesofficer')->get();
+        foreach ($salesOfficers as $officer) {
+            Notification::create([
+                'user_id' => $officer->id,
+                'type' => 'purchase_request',
+                'message' => 'A new purchase request has been updated by ' . auth()->user()->name . '.',
+            ]);
+        }
+
+        Notification::create([
+            'user_id' => $userId,
+            'type' => 'purchase request',
+            'message' => 'You have updated your purchase request for product ID: ' . $request->product_id,
+        ]);
+
         $items = $purchaseRequest->items()->with('product.productImages')->get();
 
         $mapped = $items->map(function ($item) {
@@ -99,7 +115,6 @@ class PurchaseRequestController extends Controller
             'pending_count' => $items->sum('quantity')
         ]);
     }
-
 
     public function destroyItem($id)
     {

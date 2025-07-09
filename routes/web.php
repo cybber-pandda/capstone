@@ -82,6 +82,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/delivery/histories', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'deliveryHistories'])->name('delivery.histories');
         Route::get('/delivery/history/{order}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'getDeliveryDetails']);
         Route::post('/delivery/upload-proof', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'uploadProof'])->name('delivery.upload-proof');
+        Route::post('/delivery/cancel/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'cancelDelivery'])->name('delivery.cancel');
     });
 
     /* B2B */
@@ -92,7 +93,10 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
 
         Route::get('/quotations/review', [App\Http\Controllers\B2B\QuotationController::class, 'review'])->name('quotations.review');
         Route::get('/quotations/review/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'show'])->name('quotations.show');
-        Route::post('/quotations/submit/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'submitQuotation'])->name('quotations.submit');
+        Route::post('/quotations/cancel/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'cancelQuotation'])->name('quotations.cancel');
+
+        //Route::post('/quotations/submit/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'submitQuotation'])->name('quotations.submit');
+        Route::post('/quotations/payment/upload', [App\Http\Controllers\B2B\QuotationController::class, 'uploadPaymentProof'])->name('quotations.payment.upload');
         Route::get('/quotations/status/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'checkStatus']);
 
         Route::resource('address', App\Http\Controllers\B2B\B2BAddressController::class);
@@ -121,6 +125,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::resource('terms', App\Http\Controllers\TermsController::class);
 
     Route::get('company/settings', [App\Http\Controllers\SettingsController::class, 'company'])->name('company.settings');
+    Route::post('/company/update', [App\Http\Controllers\SettingsController::class, 'updateCompany'])->name('company.update');
     Route::get('profile/settings', [App\Http\Controllers\SettingsController::class, 'profile'])->name('profile.settings');
     Route::get('user-profile/settings', [App\Http\Controllers\SettingsController::class, 'getUserProfile']);
     Route::post('/profile/update', [App\Http\Controllers\SettingsController::class, 'updateProfile'])->name('profile.update');

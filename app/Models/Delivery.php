@@ -18,6 +18,7 @@ class Delivery extends Model
         'status',
         'delivery_date',
         'proof_delivery',
+        'delivery_remarks',
         'delivery_latitude',
         'delivery_longtitude',
     ];

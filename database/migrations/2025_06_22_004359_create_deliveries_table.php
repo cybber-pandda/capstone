@@ -26,6 +26,7 @@ class CreateDeliveriesTable extends Migration
             $table->enum('status', ['pending', 'assigned', 'on_the_way', 'delivered', 'cancelled',  'returned', 'refunded'])->default('pending');
             $table->timestamp('delivery_date')->nullable();
             $table->string('proof_delivery')->nullable();
+            $table->text('delivery_remarks')->nullable();
 
             $table->decimal('delivery_latitude', 10, 7)->default('13.9655000'); // default store lat
             $table->decimal('delivery_longitude', 10, 7)->default('121.5348000'); // default store lng

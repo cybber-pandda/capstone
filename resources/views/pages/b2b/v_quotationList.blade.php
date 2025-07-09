@@ -20,6 +20,24 @@
         ])
         @endcomponent
     </div>
+
+    @component('components.modal', ['id' => 'cancelPRModal', 'title' => 'Cancel Quotation', 'size' => 'md'])
+    <form id="cancelPRForm">
+        @csrf
+        <input type="hidden" name="quotation_id" id="cancelQuotationId">
+        <div class="mb-3">
+            <label for="cancelRemarks" class="form-label">Remarks (optional)</label>
+            <textarea name="remarks" id="cancelRemarks" class="form-control" rows="4" placeholder="Reason for cancellation..."></textarea>
+        </div>
+    </form>
+    @slot('footer')
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-danger" id="confirmCancelPRBtn">
+            <i class="link-icon" data-lucide="x-circle"></i> Confirm Cancel
+        </button>
+    @endslot
+    @endcomponent
+
 </div>
 @endsection
 
@@ -112,5 +130,35 @@
             }, 3000);
         }
     });
+
+    $(document).on('click', '.cancel-pr-modal-btn', function () {
+        const id = $(this).data('id');
+        $('#cancelQuotationId').val(id);
+        $('#cancelRemarks').val('');
+        $('#cancelPRModal').modal('show');
+    });
+
+    $(document).on('click', '#confirmCancelPRBtn', function () {
+        const prId = $('#cancelQuotationId').val();
+        const remarks = $('#cancelRemarks').val();
+
+        $.ajax({
+            url: `/b2b/quotations/cancel/${prId}`,
+            method: 'POST',
+            data: {
+                remarks: remarks,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function (res) {
+                $('#cancelPRModal').modal('hide');
+                toast('success', res.message);
+                $('#sentQuotationsTable').DataTable().ajax.reload();
+            },
+            error: function (xhr) {
+                toast('error', xhr.responseJSON?.message || 'Failed to cancel.');
+            }
+        });
+    });
+
 </script>
 @endpush

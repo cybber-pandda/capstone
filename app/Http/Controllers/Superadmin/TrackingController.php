@@ -16,6 +16,7 @@ use App\Models\B2BAddress;
 use App\Models\PurchaseRequest;
 use App\Models\Delivery;
 use App\Models\User;
+use App\Models\Notification;
 
 class TrackingController extends Controller
 {
@@ -130,6 +131,12 @@ class TrackingController extends Controller
             $pr->status = 'so_created';
             $pr->save();
 
+            Notification::create([
+                'user_id' => $pr->customer_id,
+                'type' => 'order',
+                'message' => 'Your submitted PO has been processed. A sales order #' . $order->order_number . ' was created.',
+            ]);
+
             DB::commit();
 
             return response()->json([
@@ -234,6 +241,20 @@ class TrackingController extends Controller
             $pr = PurchaseRequest::findOrFail($request->pr_id);
             $pr->status = 'delivery_in_progress';
             $pr->save();
+
+            // Notify delivery rider
+            Notification::create([
+                'user_id' => $request->delivery_rider_id,
+                'type' => 'assignment',
+                'message' => 'You have been assigned to deliver order #' . $delivery->order->order_number,
+            ]);
+
+            // Notify customer
+            Notification::create([
+                'user_id' => $pr->customer_id,
+                'type' => 'delivery',
+                'message' => 'Your order #' . $delivery->order->order_number . ' is now assigned for delivery.',
+            ]);
 
             return response()->json([
                 'type' => 'success',
