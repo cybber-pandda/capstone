@@ -9,17 +9,13 @@
         <div class="col-md-12 grid-margin stretch-card">
             @component('components.card', [
             'title' => 'Terms & Condition List',
-            'cardtopAddButton' => true,
-            'cardtopAddButtonTitle' => 'Add Terms & Condition',
-            'cardtopAddButtonId' => 'add',
-            'cardtopButtonMode' => 'add'
+            'cardtopAddButton' => false,
             ])
 
             @component('components.table', [
             'id' => 'termsTable',
             'thead' => '
             <tr>
-                <th>Page</th>
                 <th>Type</th>
                 <th>Content</th>
                 <th>Date Created</th>
@@ -33,12 +29,18 @@
         </div>
     </div>
 
-    @component('components.modal', ['id' => 'termsModal', 'size' => '', 'scrollable' => true])
+    @component('components.modal', ['id' => 'termsModal', 'size' => 'lg', 'scrollable' => true])
     <form id="termsForm" action="{{ route('terms.store') }}" method="POST">
 
-        @component('components.input', ['label' => 'Name', 'type' => 'text', 'name' => 'name', 'attributes' => '' ]) @endcomponent
-        @component('components.input', ['label' => 'Image', 'type' => 'file', 'name' => 'image', 'attributes' => '' ]) @endcomponent
-        @component('components.textarea', ['label' => 'Description', 'rows' => 7, 'name' => 'description', 'attributes' => '']) @endcomponent
+        @component('components.select', [
+        'label' => 'Content Type',
+        'name' => 'content_type',
+        'selected' => '',
+        'options' => ['Terms', 'Condition'],
+        'attributes' => ''
+        ]) @endcomponent
+
+        @component('components.textarea', ['label' => 'Content', 'rows' => 10, 'name' => 'content', 'attributes' => '']) @endcomponent
 
     </form>
 

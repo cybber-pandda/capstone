@@ -119,11 +119,14 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::get('home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::post('b2b-details-form', [App\Http\Controllers\HomeController::class, 'b2b_details_form']);
     Route::resource('terms', App\Http\Controllers\TermsController::class);
-    
-    //General Setting
-    Route::get('generalsettings', [App\Http\Controllers\GeneralSettingsController::class, 'index'])->name('generalsettings');
-    Route::post('generalsettings-company', [App\Http\Controllers\GeneralSettingsController::class, 'company']);
-    Route::post('generalsettings-profile', [App\Http\Controllers\GeneralSettingsController::class, 'profile']);
-    Route::post('generalsettings-account', [App\Http\Controllers\GeneralSettingsController::class, 'account']);
-    Route::post('generalsettings-password', [App\Http\Controllers\GeneralSettingsController::class, 'password']);
+
+    Route::get('company/settings', [App\Http\Controllers\SettingsController::class, 'company'])->name('company.settings');
+    Route::get('profile/settings', [App\Http\Controllers\SettingsController::class, 'profile'])->name('profile.settings');
+    Route::get('user-profile/settings', [App\Http\Controllers\SettingsController::class, 'getUserProfile']);
+    Route::post('/profile/update', [App\Http\Controllers\SettingsController::class, 'updateProfile'])->name('profile.update');
+
+    // Route::post('generalsettings-company', [App\Http\Controllers\GeneralSettingsController::class, 'company']);
+    // Route::post('generalsettings-profile', [App\Http\Controllers\GeneralSettingsController::class, 'profile']);
+    // Route::post('generalsettings-account', [App\Http\Controllers\GeneralSettingsController::class, 'account']);
+    // Route::post('generalsettings-password', [App\Http\Controllers\GeneralSettingsController::class, 'password']);
 });

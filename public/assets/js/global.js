@@ -254,4 +254,23 @@ function markAllNotificationsRead() {
 }
 
 
+function getProfileDetails(userId) {
+    $.ajax({
+        url: '/user-profile/settings',
+        type: 'GET',
+        data: { id: userId },
+        success: function (data) {
+            $('.profile-name').text(data.name);
+            $('.profile-username').text(data.username);
+            $('.profile-email').text(data.email);
+            $('.profile-about').text(data.about);
+            $('.profile-joined').text(data.joined);
+            $('.profile-image').attr('src', data.profile_image);
+        },
+        error: function (xhr) {
+            console.error('Profile not found');
+        }
+    });
+}
+
 

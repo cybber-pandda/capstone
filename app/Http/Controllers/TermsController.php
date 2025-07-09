@@ -19,32 +19,26 @@ class TermsController extends Controller
     {
 
         if ($request->ajax()) {
-            $terms = TermCondition::select(['id', 'name', 'image', 'description', 'created_at']);
+            $terms = TermCondition::select(['id', 'content_type', 'content', 'created_at']);
 
             return DataTables::of($terms)
-                ->addColumn('image', function ($row) {
-                    if ($row->image) {
-                        return '<img src="' . asset($row->image) . '" alt="' . $row->name . '" class="img-thumbnail">';
-                    }
-                    return '<img src="' . asset('assets/dashboard/images/noimage.png') . '" alt="No image" class="img-thumbnail">';
-                })
                 ->addColumn('action', function ($row) {
                     return '
                         <button type="button" class="btn btn-sm btn-inverse-light mx-1 edit p-2" data-id="' . $row->id . '">
                             <i class="link-icon" data-lucide="edit-3"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-inverse-danger delete p-2" data-id="' . $row->id . '">
+                        <button type="button" class="btn btn-sm btn-inverse-danger delete p-2 d-none" data-id="' . $row->id . '">
                             <i class="link-icon" data-lucide="trash-2"></i>
                         </button>
                     ';
                 })
-                ->rawColumns(['image', 'action'])
+                ->rawColumns(['action'])
                 ->make(true);
         }
 
         return view('pages.terms', [
             'page' => 'Terms & Conditions',
-            'pageterms' => 'Settings',
+            'pageCategory' => 'Settings',
         ]);
     }
 
@@ -67,26 +61,13 @@ class TermsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048'
+            'content_type' => 'required|string|max:255',
+            'content' => 'required|string',
         ]);
 
-        $path = null;
-
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $destinationPath = 'assets/upload/terms';
-            $file->move(public_path($destinationPath), $fileName);
-
-            $path = $destinationPath . '/' . $fileName;
-        }
-
         TermCondition::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'image' => $path,
+            'content_type' => $request->content_type,
+            'content' => $request->content,
         ]);
 
         return response()->json([
@@ -132,31 +113,13 @@ class TermsController extends Controller
         $terms = TermCondition::findOrFail($id);
 
         $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048'
+            'content_type' => 'required|string|max:255',
+            'content' => 'required|string',
         ]);
 
-        $path = $terms->image;
-
-        if ($request->hasFile('image')) {
-            // Unlink old image if it exists
-            if ($terms->image && file_exists(public_path($terms->image))) {
-                unlink(public_path($terms->image));
-            }
-
-            $file = $request->file('image');
-            $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $destinationPath = 'assets/upload/terms';
-            $file->move(public_path($destinationPath), $fileName);
-
-            $path = $destinationPath . '/' . $fileName;
-        }
-
         $terms->update([
-            'name' => $request->name,
-            'description' => $request->description,
-            'image' => $path,
+            'content_type' => $request->content_type,
+            'content' => $request->content,
         ]);
 
         return response()->json([

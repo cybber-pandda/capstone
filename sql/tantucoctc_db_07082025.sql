@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 06, 2025 at 12:47 PM
+-- Generation Time: Jul 08, 2025 at 01:48 AM
 -- Server version: 10.4.25-MariaDB
 -- PHP Version: 7.4.30
 
@@ -188,6 +188,52 @@ CREATE TABLE `inventories` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `messages`
+--
+
+CREATE TABLE `messages` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `sender_id` int(11) NOT NULL,
+  `recipient_id` int(11) NOT NULL,
+  `text` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `is_file` text COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `messages`
+--
+
+INSERT INTO `messages` (`id`, `sender_id`, `recipient_id`, `text`, `is_file`, `created_at`, `updated_at`) VALUES
+(1, 3, 1, 'Hello', NULL, '2025-07-06 15:33:54', '2025-07-06 15:33:54'),
+(2, 1, 3, 'Hi', NULL, '2025-07-06 15:33:54', '2025-07-06 15:33:54'),
+(3, 3, 1, 'How are you today?', NULL, '2025-07-06 16:09:43', '2025-07-06 16:09:43'),
+(4, 1, 3, 'Im fine.', NULL, '2025-07-06 16:09:43', '2025-07-06 16:09:43'),
+(5, 3, 1, 'Hello', NULL, '2025-07-06 15:33:54', '2025-07-06 15:33:54'),
+(6, 1, 3, 'Hi', NULL, '2025-07-06 15:33:54', '2025-07-06 15:33:54'),
+(7, 3, 1, 'How are you today?', NULL, '2025-07-06 16:09:43', '2025-07-06 16:09:43'),
+(8, 1, 3, 'Im fine.', NULL, '2025-07-06 16:09:43', '2025-07-06 16:09:43'),
+(9, 3, 1, 'Did you finish you task?', NULL, '2025-07-06 16:37:24', '2025-07-06 16:37:24'),
+(10, 3, 1, 'Great', NULL, '2025-07-06 16:37:42', '2025-07-06 16:37:42'),
+(11, 3, 1, 'Why your not replying?', NULL, '2025-07-06 23:36:35', '2025-07-06 23:36:35'),
+(12, 3, 1, 'Uy, please message me', NULL, '2025-07-06 23:39:47', '2025-07-06 23:39:47'),
+(13, 1, 3, 'Sorry for late response', NULL, '2025-07-07 10:38:20', '0000-00-00 00:00:00'),
+(14, 3, 1, 'Its okay', NULL, '2025-07-07 11:38:20', '2025-07-07 11:38:20'),
+(15, 1, 3, 'Did you eat already?', NULL, '2025-07-07 11:40:20', '2025-07-07 11:38:20'),
+(16, 3, 1, 'Yes sir.', NULL, '2025-07-07 12:06:15', '2025-07-07 12:06:15'),
+(17, 1, 3, 'What did you eat?', NULL, '2025-07-07 12:24:15', '2025-07-07 12:06:15'),
+(18, 3, 1, 'Banana', NULL, '2025-07-07 12:31:26', '2025-07-07 12:31:26'),
+(19, 2, 1, 'Hello Superadmin.', NULL, '2025-07-07 22:25:42', '2025-07-07 22:25:42'),
+(20, 2, 3, 'Hello Sales Officer', NULL, '2025-07-07 22:30:32', '2025-07-07 22:30:32'),
+(21, 2, 3, 'Can you send me my delivery report count?', NULL, '2025-07-07 22:35:40', '2025-07-07 22:35:40'),
+(22, 3, 2, 'I will send it later.', NULL, '2025-07-07 22:56:05', '2025-07-07 22:56:05'),
+(23, 1, 3, 'Nice', NULL, '2025-07-07 22:57:55', '2025-07-07 22:57:55'),
+(24, 1, 2, 'Hello rider', NULL, '2025-07-07 22:58:26', '2025-07-07 22:58:26');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `migrations`
 --
 
@@ -221,7 +267,25 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (17, '2025_07_01_014725_create_purchase_requests_table', 1),
 (18, '2025_07_01_014835_create_purchase_request_items_table', 1),
 (19, '2025_07_05_190918_create_delivery_histories_table', 1),
-(20, '2025_07_06_170246_create_user_logs_table', 1);
+(20, '2025_07_06_170246_create_user_logs_table', 1),
+(21, '2025_07_06_231655_create_messages_table', 2),
+(22, '2025_07_08_073237_create_notifications_table', 3);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Recipient user',
+  `type` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'purchase_request, delivery, etc',
+  `message` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `read_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -320,7 +384,8 @@ INSERT INTO `products` (`id`, `category_id`, `name`, `sku`, `description`, `pric
 (7, 6, 'Electrical Tape (Black', 'SKU-685BD014DFD3C', 'Insulating tape for electrical wiring', '25.00', NULL, '2025-06-25 02:31:48', '2025-06-25 02:31:48', NULL),
 (8, 7, 'Paint – White Latex (4L)', 'SKU-685BD06953EF9', 'Water-based paint for interior walls and ceilings', '560.00', NULL, '2025-06-25 02:33:13', '2025-06-25 02:33:13', NULL),
 (9, 8, 'Door Knob (Entrance Set)', 'SKU-685BD0943711E', 'Heavy-duty cylindrical door knob with lockset', '620.00', NULL, '2025-06-25 02:33:56', '2025-06-25 02:33:56', NULL),
-(10, 9, '1” Paint Brush', 'SKU-685BD0B953CE5', 'Standard 1-inch brush used for painting and touch-ups', '35.00', NULL, '2025-06-25 02:34:33', '2025-06-25 02:34:33', NULL);
+(10, 9, '1” Paint Brush', 'SKU-685BD0B953CE5', 'Standard 1-inch brush used for painting and touch-ups', '35.00', NULL, '2025-06-25 02:34:33', '2025-06-25 02:34:33', NULL),
+(11, 1, 'sdfdsf', 'SKU-686A5E1E39DBB', 'dgdfgdfg', '4435.00', '2025-07-23', '2025-07-06 11:29:34', '2025-07-06 11:30:29', '2025-07-06 11:30:29');
 
 -- --------------------------------------------------------
 
@@ -351,7 +416,8 @@ INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `is_main`, `crea
 (7, 8, 'assets/upload/products/1750847593_2017596014.webp', 1, '2025-06-25 02:33:13', '2025-06-25 02:33:13'),
 (8, 9, 'assets/upload/products/1750847636_Door Knob set.jpg', 1, '2025-06-25 02:33:56', '2025-06-25 02:33:56'),
 (9, 10, 'assets/upload/products/1750847673_Paint brush.jpg', 1, '2025-06-25 02:34:33', '2025-06-25 02:34:33'),
-(10, 7, 'assets/upload/products/1750847714_Electric tape .jpg', 1, '2025-06-25 02:35:14', '2025-06-25 02:35:14');
+(10, 7, 'assets/upload/products/1750847714_Electric tape .jpg', 1, '2025-06-25 02:35:14', '2025-06-25 02:35:14'),
+(11, 11, 'assets/upload/products/1751801374_TantucoCTC_Logo.png', 1, '2025-07-06 11:29:34', '2025-07-06 11:30:03');
 
 -- --------------------------------------------------------
 
@@ -422,6 +488,16 @@ CREATE TABLE `users` (
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `name`, `profile`, `username`, `email`, `email_verified_at`, `password`, `force_password_change`, `created_by_admin`, `role`, `otp_code`, `otp_expire`, `status`, `remember_token`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'John Superadmin', NULL, 'superadmin', 'superadmin@example.com', '2025-07-06 11:13:52', '$2y$10$PbSwf0ovjnjHQxRlJdpGpuasDr0nKRKUab324EJlEjaem6Cd2PQL2', 0, 0, 'superadmin', '490612', '2025-07-06 11:23:34', 1, NULL, '2025-07-06 10:50:58', '2025-07-06 11:13:52', NULL),
+(2, 'John DeliveryRider', NULL, 'deliveryrider', 'deliveryrider@example.com', '2025-07-07 22:20:00', '$2y$10$Oz6sqhBKFN8zVKal/aYya.llv51HMQkNq9nq1JzyKk.R.Em2C7wve', 0, 0, 'deliveryrider', '512533', '2025-07-07 22:28:57', 1, NULL, '2025-07-06 10:50:58', '2025-07-07 22:20:00', NULL),
+(3, 'John SalesOfficer', NULL, 'salesofficer', 'salesofficer@example.com', '2025-07-06 14:39:52', '$2y$10$nzqI4PGUFUiwcDLjbW6IUucOpY6QKbZdsW5I658EHVAZbbua.Cr7C', 0, 0, 'salesofficer', '376622', '2025-07-06 14:49:00', 1, NULL, '2025-07-06 10:50:58', '2025-07-06 14:39:52', NULL),
+(4, 'John B2B', NULL, 'b2b', 'b2b@example.com', '2025-07-06 11:05:27', '$2y$10$jppqDfwPlTJqOce0.LFeAedXjdpElF8RAX31rGE/wyT5T7g20akA.', 0, 0, 'b2b', '109592', '2025-07-06 11:14:57', 1, NULL, '2025-07-06 10:50:58', '2025-07-06 13:54:56', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -438,6 +514,35 @@ CREATE TABLE `user_logs` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user_logs`
+--
+
+INSERT INTO `user_logs` (`id`, `user_id`, `event`, `ip_address`, `user_agent`, `logged_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 11:04:37', NULL, NULL),
+(2, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 11:05:02', NULL, NULL),
+(3, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 11:09:20', NULL, NULL),
+(4, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 11:10:47', NULL, NULL),
+(5, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 11:11:08', NULL, NULL),
+(6, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 11:13:39', NULL, NULL),
+(7, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 13:58:00', NULL, NULL),
+(8, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 14:01:18', NULL, NULL),
+(9, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 14:01:22', NULL, NULL),
+(10, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 14:04:56', NULL, NULL),
+(11, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 14:05:00', NULL, NULL),
+(12, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 14:06:09', NULL, NULL),
+(13, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 14:06:35', NULL, NULL),
+(14, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 14:39:04', NULL, NULL),
+(15, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-06 23:18:03', NULL, NULL),
+(16, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-07 11:04:49', NULL, NULL),
+(17, 2, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-07 22:19:03', NULL, NULL),
+(18, 2, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-07 22:35:57', NULL, NULL),
+(19, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-07 22:36:09', NULL, NULL),
+(20, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-07 22:56:19', NULL, NULL),
+(21, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-07 22:56:29', NULL, NULL),
+(22, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-07 23:43:03', NULL, NULL),
+(23, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-07 23:43:16', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -499,10 +604,23 @@ ALTER TABLE `inventories`
   ADD KEY `inventories_product_id_foreign` (`product_id`);
 
 --
+-- Indexes for table `messages`
+--
+ALTER TABLE `messages`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `migrations`
 --
 ALTER TABLE `migrations`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `notifications_user_id_foreign` (`user_id`);
 
 --
 -- Indexes for table `orders`
@@ -606,7 +724,7 @@ ALTER TABLE `b2b_details`
 -- AUTO_INCREMENT for table `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `company_settings`
@@ -639,10 +757,22 @@ ALTER TABLE `inventories`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `messages`
+--
+ALTER TABLE `messages`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -666,13 +796,13 @@ ALTER TABLE `personal_access_tokens`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `product_images`
 --
 ALTER TABLE `product_images`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `purchase_requests`
@@ -696,13 +826,13 @@ ALTER TABLE `terms_conditions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `user_logs`
 --
 ALTER TABLE `user_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- Constraints for dumped tables
@@ -738,6 +868,12 @@ ALTER TABLE `delivery_histories`
 --
 ALTER TABLE `inventories`
   ADD CONSTRAINT `inventories_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `notifications_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `orders`

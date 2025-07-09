@@ -21,7 +21,7 @@ $(document).ready(function () {
         columns: [
             { data: "image", name: "image", width: "15%" },
             { data: "name", name: "name", width: "20%" },
-            { data: "account_number", name: "account_number", width: "20%" },
+            { data: "account_number", name: "account_number", width: "20%",   className: "dt-left-int", responsivePriority: 1, orderable: false, },
             {
                 data: "created_at",
                 name: "created_at",
@@ -66,7 +66,7 @@ $(document).ready(function () {
 
         $.get(`/bank-management/${bankId}/edit`, function (response) {
             $('#bankForm input[name="name"]').val(response.data.name);
-            $('#bankForm textarea[name="description"]').val(response.data.description);
+            $('#bankForm input[name="account_number"]').val(response.data.account_number);
 
             const imagePath = response.data.image
                 ? `/${response.data.image}`

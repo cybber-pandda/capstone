@@ -19,7 +19,7 @@
             'id' => 'bankTable',
             'thead' => '
             <tr>
-                <th>QR</th>
+                <th>Account QR</th>
                 <th>Name</th>
                 <th>Account Number</th>
                 <th>Date Created</th>

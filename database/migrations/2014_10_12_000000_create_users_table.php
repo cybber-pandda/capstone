@@ -26,7 +26,8 @@ class CreateUsersTable extends Migration
             $table->enum('role', ['b2b','deliveryrider', 'salesofficer', 'superadmin'])->default('b2b');
             $table->string('otp_code')->nullable();
             $table->timestamp('otp_expire')->nullable();
-            $table->boolean('status')->default(true); 
+            $table->boolean('status')->default(true);
+            $table->text('about')->nullable();
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

@@ -13,6 +13,6 @@ class TermCondition extends Model
     protected $table = 'terms_conditions';
 
     protected $fillable = [
-        'page_type','content_type', 'content'
+        'content_type', 'content'
     ];
 }

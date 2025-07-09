@@ -119,8 +119,8 @@
                     <span class="link-title">Terms & Condition</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
+            <li class="nav-item {{ Route::is('company.settings.*') ? 'active' : '' }}">
+                <a href="{{ route('company.settings') }}" class="nav-link">
                     <i class="link-icon" data-lucide="building-2"></i>
                     <span class="link-title">Company Details</span>
                 </a>

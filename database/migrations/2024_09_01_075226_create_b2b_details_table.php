@@ -20,6 +20,7 @@ class CreateB2bDetailsTable extends Migration
             $table->string('lastname');
             $table->string('certificate_registration');
             $table->string('business_permit');
+            $table->enum('status', ['approved', 'rejected'])->nullable();
             $table->timestamps();
         });
     }

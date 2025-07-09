@@ -201,6 +201,7 @@
         $(document).ready(function() {
             refreshRecentMessages();
             fetchNotifications();
+            getProfileDetails(CURRENT_USER_ID);
         });
     </script>
 

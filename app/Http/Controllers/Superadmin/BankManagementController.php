@@ -44,7 +44,7 @@ class BankManagementController extends Controller
 
         return view('pages.superadmin.v_bank', [
             'page' => 'Bank',
-            'pagebank' => 'Management',
+            'pageCategory' => 'Management',
         ]);
     }
 
