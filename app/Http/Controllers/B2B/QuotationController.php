@@ -11,6 +11,7 @@ use App\Models\PurchaseRequest;
 use App\Models\B2BAddress;
 use App\Models\Notification;
 use App\Models\User;
+use App\Models\Bank;
 
 class QuotationController extends Controller
 {
@@ -69,13 +70,14 @@ class QuotationController extends Controller
     public function show($id)
     {
         $page = "Purchase Request Quotation";
+        $banks = Bank::get();
 
         $quotation = PurchaseRequest::with(['customer', 'items.product'])
             ->where('status', 'quotation_sent')
             ->where('customer_id', auth()->id())
             ->findOrFail($id);
 
-        return view('pages.b2b.v_quotation_show', compact('quotation', 'page'));
+        return view('pages.b2b.v_quotation_show', compact('quotation', 'page', 'banks'));
     }
 
     // public function submitQuotation($id)
@@ -198,7 +200,14 @@ class QuotationController extends Controller
             return response()->json(['message' => 'Quotation cannot be paid now.'], 400);
         }
 
-        $path = $request->file('proof_payment')->store('proofs', 'public');
+        if ($request->hasFile('proof_payment')) {
+            $file = $request->file('proof_payment');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $destinationPath = public_path('assets/upload/proofpayment');
+            $file->move($destinationPath, $filename);
+
+            $path = 'assets/upload/proofpayment/' . $filename;
+        }
 
         $pr->update([
             'bank_id' => $request->bank_id,

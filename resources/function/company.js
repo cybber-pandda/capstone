@@ -8,20 +8,27 @@ function loadCompanyData() {
 
             const tableHtml = `
                 <tr>
-                    <td><img src="${companySetting.company_logo || '/assets/dashboard/images/noimage.png'}" width="60"></td>
+                    <td><img src="${companySetting.logo_url}" width="60"></td>
                     <td>${companySetting.company_email || '-'}</td>
                     <td>${companySetting.company_phone || '-'}</td>
                     <td>${companySetting.company_address || '-'}</td>
                     <td>
                         <button type="button" class="btn btn-sm btn-info" id="editCompanyBtn">
-                            <i class="fa fa-edit"></i> Edit
+                            <i class="link-icon" data-lucide="edit-3"></i>
                         </button>
                     </td>
                 </tr>
             `;
 
+            // Insert the table HTML
             $('#companyTable tbody').html(tableHtml);
 
+            // Initialize Lucide icons AFTER DOM update
+            if (typeof lucide !== "undefined") {
+                lucide.createIcons();
+            }
+
+            // Bind click event for the edit button
             $('#editCompanyBtn').on('click', function () {
                 $('#editCompanyModal').modal('show');
                 $('#company-logo-img').attr('src', '/' + (companySetting.company_logo || 'assets/dashboard/images/noimage.png'));
@@ -35,7 +42,6 @@ function loadCompanyData() {
         }
     });
 }
-
 
 $(document).ready(function () {
     loadCompanyData();

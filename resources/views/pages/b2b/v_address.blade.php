@@ -28,7 +28,7 @@
         <form id="addressForm">
             @csrf
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header" style="border:0px">
                     <h5 class="modal-title" id="modalTitle">Add Address</h5>
                 </div>
                 <div class="modal-body">
@@ -42,7 +42,7 @@
                     <input type="hidden" name="delivery_address_lat" id="delivery_address_lat">
                     <input type="hidden" name="delivery_address_lng" id="delivery_address_lng">
                 </div>
-                <div class="modal-footer">
+                <div class="modal-footer" style="border:0px">
                     <button type="submit" class="btn btn-primary">Next</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                 </div>
@@ -61,7 +61,7 @@
                     <p class="mb-0">Please confirm this location before submitting your address.</p>
                 </div>
             </div>
-            <div class="modal-footer bg-light p-2">
+            <div class="modal-footer bg-light p-2" style="border:0px">
                 <button id="confirmSubmitBtn" class="btn btn-sm btn-success">Confirm & Submit</button>
                 <button class="btn btn-sm btn-secondary" data-dismiss="modal">Cancel</button>
             </div>

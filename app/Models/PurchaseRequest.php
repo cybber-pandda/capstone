@@ -9,7 +9,7 @@ class PurchaseRequest extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['customer_id', 'status', 'pr_remarks'];
+    protected $fillable = ['customer_id', 'bank_id', 'status', 'proof_payment', 'pr_remarks'];
 
     public function customer()
     {

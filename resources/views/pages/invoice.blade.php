@@ -30,9 +30,11 @@
                         {{ number_format($pr->items->sum(fn($item) => $item->quantity * $item->product->price), 2) }}
                     </h4>
                     <h6 class="text-end mt-3"><span class="text-secondary">Invoice Date:</span>
-                        {{ $pr->created_at->format('M d, Y') }}</h6>
+                        {{ $pr->created_at->format('M d, Y') }}
+                    </h6>
                     <h6 class="text-end"><span class="text-secondary">Due Date:</span>
-                        {{ now()->addDays(7)->format('M d, Y') }}</h6>
+                        {{ now()->addDays(7)->format('M d, Y') }}
+                    </h6>
                 </div>
             </div>
 
@@ -50,13 +52,13 @@
                         </thead>
                         <tbody>
                             @foreach ($pr->items as $index => $item)
-                                <tr class="text-end">
-                                    <td class="text-start">{{ $index + 1 }}</td>
-                                    <td class="text-start">{{ $item->product->name }}</td>
-                                    <td>{{ $item->quantity }}</td>
-                                    <td>₱ {{ number_format($item->product->price, 2) }}</td>
-                                    <td>₱ {{ number_format($item->quantity * $item->product->price, 2) }}</td>
-                                </tr>
+                            <tr class="text-end">
+                                <td class="text-start">{{ $index + 1 }}</td>
+                                <td class="text-start">{{ $item->product->name }}</td>
+                                <td>{{ $item->quantity }}</td>
+                                <td>₱ {{ number_format($item->product->price, 2) }}</td>
+                                <td>₱ {{ number_format($item->quantity * $item->product->price, 2) }}</td>
+                            </tr>
                             @endforeach
                         </tbody>
                     </table>
@@ -64,9 +66,9 @@
             </div>
 
             @php
-                $subtotal = $pr->items->sum(fn($item) => $item->quantity * $item->product->price);
-                $tax = $subtotal * 0.12;
-                $total = $subtotal + $tax;
+            $subtotal = $pr->items->sum(fn($item) => $item->quantity * $item->product->price);
+            $tax = $subtotal * 0.12;
+            $total = $subtotal + $tax;
             @endphp
 
             <div class="container-fluid mt-5 w-100">

@@ -21,6 +21,10 @@ class SettingsController extends Controller
 
         $companySetting = CompanySetting::first();
 
+        if ($companySetting) {
+            $companySetting->logo_url = asset($companySetting->company_logo ?? 'assets/dashboard/images/noimage.png');
+        }
+
         if ($request->ajax()) {
             return response()->json([
                 'companySetting' => $companySetting
@@ -30,11 +34,12 @@ class SettingsController extends Controller
         return view('pages.company', compact('page', 'pageCategory', 'companySetting'));
     }
 
+
     public function updateCompany(Request $request)
     {
         $request->validate([
             'company_email' => 'required|email',
-            'company_phone' => 'required|string|max:20',
+            'company_phone' => 'required|string',
             'company_address' => 'required|string|max:255',
             'company_logo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);

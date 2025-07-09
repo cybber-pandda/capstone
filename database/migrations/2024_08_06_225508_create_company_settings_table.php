@@ -17,7 +17,7 @@ class CreateCompanySettingsTable extends Migration
             $table->id();
             $table->string('company_logo')->nullable();
             $table->string('company_email')->nullable();
-            $table->string('company_phone', 20)->nullable();
+            $table->text('company_phone')->nullable();
             $table->string('company_address')->nullable();
             $table->timestamps();
         });

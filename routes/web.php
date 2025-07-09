@@ -121,6 +121,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::post('/notifications/mark-all-selected', [App\Http\Controllers\NotificationController::class, 'markSelectedAsRead']);
 
     Route::get('home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    Route::get('/api/revenue-data', [App\Http\Controllers\HomeController::class, 'revenueData']);
     Route::post('b2b-details-form', [App\Http\Controllers\HomeController::class, 'b2b_details_form']);
     Route::resource('terms', App\Http\Controllers\TermsController::class);
 

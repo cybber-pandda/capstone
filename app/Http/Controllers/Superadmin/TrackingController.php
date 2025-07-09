@@ -156,7 +156,7 @@ class TrackingController extends Controller
     public function deliveryPersonnel(Request $request)
     {
 
-        $deliveryman_select = User::select('name', 'id')->where('role', 'deliveryrider/admin')->get();
+        $deliveryman_select = User::select('name', 'id')->where('role', 'deliveryrider')->get();
 
         if ($request->ajax()) {
             $query = Order::with([

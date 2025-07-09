@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 use App\Models\User;
 use App\Models\Delivery;
-
+use App\Models\Product;
 class ReportController extends Controller
 {
 
