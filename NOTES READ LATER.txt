@@ -45,11 +45,12 @@ TODO
 - Notification create request upon processing quotation and orders, etc - done
 - Migration table for terms and bank -done
 - Add cancelled button in delivery - done
-- Add Payment B2B - done = will check later after got home
-- Dashboard report display graph, pie
+- Add Payment B2B - done = okay
+- Dashboard report display graph, pie = okay
 - Profile Edit - done
-- Company Edit = its okay but need to check later
+- Company Edit = okay
 - Order View B2B
 - B2B can process refund, return put reason wait for approval
 - View Refund, Return Cancelled Orders
 - Generate PDF = not yet implemented well need to check later already have template
+- ratings

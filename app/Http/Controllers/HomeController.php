@@ -10,7 +10,7 @@ use Carbon\Carbon;
 
 use App\Models\Product;
 use App\Models\Order;
-use App\Models\Message;
+use App\Models\Inventory;
 use App\Models\PurchaseRequest;
 
 class HomeController extends Controller
@@ -134,13 +134,14 @@ class HomeController extends Controller
         ));
     }
 
-
-    public function revenueData()
+    public function salesRevenueData(Request $request)
     {
+        $filter = $request->input('filter', 'month');
         $today = Carbon::today();
         $startOfWeek = $today->copy()->startOfWeek();
         $startOfMonth = $today->copy()->startOfMonth();
 
+        // Totals for cards
         $dailyTotal = PurchaseRequest::where('status', 'delivered')
             ->whereDate('created_at', $today)
             ->with('items.product')
@@ -159,22 +160,107 @@ class HomeController extends Controller
             ->get()
             ->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0)));
 
-        // Monthly grouped totals (last 6 months)
-        $monthlyData = PurchaseRequest::where('status', 'delivered')
-            ->whereDate('created_at', '>=', now()->subMonths(6)->startOfMonth())
-            ->with('items.product')
-            ->get()
-            ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y-m'))
-            ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))))
-            ->sortKeys();
-            
+        $grouped = collect();
+
+        if ($filter === 'day') {
+            for ($i = 6; $i >= 0; $i--) {
+                $key = now()->subDays($i)->format('Y-m-d');
+                $label = now()->subDays($i)->format('M d');
+                $grouped->put($key, ['label' => $label, 'value' => 0]);
+            }
+
+            $rawData = PurchaseRequest::where('status', 'delivered')
+                ->whereDate('created_at', '>=', now()->subDays(6))
+                ->with('items.product')
+                ->get()
+                ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y-m-d'))
+                ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
+
+        } elseif ($filter === 'week') {
+            for ($i = 7; $i >= 0; $i--) {
+                $start = now()->subWeeks($i)->startOfWeek();
+                $label = $start->format('W Y');
+                $key = $label; // Week number and year
+                $grouped->put($key, ['label' => "Week {$start->format('W')}", 'value' => 0]);
+            }
+
+            $rawData = PurchaseRequest::where('status', 'delivered')
+                ->whereDate('created_at', '>=', now()->subWeeks(7)->startOfWeek())
+                ->with('items.product')
+                ->get()
+                ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->startOfWeek()->format('W Y'))
+                ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
+
+        } elseif ($filter === 'year') {
+            for ($i = 4; $i >= 0; $i--) {
+                $key = now()->subYears($i)->format('Y');
+                $grouped->put($key, ['label' => $key, 'value' => 0]);
+            }
+
+            $rawData = PurchaseRequest::where('status', 'delivered')
+                ->whereDate('created_at', '>=', now()->subYears(4)->startOfYear())
+                ->with('items.product')
+                ->get()
+                ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y'))
+                ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
+
+        } else { // default to month
+            for ($i = 11; $i >= 0; $i--) {
+                $key = now()->subMonths($i)->format('Y-m');
+                $label = now()->subMonths($i)->format('M Y');
+                $grouped->put($key, ['label' => $label, 'value' => 0]);
+            }
+
+            $rawData = PurchaseRequest::where('status', 'delivered')
+                ->whereDate('created_at', '>=', now()->subMonths(12)->startOfMonth())
+                ->with('items.product')
+                ->get()
+                ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y-m'))
+                ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
+        }
+
+        // Merge actual values
+        $grouped = $grouped->map(function ($item, $key) use ($rawData) {
+            if ($rawData->has($key)) {
+                $item['value'] = $rawData[$key];
+            }
+            return $item;
+        });
+
+        $chartCategories = $grouped->pluck('label')->values();
+        $chartValues = $grouped->pluck('value')->values();
 
         return response()->json([
             'daily' => $dailyTotal,
             'weekly' => $weeklyTotal,
             'monthly' => $monthlyTotal,
-            'chart_categories' => $monthlyData->keys(),
-            'chart_values' => $monthlyData->values(),
+            'chart_categories' => $chartCategories,
+            'chart_values' => $chartValues
         ]);
     }
+
+    public function inventoryPieData()
+    {
+        $reasons = ['restock', 'sold', 'returned', 'damaged', 'stock update', 'other'];
+
+        $inventory = Inventory::select('reason', 'type', 'quantity')
+            ->get()
+            ->groupBy('reason')
+            ->map(function ($items, $reason) {
+                return $items->sum(function ($inv) {
+                    return $inv->type === 'in' ? $inv->quantity : -$inv->quantity;
+                });
+            });
+
+        // Ensure all reasons are present, even with zero values
+        $data = collect($reasons)->mapWithKeys(function ($reason) use ($inventory) {
+            return [$reason => $inventory[$reason] ?? 0];
+        });
+
+        return response()->json([
+            'labels' => $data->keys()->values(),
+            'values' => $data->values(),
+        ]);
+    }
+
 }

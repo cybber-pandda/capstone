@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Register company settings as a singleton
         $this->app->singleton('companySettings', function () {
-            return DB::table('company_settings')->first();
+            return \App\Models\CompanySetting::first() ?? collect();
         });
     }
 
@@ -34,9 +35,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Share company settings globally
-        $companySettings = app('companySettings');
-        View::share('companySettings', $companySettings);
+        if (!App::runningInConsole()) {
+            try {
+                $companySettings = app('companySettings');
+                View::share('companySettings', $companySettings);
+            } catch (\Exception $e) {
+                // Log or silently fail
+                logger()->warning('companySettings binding failed', ['message' => $e->getMessage()]);
+            }
+        }
 
         View::composer('*', function ($view) {
             $user = Auth::user();
