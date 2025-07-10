@@ -39,6 +39,10 @@
 
     <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
 
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
+
     <style>
         @media (max-width: 767.98px) {
 
@@ -74,6 +78,12 @@
         .table-responsive {
             padding: 20px !important;
         }
+
+        @media (max-width: 767.98px) {
+            .leaflet-routing-container {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 
@@ -107,6 +117,14 @@
     <script src="{{ asset('assets/dashboard/vendors/sweetalert2/sweetalert2.min.js') }}"></script>
     
     <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/dayjs/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs/plugin/relativeTime.js"></script>
+
     @auth
     <script>
         $.ajaxSetup({

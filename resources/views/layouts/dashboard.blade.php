@@ -182,7 +182,7 @@
 
     <script src="{{ asset('assets/js/global.js') }}"></script>
     <script src="{{ asset('assets/dashboard/js/app.js') }}"></script>
-    <script src="{{ asset('assets/dashboard/js/dashboard.js') }}"></script>
+    <!-- <script src="{{ asset('assets/dashboard/js/dashboard.js') }}"></script> -->
     <script src="{{ asset('assets/dashboard/js/chat.js') }}"></script>
 
     <script>

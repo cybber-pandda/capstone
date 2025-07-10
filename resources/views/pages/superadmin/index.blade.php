@@ -8,19 +8,19 @@
                 <h4 class="mb-3 mb-md-0">Welcome to Dashboard</h4>
             </div>
             <!-- <div class="d-flex align-items-center flex-wrap text-nowrap">
-                                    <div class="input-group flatpickr w-200px me-2 mb-2 mb-md-0" id="dashboardDate">
-                                        <span class="input-group-text input-group-addon bg-transparent border-primary" data-toggle><i data-lucide="calendar" class="text-primary"></i></span>
-                                        <input type="text" class="form-control bg-transparent border-primary" placeholder="Select date" data-input>
-                                    </div>
-                                    <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
-                                        <i class="btn-icon-prepend" data-lucide="printer"></i>
-                                        Print
-                                    </button>
-                                    <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
-                                        <i class="btn-icon-prepend" data-lucide="download-cloud"></i>
-                                        Download Report
-                                    </button>
-                                </div> -->
+                                        <div class="input-group flatpickr w-200px me-2 mb-2 mb-md-0" id="dashboardDate">
+                                            <span class="input-group-text input-group-addon bg-transparent border-primary" data-toggle><i data-lucide="calendar" class="text-primary"></i></span>
+                                            <input type="text" class="form-control bg-transparent border-primary" placeholder="Select date" data-input>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
+                                            <i class="btn-icon-prepend" data-lucide="printer"></i>
+                                            Print
+                                        </button>
+                                        <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
+                                            <i class="btn-icon-prepend" data-lucide="download-cloud"></i>
+                                            Download Report
+                                        </button>
+                                    </div> -->
         </div>
 
         <div class="row">
@@ -119,33 +119,21 @@
 
 
         <div class="row">
-            <div class="col-lg-7 col-xl-8 grid-margin stretch-card" style="visibility: hidden;">
+            <div class="col-lg-7 col-xl-8 grid-margin stretch-card">
                 <div class="card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-baseline mb-2">
-                            <h6 class="card-title mb-0">Monthly sales</h6>
+                            <h6 class="card-title mb-0">Top Purchased Products (Monthly)</h6>
                             <div class="dropdown mb-2">
                                 <a type="button" id="dropdownMenuButton4" data-bs-toggle="dropdown" aria-haspopup="true"
                                     aria-expanded="false">
                                     <i class="icon-lg text-secondary pb-3px" data-lucide="more-horizontal"></i>
                                 </a>
-                                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton4">
-                                    <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i
-                                            data-lucide="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
-                                    <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i
-                                            data-lucide="edit-2" class="icon-sm me-2"></i> <span class="">Edit</span></a>
-                                    <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i
-                                            data-lucide="trash" class="icon-sm me-2"></i> <span class="">Delete</span></a>
-                                    <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i
-                                            data-lucide="printer" class="icon-sm me-2"></i> <span class="">Print</span></a>
-                                    <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i
-                                            data-lucide="download" class="icon-sm me-2"></i> <span
-                                            class="">Download</span></a>
-                                </div>
                             </div>
                         </div>
-                        <p class="text-secondary">Sales are activities related to selling or the number of goods or services
-                            sold in a given time period.</p>
+                        <p class="text-secondary">
+                            This chart shows the most purchased products for the current month based on the total quantity delivered. It highlights which items have the highest sales volume.
+                        </p>
                         <div id="monthlySalesChart"></div>
                     </div>
                 </div>
@@ -314,6 +302,68 @@
                     chart.render();
                 });
         });
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const monthlySalesChartElement = document.querySelector('#monthlySalesChart');
+
+            if (monthlySalesChartElement) {
+                fetch('/api/monthly-top-products')
+                    .then(res => res.json())
+                    .then(data => {
+                        // Get the latest month with data
+                        const lastMonthKey = Object.keys(data).reverse().find(k => data[k].length > 0);
+                        const topProducts = data[lastMonthKey] || [];
+
+                        if (!topProducts.length) {
+                            monthlySalesChartElement.innerHTML = "<div class='text-muted text-center'>No sales data</div>";
+                            return;
+                        }
+
+                        const productNames = topProducts.map(p => p.product);
+                        const quantities = topProducts.map(p => p.quantity);
+
+                        const monthlySalesChartOptions = {
+                            chart: {
+                                type: 'bar',
+                                height: 318,
+                                parentHeightOffset: 0,
+                                foreColor: '#6c757d',
+                                toolbar: { show: false },
+                                zoom: { enabled: false }
+                            },
+                            colors: ['#727cf5'],
+                            series: [{
+                                name: 'Quantity Sold',
+                                data: quantities
+                            }],
+                            xaxis: {
+                                categories: productNames,
+                                axisBorder: { color: '#dee2e6' },
+                                axisTicks: { color: '#dee2e6' }
+                            },
+                            yaxis: {
+                                title: {
+                                    text: 'Qty',
+                                    style: { fontSize: '12px', color: '#6c757d' }
+                                }
+                            },
+                            dataLabels: {
+                                enabled: true
+                            },
+                            plotOptions: {
+                                bar: {
+                                    columnWidth: "50%",
+                                    borderRadius: 4
+                                }
+                            }
+                        };
+
+                        const chart = new ApexCharts(monthlySalesChartElement, monthlySalesChartOptions);
+                        chart.render();
+                    });
+            }
+        });
+
 
     </script>
 @endpush

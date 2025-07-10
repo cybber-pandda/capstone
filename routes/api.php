@@ -13,11 +13,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::put('/deliveries/{id}/update-location', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'logLocation']);
-Route::get('/delivery/sse/tracking/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'deliveryTrackingSSE']);
+Route::put('/deliveries/{id}/update-location', [App\Http\Controllers\APIController::class, 'logLocation']);
+Route::get('/delivery/sse/tracking/{id}', [App\Http\Controllers\APIController::class, 'deliveryTrackingSSE']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-
-Route::get('/api/revenue-data', [RevenueController::class, 'revenueData']);

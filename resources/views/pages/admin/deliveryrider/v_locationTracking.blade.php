@@ -8,12 +8,12 @@
         </div>
         <div class="d-flex flex-row flex-wrap">
             <div>
-                <button id="openLocationBtn" class="btn btn-inverse-primary mb-2 mb-md-0 me-md-2 me-1">
+                <button id="openLocationBtn" class="btn btn-sm btn-inverse-primary mb-2 mb-md-0 me-md-2 me-1">
                     <i class="link-icon" data-lucide="map-pinned"></i> Enable Location
                 </button>
             </div>
             <div>
-                <a href="{{ route('deliveryrider.delivery.location') }}" class="btn btn-inverse-secondary">
+                <a href="{{ route('deliveryrider.delivery.location') }}" class="btn btn-sm btn-inverse-secondary">
                     <i class="link-icon" data-lucide="arrow-big-left-dash"></i> Back
                 </a>
             </div>
@@ -97,29 +97,42 @@ $trackingData = [
     let lastLat = tracking.deliveryManLat;
     let lastLng = tracking.deliveryManLng;
 
-    const source = new EventSource(`/api/delivery/sse/tracking/${deliveryId}`);
-    source.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const lat = parseFloat(data.lat);
-        const lng = parseFloat(data.lng);
+    function fetchTrackingUpdate() {
+        const source = new EventSource(`/api/delivery/sse/tracking/${deliveryId}`);
 
-        if (!isNaN(lat) && !isNaN(lng)) {
-            const moved = Math.sqrt(Math.pow(lat - lastLat, 2) + Math.pow(lng - lastLng, 2)) >= 0.0001;
-            if (moved) {
-                lastLat = lat;
-                lastLng = lng;
-                liveMarker.setLatLng([lat, lng]);
-                reverseGeocodeAndSpeak(lat, lng);
+        source.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const lat = parseFloat(data.lat);
+            const lng = parseFloat(data.lng);
 
-                // 🚚 Update routing
-                routingControl.setWaypoints([
-                    L.latLng(lat, lng),
-                    L.latLng(tracking.customerLat, tracking.customerLng)
-                ]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                const moved = Math.sqrt(Math.pow(lat - lastLat, 2) + Math.pow(lng - lastLng, 2)) >= 0.0001;
+                if (moved) {
+                    lastLat = lat;
+                    lastLng = lng;
+                    liveMarker.setLatLng([lat, lng]);
+                    reverseGeocodeAndSpeak(lat, lng);
+
+                    routingControl.setWaypoints([
+                        L.latLng(lat, lng),
+                        L.latLng(tracking.customerLat, tracking.customerLng)
+                    ]);
+                }
             }
-        }
-    };
-    source.onerror = err => console.error("SSE error:", err);
+        };
+
+        source.onerror = () => {
+            console.warn("SSE closed due to error");
+            source.close();
+        };
+
+        setTimeout(() => {
+            source.close(); // Ensure it's closed to avoid hanging
+        }, 4000);
+    }
+
+    // Poll every 5 seconds to simulate real-time updates
+    setInterval(fetchTrackingUpdate, 5000);
 
     document.getElementById('openLocationBtn').addEventListener('click', () => {
         if (!navigator.geolocation) {

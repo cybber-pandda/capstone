@@ -408,95 +408,95 @@
 
 
   // Monthly Sales Chart
-  const monthlySalesChartElement = document.querySelector('#monthlySalesChart');
-  if (monthlySalesChartElement) {
-    const monthlySalesChartOptions = {
-      chart: {
-        type: 'bar',
-        height: '318',
-        parentHeightOffset: 0,
-        foreColor: colors.secondary,
-        toolbar: {
-          show: false
-        },
-        zoom: {
-          enabled: false
-        },
-      },
-      colors: [colors.primary],  
-      fill: {
-        opacity: .9
-      } , 
-      grid: {
-        padding: {
-          bottom: -4
-        },
-        borderColor: colors.gridBorder,
-        xaxis: {
-          lines: {
-            show: true
-          }
-        }
-      },
-      series: [{
-        name: 'Sales',
-        data: [152,109,93,113,126,161,188,143,102,113,116,124]
-      }],
-      xaxis: {
-        type: 'datetime',
-        categories: ['01/01/2025','02/01/2025','03/01/2025','04/01/2025','05/01/2025','06/01/2025','07/01/2025', '08/01/2025','09/01/2025','10/01/2025', '11/01/2025', '12/01/2025'],
-        axisBorder: {
-          color: colors.gridBorder,
-        },
-        axisTicks: {
-          color: colors.gridBorder,
-        },
-      },
-      yaxis: {
-        title: {
-          text: 'Number of Sales',
-          style:{
-            size: 9,
-            color: colors.secondary
-          }
-        },
-      },
-      legend: {
-        show: true,
-        position: "top",
-        horizontalAlign: 'center',
-        fontFamily: fontFamily,
-        itemMargin: {
-          horizontal: 8,
-          vertical: 0
-        },
-      },
-      stroke: {
-        width: 0
-      },
-      dataLabels: {
-        enabled: true,
-        style: {
-          fontSize: '10px',
-          fontFamily: fontFamily,
-        },
-        offsetY: -27
-      },
-      plotOptions: {
-        bar: {
-          columnWidth: "50%",
-          borderRadius: 4,
-          dataLabels: {
-            position: 'top',
-            orientation: 'vertical',
-          }
-        },
-      },
-    }
+  // const monthlySalesChartElement = document.querySelector('#monthlySalesChart');
+  // if (monthlySalesChartElement) {
+  //   const monthlySalesChartOptions = {
+  //     chart: {
+  //       type: 'bar',
+  //       height: '318',
+  //       parentHeightOffset: 0,
+  //       foreColor: colors.secondary,
+  //       toolbar: {
+  //         show: false
+  //       },
+  //       zoom: {
+  //         enabled: false
+  //       },
+  //     },
+  //     colors: [colors.primary],  
+  //     fill: {
+  //       opacity: .9
+  //     } , 
+  //     grid: {
+  //       padding: {
+  //         bottom: -4
+  //       },
+  //       borderColor: colors.gridBorder,
+  //       xaxis: {
+  //         lines: {
+  //           show: true
+  //         }
+  //       }
+  //     },
+  //     series: [{
+  //       name: 'Sales',
+  //       data: [152,109,93,113,126,161,188,143,102,113,116,124]
+  //     }],
+  //     xaxis: {
+  //       type: 'datetime',
+  //       categories: ['01/01/2025','02/01/2025','03/01/2025','04/01/2025','05/01/2025','06/01/2025','07/01/2025', '08/01/2025','09/01/2025','10/01/2025', '11/01/2025', '12/01/2025'],
+  //       axisBorder: {
+  //         color: colors.gridBorder,
+  //       },
+  //       axisTicks: {
+  //         color: colors.gridBorder,
+  //       },
+  //     },
+  //     yaxis: {
+  //       title: {
+  //         text: 'Number of Sales',
+  //         style:{
+  //           size: 9,
+  //           color: colors.secondary
+  //         }
+  //       },
+  //     },
+  //     legend: {
+  //       show: true,
+  //       position: "top",
+  //       horizontalAlign: 'center',
+  //       fontFamily: fontFamily,
+  //       itemMargin: {
+  //         horizontal: 8,
+  //         vertical: 0
+  //       },
+  //     },
+  //     stroke: {
+  //       width: 0
+  //     },
+  //     dataLabels: {
+  //       enabled: true,
+  //       style: {
+  //         fontSize: '10px',
+  //         fontFamily: fontFamily,
+  //       },
+  //       offsetY: -27
+  //     },
+  //     plotOptions: {
+  //       bar: {
+  //         columnWidth: "50%",
+  //         borderRadius: 4,
+  //         dataLabels: {
+  //           position: 'top',
+  //           orientation: 'vertical',
+  //         }
+  //       },
+  //     },
+  //   }
     
-    const monthlySalesChart = new ApexCharts(monthlySalesChartElement, monthlySalesChartOptions);
-    monthlySalesChart.render();
-  }
+  //   const monthlySalesChart = new ApexCharts(monthlySalesChartElement, monthlySalesChartOptions);
+  //   monthlySalesChart.render();
+  // }
   // Monthly Sales Chart - END
 
 

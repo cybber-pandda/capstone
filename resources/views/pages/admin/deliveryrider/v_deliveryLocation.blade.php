@@ -39,15 +39,15 @@
                         @component('components.table', [
                             'id' => 'deliveryLocationTable',
                             'thead' => '
-                                            <tr>
-                                                <th>Order #</th>
-                                                <th>Customer Name</th>
-                                                <th>Total Items</th>
-                                                <th>Grand Total</th>
-                                                <th>Customer Address</th>
-                                                <th></th>
-                                            </tr>
-                                            '
+                                    <tr>
+                                        <th>Order #</th>
+                                        <th>Customer Name</th>
+                                        <th>Total Items</th>
+                                        <th>Grand Total</th>
+                                        <th>Customer Address</th>
+                                        <th></th>
+                                    </tr>
+                                    '
                         ])
                         @endcomponent
 

@@ -52,5 +52,7 @@ TODO
 - Order View B2B
 - B2B can process refund, return put reason wait for approval
 - View Refund, Return Cancelled Orders
-- Generate PDF = not yet implemented well need to check later already have template
-- ratings
+- Generate invoice after delivered PDF = not yet implemented well need to check later already have template
+- B2B ratings to delivery rider
+- When purchase we need to check the quantity
+- b2b track delivery page not yet implemented = done

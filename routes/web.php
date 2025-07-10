@@ -104,6 +104,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::post('/address/set-default', [App\Http\Controllers\B2B\B2BAddressController::class, 'setDefault']);
 
         Route::get('/delivery', [App\Http\Controllers\B2B\DeliveryController::class, 'index'])->name('delivery.index');
+        Route::get('/delivery/track/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'track_delivery'])->name('delivery.track.index');
         Route::get('/profile', [App\Http\Controllers\B2B\B2BController::class, 'index'])->name('profile.index');
     });
 
@@ -122,6 +123,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
 
     Route::get('home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
     Route::get('/api/sales-revenue-data', [App\Http\Controllers\HomeController::class, 'salesRevenueData']);
+    Route::get('/api/monthly-top-products', [App\Http\Controllers\HomeController::class, 'monthlyTopPurchasedProducts']);
     Route::get('/api/inventory-pie-data', [App\Http\Controllers\HomeController::class, 'inventoryPieData']);
     Route::post('b2b-details-form', [App\Http\Controllers\HomeController::class, 'b2b_details_form']);
     Route::resource('terms', App\Http\Controllers\TermsController::class);

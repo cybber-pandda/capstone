@@ -191,7 +191,7 @@ class DeliveryController extends Controller
                                         <i class="link-icon" data-lucide="truck"></i> Track
                                     </a>';
 
-                        $markDeliveredBtn = '<button type="button" class="btn btn-sm btn-inverse-success mark-delivered-btn"
+                        $markDeliveredBtn = '<button type="button" class="btn btn-sm btn-inverse-success mark-delivered-btn mx-1"
                                                 data-id="' . $order->delivery->id . '">
                                                 <i class="link-icon" data-lucide="check-circle"></i> Mark as Delivered
                                             </button>';
@@ -244,47 +244,6 @@ class DeliveryController extends Controller
             'customerLat' => $customerLat,
             'customerLng' => $customerLng,
         ]);
-    }
-
-    public function logLocation(Request $request, $id)
-    {
-        $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-        ]);
-
-        $delivery = Delivery::findOrFail($id);
-
-        DeliveryHistory::create([
-            'delivery_id' => $delivery->id,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'remarks' => $request->remarks ?? 'Updated from geolocation',
-            'logged_at' => now(),
-        ]);
-
-        return response()->json(['message' => 'Location logged']);
-    }
-
-    public function deliveryTrackingSSE($id)
-    {
-        header('Content-Type: text/event-stream');
-        header('Cache-Control: no-cache');
-        header('Connection: keep-alive');
-
-        while (true) {
-            $delivery = Delivery::with('latestHistory')->find($id);
-            if ($delivery && $delivery->latestHistory) {
-                $data = [
-                    'lat' => $delivery->latestHistory->latitude,
-                    'lng' => $delivery->latestHistory->longitude,
-                ];
-                echo "data: " . json_encode($data) . "\n\n";
-                ob_flush();
-                flush();
-            }
-            sleep(5); // Every 5 seconds
-        }
     }
 
     public function uploadProof(Request $request)

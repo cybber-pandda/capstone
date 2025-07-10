@@ -263,4 +263,44 @@ class HomeController extends Controller
         ]);
     }
 
+    public function monthlyTopPurchasedProducts()
+    {
+        $start = now()->subMonths(11)->startOfMonth();
+        $end = now()->endOfMonth();
+
+        $data = DB::table('purchase_request_items as pri')
+            ->join('purchase_requests as pr', 'pr.id', '=', 'pri.purchase_request_id')
+            ->join('products as p', 'p.id', '=', 'pri.product_id')
+            ->select(
+                DB::raw("DATE_FORMAT(pr.created_at, '%Y-%m') as month"),
+                'p.name',
+                DB::raw('SUM(pri.quantity) as total_quantity')
+            )
+            ->where('pr.status', 'delivered')
+            ->whereBetween('pr.created_at', [$start, $end])
+            ->groupBy('month', 'p.name')
+            ->orderBy('month')
+            ->get()
+            ->groupBy('month');
+
+        $months = collect();
+        for ($i = 11; $i >= 0; $i--) {
+            $label = now()->subMonths($i)->format('M Y');
+            $months[$label] = [];
+        }
+
+        foreach ($data as $month => $items) {
+            $label = Carbon::parse($month . '-01')->format('M Y');
+            $months[$label] = $items->sortByDesc('total_quantity')->take(5)->map(function ($item) {
+                return [
+                    'product' => $item->name,
+                    'quantity' => (int) $item->total_quantity
+                ];
+            })->values();
+        }
+
+        return response()->json($months);
+    }
+
+
 }
