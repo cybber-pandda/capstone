@@ -8,10 +8,9 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 
-use App\Models\User;
 use App\Models\PurchaseRequest;
 use App\Models\Category;
-use App\Models\Message;
+use App\Models\CreditPayment;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -58,6 +57,9 @@ class AppServiceProvider extends ServiceProvider
                 'subtotal' => 0
             ]);
 
+            $showPaymentModal = false;
+            $overduePayment = null;
+
             // 🧾 B2B-specific logic
             if ($user && $user->role === 'b2b') {
                 $pendingRequestCount = PurchaseRequest::where('customer_id', $user->id)
@@ -93,6 +95,28 @@ class AppServiceProvider extends ServiceProvider
                         'subtotal' => $items->sum(fn($i) => $i->quantity * $i->product->price),
                     ]);
                 }
+
+                // Check for overdue payments through PurchaseRequest relationship
+                $overduePayment = CreditPayment::with('purchaseRequest')
+                    ->whereHas('purchaseRequest', function ($query) use ($user) {
+                        $query->where('customer_id', $user->id)->where('credit', 1)->where('payment_method', 'pay_later');
+                    })
+                    ->where(function ($query) {
+                        $query->where('status', 'unpaid')
+                            ->orWhere('status', 'partially_paid')
+                            ->orWhere('status', 'overdue');
+                    })
+                    ->whereDate('due_date', '<', now())
+                    ->first();
+
+                if ($overduePayment) {
+                    if ($overduePayment->status !== 'overdue') {
+                        $overduePayment->update(['status' => 'overdue']);
+                        $overduePayment->refresh();
+                    }
+
+                    $showPaymentModal = true;
+                }
             }
 
             // Share globally
@@ -100,7 +124,10 @@ class AppServiceProvider extends ServiceProvider
                 'pendingRequestCount' => $pendingRequestCount,
                 'sentQuotationCount' =>  $sentQuotationCount,
                 'categories' => $categories,
-                'cartJson' => $cartJson
+                'cartJson' => $cartJson,
+                'showB2BModal' => null,
+                'overduePayment' =>  $overduePayment,
+                'showPaymentModal' => $showPaymentModal,
             ]);
         });
     }

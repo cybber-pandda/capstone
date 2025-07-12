@@ -21,6 +21,8 @@ class B2BController extends Controller
     public function index(Request $request)
     {
 
+        $user = User::getCurrentUser();
+
         if ($request->ajax()) {
             $b2b = User::select(['id', 'name', 'profile', 'username', 'email', 'created_at'])->where('role', 'b2b');
 
@@ -31,15 +33,19 @@ class B2BController extends Controller
                     }
                     return '<img src="' . asset('assets/dashboard/images/noimage.png') . '" alt="No image" class="img-thumbnail" width="80">';
                 })
-                ->addColumn('action', function ($row) {
-                    return '
-                        <button type="button" class="btn btn-sm btn-inverse-light mx-1 edit p-2" data-id="' . $row->id . '">
-                            <i class="link-icon" data-lucide="edit-3"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-inverse-danger delete p-2" data-id="' . $row->id . '">
-                            <i class="link-icon" data-lucide="trash-2"></i>
-                        </button>
-                    ';
+                ->addColumn('action', function ($row) use ($user) {
+                    if ($user->role === 'superadmin') {
+                        return '
+                            <button type="button" class="btn btn-sm btn-inverse-light mx-1 edit p-2" data-id="' . $row->id . '">
+                                <i class="link-icon" data-lucide="edit-3"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-inverse-danger delete p-2" data-id="' . $row->id . '">
+                                <i class="link-icon" data-lucide="trash-2"></i>
+                            </button>
+                        ';
+                    }
+
+                    return ''; // Return empty string if not superadmin
                 })
                 ->rawColumns(['profile', 'action'])
                 ->make(true);
@@ -158,6 +164,7 @@ class B2BController extends Controller
         $user->name = $request->firstname . ' ' . $request->lastname;
         $user->username = $request->username;
         $user->email = $request->email;
+        //$user->credit_limit = $request->creditlimit;
 
         $sendNotification = false;
         $plainPassword = null;
@@ -193,7 +200,7 @@ class B2BController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-     public function destroy($id)
+    public function destroy($id)
     {
         $user = User::findOrFail($id);
         $user->delete();

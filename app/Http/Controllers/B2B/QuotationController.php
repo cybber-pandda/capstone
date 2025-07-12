@@ -33,7 +33,12 @@ class QuotationController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $vatRate = $pr->vat ?? 0; // VAT percentage
+                    $vatAmount = $subtotal * ($vatRate / 100);
+                    $deliveryFee = $pr->delivery_fee ?? 0;
+                    $total = $subtotal + $vatAmount + $deliveryFee;
+
                     return '₱' . number_format($total, 2);
                 })
                 ->editColumn('created_at', function ($pr) {
@@ -80,58 +85,6 @@ class QuotationController extends Controller
         return view('pages.b2b.v_quotation_show', compact('quotation', 'page', 'banks'));
     }
 
-    // public function submitQuotation($id)
-    // {
-    //     try {
-    //         $userId = auth()->id();
-
-    //         $hasAddress = B2BAddress::where('user_id', $userId)->exists();
-    //         if (!$hasAddress) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'You must add an address before submitting a quotation.'
-    //             ], 400);
-    //         }
-
-    //         $hasActiveAddress = B2BAddress::where('user_id', $userId)
-    //             ->where('status', 'active')
-    //             ->exists();
-
-    //         if (!$hasActiveAddress) {
-    //             return response()->json([
-    //                 'success' => false,
-    //                 'message' => 'Please select or set a default address before submitting.'
-    //             ], 400);
-    //         }
-
-    //         $purchaseRequest = PurchaseRequest::where('id', $id)
-    //             ->where('customer_id', $userId)
-    //             ->where('status', 'quotation_sent')
-    //             ->firstOrFail();
-
-    //         $purchaseRequest->status = 'po_submitted';
-    //         $purchaseRequest->save();
-
-    //         $salesOfficers = User::where('role', 'salesofficer')->get();
-    //         foreach ($salesOfficers as $officer) {
-    //             Notification::create([
-    //                 'user_id' => $officer->id,
-    //                 'type' => 'purchase_request',
-    //                 'message' => "A Purchase Order (ID: {$purchaseRequest->id}) has been submitted by {$purchaseRequest->customer->name}.",
-    //             ]);
-    //         }
-
-    //         return response()->json([
-    //             'success' => true,
-    //             'message' => 'Purchase Order successfully submitted.'
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => 'Something went wrong. Please try again.',
-    //         ], 500);
-    //     }
-    // }
     public function cancelQuotation(Request $request, $id)
     {
         $userId = auth()->id();
@@ -226,6 +179,75 @@ class QuotationController extends Controller
         }
 
         return response()->json(['message' => 'Payment uploaded successfully.']);
+    }
+
+    public function payLater(Request $request)
+    {
+        $request->validate([
+            'quotation_id' => 'required|exists:purchase_requests,id',
+        ]);
+
+        $userId = auth()->id();
+        $user = User::findOrFail($userId);
+
+        $hasActiveAddress = B2BAddress::where('user_id', $userId)
+            ->where('status', 'active')
+            ->exists();
+
+        if (!$hasActiveAddress) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please select or set a default address before submitting.'
+            ], 400);
+        }
+
+        $pr = PurchaseRequest::where('id', $request->quotation_id)
+            ->where('customer_id', $userId)
+            ->firstOrFail();
+
+        if ($pr->status !== 'quotation_sent') {
+            return response()->json(['message' => 'Quotation cannot be processed now.'], 400);
+        }
+
+        // Calculate amounts with VAT and delivery
+        $subtotal = $pr->items->sum(fn($item) => $item->quantity * $item->product->price);
+        $vatRate = $pr->vat ?? 0;
+        $vatAmount = $subtotal * ($vatRate / 100);
+        $deliveryFee = $pr->delivery_fee ?? 0;
+        $totalAmount = $subtotal + $vatAmount + $deliveryFee;
+
+        if ($user->credit_limit < $totalAmount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your credit limit is insufficient for this purchase.'
+            ], 400);
+        }
+
+        // Deduct from credit limit
+        $user->decrement('credit_limit', $totalAmount);
+
+        $creditPayment = $pr->createCreditPayment(Carbon::now()->addMonth()->toDateString(), $totalAmount);
+
+        $pr->update([
+            'status' => 'po_submitted',
+            'credit' => 1,
+            'payment_method' => 'pay_later',
+        ]);
+
+        // Notify sales officers
+        $officers = User::where('role', 'salesofficer')->get();
+        foreach ($officers as $officer) {
+            Notification::create([
+                'user_id' => $officer->id,
+                'type' => 'purchase_request',
+                'message' => "PO #{$pr->id} submitted  by {$pr->customer->name} with (Pay Later) - Total: ₱" . number_format($pr->total_amount, 2),
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Purchase order submitted with pay later option. You have 1 month to complete payment.',
+            'credit_limit_remaining' => number_format($user->fresh()->credit_limit,2),
+        ]);
     }
 
     public function checkStatus($id)

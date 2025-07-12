@@ -1,15 +1,38 @@
-// npm package: easymde
-// github link: https://github.com/Ionaru/easy-markdown-editor
+// public/assets/dashboard/js/easymde.js
 
-'use strict';
+"use strict";
 
-(function () {
+let easyMDE = null;
 
-  const easyMdeExample = document.querySelector('#easyMdeExample');
-  if (easyMdeExample) {
-    const easymde = new EasyMDE({
-      element: easyMdeExample
-    });
-  }
+window.initializeEasyMDE = function () {
+    const textarea = document.querySelector("#content");
 
-})();
+    if (textarea) {
+        if (easyMDE) {
+            easyMDE.toTextArea(); // Destroy old instance
+        }
+
+        easyMDE = new EasyMDE({
+            element: textarea,
+            spellChecker: false,
+            toolbar: [
+                "bold",
+                "italic",
+                "heading",
+                "|",
+                "quote",
+                "unordered-list",
+                "ordered-list",
+                "|",
+                // "link",
+                // "image",
+                // "|",
+                // "preview",
+                // "side-by-side",
+                "fullscreen",
+                //"|",
+               // "guide",
+            ],
+        });
+    }
+}

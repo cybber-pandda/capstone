@@ -24,8 +24,8 @@ $(document).ready(function () {
         },
         autoWidth: false,
         columns: [
-            { data: "order_number", name: "order_number", width: "15%" },
-            { data: "customer_name", name: "customer_name", width: "20%" },
+            { data: "order_number", name: "order_number", width: "10%" },
+            { data: "customer_name", name: "customer_name", width: "10%" },
             {
                 data: "total_items",
                 name: "total_items",
@@ -120,7 +120,7 @@ $(document).ready(function () {
 
                 $("#uploadProofModal").modal("hide");
                 setTimeout(function () {
-                    window.location.href = "/location?status=delivered";
+                    window.location.href = "/deliveryrider/delivery/location?status=delivered";
                 }, 3000);
             },
             error: function (xhr) {
@@ -141,6 +141,7 @@ $(document).ready(function () {
         const deliveryId = $(this).data("id");
         $("#cancel_delivery_id").val(deliveryId);
         $("#cancel_remarks").val("");
+        $(".modal-title").text("Cancellation Reason");
         $("#cancelDeliveryModal").modal("show");
     });
 

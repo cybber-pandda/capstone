@@ -41,6 +41,21 @@
     @endslot
     @endcomponent
 
+    @component('components.modal', ['id' => 'feeModal', 'size' => 'md', 'scrollable' => true])
+    <form id="feeForm">
+        @component('components.input', ['label' => 'VAT', 'type' => 'number', 'name' => 'vat', 'attributes' => '' ]) @endcomponent
+        @component('components.input', ['label' => 'Delivery Fee', 'type' => 'number', 'name' => 'delivery_fee', 'attributes' => '' ]) @endcomponent
+    </form>
+
+    @slot('footer')
+    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+    <button type="button" class="btn btn-primary btn-sm" id="saveFee">
+        <span class="saveFee_button_text">Save</span>
+        <span class="saveFee_load_data d-none">Loading <i class="loader"></i></span>
+    </button>
+    @endslot
+    @endcomponent
+
 </div>
 @endsection
 

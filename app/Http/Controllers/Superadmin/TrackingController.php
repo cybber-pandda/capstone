@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -17,6 +18,7 @@ use App\Models\PurchaseRequest;
 use App\Models\Delivery;
 use App\Models\User;
 use App\Models\Notification;
+use App\Models\B2BDetail;
 
 class TrackingController extends Controller
 {
@@ -35,7 +37,12 @@ class TrackingController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $vatRate = $pr->vat ?? 0; // VAT percentage
+                    $vatAmount = $subtotal * ($vatRate / 100);
+                    $deliveryFee = $pr->delivery_fee ?? 0;
+                    $total = $subtotal + $vatAmount + $deliveryFee;
+
                     return '₱' . number_format($total, 2);
                 })
                 ->editColumn('created_at', function ($pr) {
@@ -99,7 +106,7 @@ class TrackingController extends Controller
                 $total += $item->quantity * ($item->product->price ?? 0);
             }
 
-            $orderNumber = $pr->id . '-' . strtoupper(uniqid());
+            $orderNumber = 'REF' . ' ' . $pr->id . '-' . strtoupper(uniqid());
 
             // Create the Order
             $order = Order::create([
@@ -369,6 +376,119 @@ class TrackingController extends Controller
             'deliveryManLng' => $deliveryManLng,
             'customerLat' => $customerLat,
             'customerLng' => $customerLng,
+        ]);
+    }
+
+    public function b2bRequirements(Request $request)
+    {
+        if ($request->ajax()) {
+            $b2bRequirements = B2BDetail::with('user')->get();
+
+            return DataTables::of($b2bRequirements)
+                ->addColumn('customer_name', fn($requirement) => $requirement->user->name ?? 'Anonymous')
+                ->addColumn('certificate_registration', function ($row) {
+                    $filePath = $row->certificate_registration;
+                    $fileExtension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+                    if ($fileExtension === 'pdf') {
+                        return '<a href="' . asset($filePath) . '" target="_blank" class="btn btn-sm btn-info">
+                            <i data-lucide="file-text"></i> View PDF
+                        </a>';
+                    } else {
+                        return '<img src="' . asset($filePath) . '" alt="Certificate" class="img-thumbnail" width="150">';
+                    }
+                })
+                ->addColumn('business_permit', function ($row) {
+                    $filePath = $row->business_permit;
+                    $fileExtension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+                    if ($fileExtension === 'pdf') {
+                        return '<a href="' . asset($filePath) . '" target="_blank" class="btn btn-sm btn-info">
+                            <i data-lucide="file-text"></i> View PDF
+                        </a>';
+                    } else {
+                        return '<img src="' . asset($filePath) . '" alt="Business Permit" class="img-thumbnail" width="150">';
+                    }
+                })
+                ->addColumn('status_badge', function ($row) {
+                    $status = $row->status ?? 'pending'; // Default to 'pending' if null
+                    $badgeClass = [
+                        'pending' => 'bg-warning',
+                        'approved' => 'bg-success',
+                        'rejected' => 'bg-danger'
+                    ][$status] ?? 'bg-secondary';
+
+                    $icon = [
+                        'pending' => 'clock',
+                        'approved' => 'check-circle',
+                        'rejected' => 'x-circle'
+                    ][$status] ?? 'alert-circle';
+
+                    return '<span class="badge ' . $badgeClass . '">
+                        <i data-lucide="' . $icon . '" class="w-4 h-4 mr-1"></i>' . ' ' . ucfirst($status) . '
+                    </span>';
+                })
+                ->addColumn('action', function ($row) {
+                    $buttons = '';
+
+                    // Approval/Rejection buttons
+                    if ($row->status != 'approved') {
+                        $buttons .= '
+                        <button class="btn btn-sm btn-inverse-success mx-1 approve-btn" data-id="' . $row->id . '" title="Approve">
+                            <i class="link-icon" data-lucide="check"></i>
+                        </button>';
+                    }
+
+                    if ($row->status != 'rejected') {
+                        $buttons .= '
+                        <button class="btn btn-sm btn-inverse-danger reject-btn" data-id="' . $row->id . '" title="Reject">
+                            <i class="link-icon" data-lucide="x"></i>
+                        </button>';
+                    }
+
+                    return '<div class="d-flex">' . $buttons . '</div>';
+                })
+                ->rawColumns(['certificate_registration', 'business_permit', 'status_badge', 'action'])
+                ->make(true);
+        }
+
+        return view('pages.superadmin.v_businessRequirement', [
+            'page' => 'B2B Requirements',
+            'pageCategory' => 'Tracking',
+        ]);
+    }
+
+    public function updateStatus(Request $request)
+    {
+        $requirement = B2BDetail::findOrFail($request->id);
+        $previousStatus = $requirement->status;
+        $requirement->status = $request->status;
+        $requirement->save();
+
+        $statusMessages = [
+            'approved' => 'Your business requirements have been approved. You can now proceed with purchases.',
+            'rejected' => 'Your submitted business requirements need revision. Please check and resubmit.',
+            'pending' => 'Your business requirements are under review.'
+        ];
+
+        // Only send notification if status actually changed
+        if ($previousStatus !== $request->status) {
+            Notification::create([
+                'user_id' => $requirement->user_id,
+                'type' => 'Business Requirements',
+                'message' => $statusMessages[$request->status] ?? 'Your business requirements status has been updated.',
+                'metadata' => [
+                    'requirement_id' => $requirement->id,
+                    'new_status' => $request->status,
+                    'updated_at' => now()->toDateTimeString()
+                ]
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status updated successfully',
+            'new_status' => $request->status
         ]);
     }
 }

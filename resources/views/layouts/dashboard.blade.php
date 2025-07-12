@@ -46,14 +46,26 @@
 
 
     <style>
+        /* Left-align content */
         td.dt-left-int,
         th.dt-left-int {
             text-align: left !important;
+            padding-left: 12px;
+            /* or use margin if needed */
         }
 
-        td.dt-left-int,
-        th.dt-left-int {
+        /* Numeric type left-aligned with margin */
+        td.dt-left-int.dt-type-numeric,
+        th.dt-left-int.dt-type-numeric {
             text-align: left !important;
+            padding-left: 12px;
+            /* adjust margin/padding as needed */
+        }
+
+        /* Numeric type left-aligned with margin */
+        td.dt-left-int.dt-type-numeric,
+        th.dt-left-int.dt-type-numeric {
+            padding-left: 12px;
         }
 
         th.dt-left-int .dt-column-header {
@@ -162,12 +174,16 @@
     <script src="{{ asset('assets/dashboard/vendors/flatpickr/flatpickr.min.js') }}"></script>
     <script src="{{ asset('assets/dashboard/vendors/apexcharts/apexcharts.min.js') }}"></script>
 
+    <script src="{{ asset('assets/dashboard/vendors/tinymce/tinymce.min.js') }}"></script>
+
     <script src="{{ asset('assets/dashboard/vendors/datatables.net/dataTables.js') }}"></script>
     <script src="{{ asset('assets/dashboard/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
     <script src="{{ asset('assets/dashboard/vendors/datatables.net-bs5/dataTables.responsive.min.js') }}"></script>
     <!-- <script src="{{ asset('assets/dashboard/js/data-table.js') }}"></script> -->
 
     <script src="{{ asset('assets/dashboard/vendors/sweetalert2/sweetalert2.min.js') }}"></script>
+
+    <!-- <script src="{{ asset('assets//dashboard/js/tinymce.js') }}"></script> -->
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -202,6 +218,20 @@
             refreshRecentMessages();
             fetchNotifications();
             getProfileDetails(CURRENT_USER_ID);
+
+            if (typeof tinymce !== 'undefined') {
+                // Initialize TinyMCE for general textareas
+                tinymce.init({
+                    selector: 'textarea#content',
+                    plugins: 'lists advlist', // Add advlist for advanced list options
+                    toolbar: 'undo redo | formatselect | bold italic | bullist numlist outdent indent | alignleft aligncenter alignright alignjustify',
+                    menubar: false
+                });
+
+            } else {
+                console.error('TinyMCE is not loaded');
+            }
+
         });
     </script>
 

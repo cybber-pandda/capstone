@@ -32,15 +32,15 @@
     @component('components.modal', ['id' => 'termsModal', 'size' => 'lg', 'scrollable' => true])
     <form id="termsForm" action="{{ route('terms.store') }}" method="POST">
 
-        @component('components.select', [
+        <!-- @component('components.select', [
         'label' => 'Content Type',
         'name' => 'content_type',
         'selected' => '',
-        'options' => ['Terms', 'Condition'],
+        'options' => ['Terms', 'Condition', 'Policy'],
         'attributes' => ''
-        ]) @endcomponent
+        ]) @endcomponent -->
 
-        @component('components.textarea', ['label' => 'Content', 'rows' => 10, 'name' => 'content', 'attributes' => '']) @endcomponent
+        @component('components.textarea', ['label' => 'Content', 'rows' => 10, 'name' => 'content', 'attributes' => 'id=content']) @endcomponent
 
     </form>
 
@@ -51,6 +51,10 @@
         <span class="saveTerms_load_data d-none">Loading <i class="loader"></i></span>
     </button>
     @endslot
+    @endcomponent
+
+    @component('components.modal', ['id' => 'viewContentModal', 'size' => 'lg', 'scrollable' => true])
+    <div id="termContentDetails"></div>
     @endcomponent
 
 </div>

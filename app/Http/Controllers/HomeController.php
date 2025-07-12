@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\b2bDetails;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -12,6 +11,7 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\Inventory;
 use App\Models\PurchaseRequest;
+use App\Models\B2BDetail;
 
 class HomeController extends Controller
 {
@@ -34,15 +34,29 @@ class HomeController extends Controller
     {
         $page = 'TantucoCTC';
         $user = User::getCurrentUser();
+        
+        $b2bDetails = null;
+
         $data = null;
         $deliveries = [];
 
         $totalB2B = 0;
         $totalDeliveryRider = 0;
         $totalSalesOfficer = 0;
+
         $b2bChange = 0;
         $riderChange = 0;
         $salesChange = 0;
+
+        $totalPendingPR = 0;
+        $totalPOSubmittedPR = 0;
+        $totalSalesOrderPR = 0;
+        $totalDeliveredPR = 0;
+
+        $totalPendingPRChange = 0;
+        $totalPOSubmittedPRChange = 0;
+        $totalSalesOrderPRChange = 0;
+        $totalDeliveredPRChange = 0;
 
         $role = $user->role ?? null;
 
@@ -52,6 +66,9 @@ class HomeController extends Controller
             'superadmin' => 'pages.superadmin.index',
             default => 'pages.welcome',
         };
+
+        $b2bDetails = B2BDetail::where('user_id', $user->id)->first();
+        $showB2BModal = ($role === 'b2b') && (!$b2bDetails || $b2bDetails->status === 'rejected');
 
         if ($role === 'superadmin') {
             // Current month
@@ -82,6 +99,7 @@ class HomeController extends Controller
         }
 
         if ($role === 'b2b') {
+
             $products = Product::with('category', 'productImages')
                 ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'created_at', 'expiry_date']);
 
@@ -101,6 +119,37 @@ class HomeController extends Controller
                 ]);
             }
         }
+
+        if ($role === 'salesofficer' || $role === 'deliveryrider') {
+            // Current month counts
+            $totalPendingPR = PurchaseRequest::where('status', 'pending')->count();
+            $totalPOSubmittedPR = PurchaseRequest::where('status', 'so_created')->count();
+            $totalSalesOrderPR = PurchaseRequest::where('status', 'po_submitted')->count();
+            $totalDeliveredPR = PurchaseRequest::where('status', 'delivered')->count();
+
+            // Last month range
+            $startLastMonth = Carbon::now()->subMonth()->startOfMonth();
+            $endLastMonth = Carbon::now()->subMonth()->endOfMonth();
+
+            $prevPendingPR = PurchaseRequest::where('status', 'pending')
+                ->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count();
+
+            $prevPOSubmittedPR = PurchaseRequest::where('status', 'so_created')
+                ->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count();
+
+            $prevSalesOrderPR = PurchaseRequest::where('status', 'po_submitted')
+                ->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count();
+
+            $prevDeliveredPR = PurchaseRequest::where('status', 'delivered')
+                ->whereBetween('created_at', [$startLastMonth, $endLastMonth])->count();
+
+            // Calculate percentage changes
+            $totalPendingPRChange = $prevPendingPR > 0 ? (($totalPendingPR - $prevPendingPR) / $prevPendingPR) * 100 : 0;
+            $totalPOSubmittedPRChange = $prevPOSubmittedPR > 0 ? (($totalPOSubmittedPR - $prevPOSubmittedPR) / $prevPOSubmittedPR) * 100 : 0;
+            $totalSalesOrderPRChange = $prevSalesOrderPR > 0 ? (($totalSalesOrderPR - $prevSalesOrderPR) / $prevSalesOrderPR) * 100 : 0;
+            $totalDeliveredPRChange = $prevDeliveredPR > 0 ? (($totalDeliveredPR - $prevDeliveredPR) / $prevDeliveredPR) * 100 : 0;
+        }
+
 
         if ($role === 'deliveryrider') {
 
@@ -130,7 +179,17 @@ class HomeController extends Controller
             'totalDeliveryRider',
             'b2bChange',
             'riderChange',
-            'salesChange'
+            'salesChange',
+            'totalPendingPR',
+            'totalPOSubmittedPR',
+            'totalSalesOrderPR',
+            'totalDeliveredPR',
+            'totalPendingPRChange',
+            'totalPOSubmittedPRChange',
+            'totalSalesOrderPRChange',
+            'totalDeliveredPRChange',
+            'showB2BModal',
+            'b2bDetails'
         ));
     }
 
@@ -175,7 +234,6 @@ class HomeController extends Controller
                 ->get()
                 ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y-m-d'))
                 ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
-
         } elseif ($filter === 'week') {
             for ($i = 7; $i >= 0; $i--) {
                 $start = now()->subWeeks($i)->startOfWeek();
@@ -190,7 +248,6 @@ class HomeController extends Controller
                 ->get()
                 ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->startOfWeek()->format('W Y'))
                 ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
-
         } elseif ($filter === 'year') {
             for ($i = 4; $i >= 0; $i--) {
                 $key = now()->subYears($i)->format('Y');
@@ -203,7 +260,6 @@ class HomeController extends Controller
                 ->get()
                 ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y'))
                 ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
-
         } else { // default to month
             for ($i = 11; $i >= 0; $i--) {
                 $key = now()->subMonths($i)->format('Y-m');
@@ -301,6 +357,4 @@ class HomeController extends Controller
 
         return response()->json($months);
     }
-
-
 }

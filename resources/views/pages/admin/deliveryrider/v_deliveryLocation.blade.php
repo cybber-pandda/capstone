@@ -92,7 +92,6 @@
             @csrf
             <input type="hidden" name="delivery_id" id="cancel_delivery_id">
             <div class="mb-3">
-                <label for="cancel_remarks" class="form-label">Reason for Cancellation</label>
                 <textarea name="remarks" id="cancel_remarks" class="form-control" rows="4"
                     placeholder="Enter reason here..." required></textarea>
             </div>

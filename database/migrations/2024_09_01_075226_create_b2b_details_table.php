@@ -16,8 +16,6 @@ class CreateB2bDetailsTable extends Migration
         Schema::create('b2b_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('firstname');
-            $table->string('lastname');
             $table->string('certificate_registration');
             $table->string('business_permit');
             $table->enum('status', ['approved', 'rejected'])->nullable();

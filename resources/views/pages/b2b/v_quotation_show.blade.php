@@ -1,7 +1,7 @@
 @extends('layouts.shop')
 
 @section('content')
-<div class="section">
+<div class="section section-scrollable" style="margin-bottom: 20px;">
     <div class="container">
 
         <div class="section-title">
@@ -39,14 +39,34 @@
                 </tr>
                 @endforeach
             </tbody>
+
+            @php
+            $subtotal = $quotation->items->sum(fn($item) => $item->quantity * $item->product->price);
+            $vatRate = $quotation->vat ?? 0;
+            $vat = $subtotal * ($vatRate / 100);
+            $delivery_fee = $quotation->delivery_fee ?? 0;
+            $total = $subtotal + $vat + $delivery_fee;
+            @endphp
+
             <tfoot>
                 <tr>
-                    <td colspan="4" class="text-end"><strong>Grand Total:</strong></td>
-                    <td class="text-end">
-                        ₱{{ number_format($quotation->items->sum(fn($item) => $item->quantity * $item->product->price), 2) }}
-                    </td>
+                    <td colspan="4" class="text-end"><strong style="float: right;">Subtotal:</strong></td>
+                    <td class="text-end">₱{{ number_format($subtotal, 2) }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="text-end"><strong style="float: right;">VAT({{$vatRate}}%):</strong></td>
+                    <td class="text-end">₱{{ number_format($vat, 2) }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="text-end"><strong style="float: right;">Delivery Fee:</strong></td>
+                    <td class="text-end">₱{{ number_format($delivery_fee, 2) }}</td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="text-end"><strong style="float: right;">Grand Total:</strong></td>
+                    <td class="text-end">₱{{ number_format($total, 2) }}</td>
                 </tr>
             </tfoot>
+
         </table>
 
         <div class="text-end mt-4">
@@ -69,7 +89,7 @@
                         <input type="hidden" name="quotation_id" id="modal_quotation_id">
 
                         <div style="margin-bottom:10px;">
-                            <label for="bank_id" class="form-label">Select Bank</label>
+                            <label for="bank_id" class="form-label">Select Bank:</label>
                             <select class="form-select form-control" name="bank_id" id="bank_id" required>
                                 <option selected disabled value="">-- Choose a bank --</option>
                                 @foreach ($banks as $bank)
@@ -86,7 +106,7 @@
                         </div>
 
                         <div class="mb-3">
-                            <label for="proof_payment" class="form-label">Upload Proof</label>
+                            <label for="proof_payment" class="form-label">Upload Proof:</label>
                             <input type="file" class="form-control" name="proof_payment" id="proof_payment" required accept="image/*">
                         </div>
 
@@ -106,77 +126,84 @@
 
 @push('scripts')
 <script>
-    // $(document).on('click', '#submitQuotationBtn', function() {
-    //     const id = $(this).data('id');
-
-    //     Swal.fire({
-    //         title: 'Are you sure?',
-    //         text: "You are about to submit and pay this purchase order.",
-    //         icon: 'warning',
-    //         showCancelButton: true,
-    //         confirmButtonText: 'Yes, submit it!',
-    //     }).then((result) => {
-    //         if (result.isConfirmed) {
-    //             $.ajax({
-    //                 url: `/b2b/quotations/submit/${id}`,
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-    //                 },
-    //                 success: function(response) {
-    //                     Swal.fire({
-    //                         icon: 'success',
-    //                         title: 'Purchase Order Submitted',
-    //                         html: 'Please wait for the sales officer to process and deliver to your address.',
-    //                         confirmButtonText: 'OK'
-    //                     }).then(() => {
-    //                         window.location.href = `/b2b/quotations/review?track_id=${id}`;
-    //                     });
-    //                 },
-    //                 error: function(xhr) {
-    //                     const response = xhr.responseJSON;
-    //                     if (response && response.message) {
-    //                         toast('error', response.message);
-    //                     } else {
-    //                         toast('error', 'An unexpected error occurred. Please try again.');
-    //                     }
-    //                 }
-    //             });
-    //         }
-    //     });
-    // });
-
     $(document).on('click', '#submitQuotationBtn', function() {
         const id = $(this).data('id');
 
         Swal.fire({
             title: 'Submit and Pay?',
-            text: "You're about to submit a Purchase Order and must upload a proof of payment.",
+            text: "You're about to submit a Purchase Order. Choose your payment method.",
             icon: 'info',
+            showDenyButton: true,
             showCancelButton: true,
-            confirmButtonText: 'Continue to Payment',
+            confirmButtonText: 'Pay Now',
+            denyButtonText: 'Pay Later',
+            cancelButtonText: 'Cancel',
         }).then((result) => {
             if (result.isConfirmed) {
-                $('#modal_quotation_id').val(id); // set PR id in hidden input
+                $('#modal_quotation_id').val(id);
                 $('#paymentModal').modal('show');
+            } else if (result.isDenied) {
+                Swal.fire({
+                    title: 'Pay Later Confirmation',
+                    text: "You have 1 month to complete payment. Your credit limit will be checked.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Confirm Pay Later',
+                    cancelButtonText: 'Cancel',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Show loading state for exactly 3 seconds
+                        Swal.fire({
+                            title: 'Processing...',
+                            html: 'Submitting your pay later request',
+                            allowOutsideClick: false,
+                            showConfirmButton: false,
+                            timer: 3000, // Show for 3 seconds
+                            timerProgressBar: true,
+                            willOpen: () => Swal.showLoading(),
+                            didOpen: () => {
+                                // Submit the request after showing loading for 3 seconds
+                                setTimeout(() => {
+                                    $.ajax({
+                                        url: '/b2b/quotations/payment/paylater',
+                                        method: 'POST',
+                                        data: {
+                                            quotation_id: id,
+                                            _token: '{{ csrf_token() }}'
+                                        },
+                                        success: function(response) {
+                                            Swal.fire({
+                                                icon: 'success',
+                                                title: 'Success!',
+                                                html: `${response.message}<br>Remaining Credit: ₱${response.credit_limit_remaining.toLocaleString()}`,
+                                                showConfirmButton: true,
+                                                confirmButtonText: 'View Order'
+                                            }).then(() => {
+                                                window.location.href = `/b2b/quotations/review?track_id=${id}`;
+                                            });
+                                        },
+                                        error: function(error) {
+                                            let errorMsg = error.responseJSON?.message || 'Request failed';
+                                            if (error.status === 400 && error.responseJSON?.credit_limit_remaining !== undefined) {
+                                                errorMsg += `<br>Your credit: ₱${error.responseJSON.credit_limit_remaining.toLocaleString()}`;
+                                            }
+
+                                            Swal.fire({
+                                                icon: 'error',
+                                                title: 'Error',
+                                                html: errorMsg,
+                                                confirmButtonText: 'OK'
+                                            });
+                                        }
+                                    });
+                                }, 3000);
+                            }
+                        });
+                    }
+                });
             }
         });
-    });
 
-    $('#bank_id').on('change', function() {
-        const selected = $(this).find(':selected');
-        const account = selected.data('account');
-        const qrCode = selected.data('qr');
-
-        if (account && qrCode) {
-            $('#bankDetails').removeClass('d-none');
-            $('#accountNumber').text(account);
-            $('#qrCodeImage').attr('src', qrCode);
-        } else {
-            $('#bankDetails').addClass('d-none');
-            $('#accountNumber').text('');
-            $('#qrCodeImage').attr('src', '');
-        }
     });
 
     $('#submitPaymentBtn').on('click', function(e) {

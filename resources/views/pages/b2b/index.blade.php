@@ -3,7 +3,7 @@
 @section('content')
 
 <!-- SECTION -->
-<div class="section" style="display:none;">
+<div class="section section-scrollable" style="display:none;">
     <!-- container -->
     <div class="container">
         <!-- Dynamic Categories Row -->
@@ -31,9 +31,9 @@
 <!-- SECTION -->
 <div class="section section-scrollable">
     <div class="container">
-        <div class="section-title" style="display: none;">
-            <h3 class="title">Tantuco CTC</h3>
-            <div class="section-nav">
+        <div class="section-title">
+            <h5 class="title">Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}</h5>
+            <div class="section-nav" style="display: none;">
                 <ul class="section-tab-nav tab-nav">
                     <li class="active"><a href="#" class="category-btn" data-id="">All</a></li>
                     @foreach($categories as $category)

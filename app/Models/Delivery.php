@@ -56,4 +56,8 @@ class Delivery extends Model
         return $this->hasOne(DeliveryHistory::class)->latestOfMany('logged_at');
     }
 
+    public function rating()
+    {
+        return $this->hasOne(DeliveryRating::class);
+    }
 }

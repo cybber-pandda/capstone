@@ -26,7 +26,12 @@ class OrderController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $vatRate = $pr->vat ?? 0; // VAT percentage
+                    $vatAmount = $subtotal * ($vatRate / 100);
+                    $deliveryFee = $pr->delivery_fee ?? 0;
+                    $total = $subtotal + $vatAmount + $deliveryFee;
+
                     return '₱' . number_format($total, 2);
                 })
                 ->editColumn('created_at', function ($pr) {

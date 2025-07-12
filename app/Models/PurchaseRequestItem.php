@@ -9,7 +9,7 @@ class PurchaseRequestItem extends Model
 {
     use HasFactory;
 
-     protected $fillable = ['purchase_request_id', 'product_id', 'quantity'];
+    protected $fillable = ['purchase_request_id', 'product_id', 'quantity'];
 
     public function purchaseRequest()
     {
@@ -20,5 +20,14 @@ class PurchaseRequestItem extends Model
     {
         return $this->belongsTo(Product::class);
     }
-    
+
+    public function returnRequest()
+    {
+        return $this->hasOne(\App\Models\PurchaseRequestReturn::class, 'purchase_request_item_id');
+    }
+
+    public function refundRequest()
+    {
+        return $this->hasOne(\App\Models\PurchaseRequestRefund::class, 'purchase_request_item_id');
+    }
 }

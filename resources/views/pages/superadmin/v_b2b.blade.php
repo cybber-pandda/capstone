@@ -2,11 +2,13 @@
 
 @section('content')
 <div class="page-content container-xxl">
-
+    @if(Auth::user()->role === 'superadmin')
     @include('layouts.dashboard.breadcrumb')
+    @endif
 
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
+            @if(Auth::user()->role === 'superadmin')
             @component('components.card', [
             'title' => 'B2B List',
             'cardtopAddButton' => true,
@@ -14,6 +16,16 @@
             'cardtopAddButtonId' => 'add',
             'cardtopButtonMode' => 'add'
             ])
+            @elseif(Auth::user()->role === 'salesofficer')
+            @component('components.card', [
+            'title' => 'B2B List',
+            'cardtopAddButton' => false
+            ])
+            @endif
+
+            @php
+            $isSuperadmin = Auth::user()->role === 'superadmin';
+            @endphp
 
             @component('components.table', [
             'id' => 'B2BCreation',
@@ -24,7 +36,7 @@
                 <th>Username</th>
                 <th>Email</th>
                 <th>Date Created</th>
-                <th>Action</th>
+                ' . ($isSuperadmin ? '<th>Action</th>' : '') . '
             </tr>
             '
             ])
@@ -36,13 +48,12 @@
 
     @component('components.modal', ['id' => 'B2BModal', 'size' => '', 'scrollable' => true])
     <form id="B2BForm" action="{{ route('b2b-creation.store') }}" method="POST">
-
+        <!-- @component('components.input', ['label' => 'Credit Limit', 'type' => 'text', 'name' => 'creditlimit', 'attributes' => '' ]) @endcomponent -->
         @component('components.input', ['label' => 'First Name', 'type' => 'text', 'name' => 'firstname', 'attributes' => '' ]) @endcomponent
         @component('components.input', ['label' => 'Last Name', 'type' => 'text', 'name' => 'lastname', 'attributes' => '' ]) @endcomponent
         @component('components.input', ['label' => 'Username', 'type' => 'text', 'name' => 'username', 'attributes' => '' ]) @endcomponent
         @component('components.input', ['label' => 'Email Address', 'type' => 'email', 'name' => 'email', 'attributes' => '' ]) @endcomponent
         @component('components.input', ['label' => 'Password', 'type' => 'password', 'name' => 'password', 'attributes' => '' ]) @endcomponent
-
     </form>
 
     @slot('footer')

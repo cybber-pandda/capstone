@@ -21,7 +21,7 @@ class ChatController extends Controller
     {
         $currentUserId = Auth::id();
 
-        $users = User::where('id', '!=', $currentUserId)
+        $users = User::where('id', '!=', $currentUserId)->whereIn('role', ['deliveryrider','salesofficer', 'superadmin'])
             ->with(['userLog' => function ($query) {
                 $query->latest('logged_at')->limit(1);
             }])

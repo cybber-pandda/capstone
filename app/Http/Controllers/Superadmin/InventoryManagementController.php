@@ -56,7 +56,7 @@ class InventoryManagementController extends Controller
                 ];
             });
 
-            return datatables()->of($data)->make(true);
+            return datatables()->of($data)->rawColumns(['inventory_breakdown'])->make(true);
         }
 
         return view('pages.superadmin.v_inventoryManagement', [

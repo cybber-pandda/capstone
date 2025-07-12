@@ -7,7 +7,7 @@
         <div>
             <h4 class="mb-3 mb-md-0">Welcome
                 @if(Auth::user()->role === 'salesofficer')
-                Assistant Sales Offcer
+                Sales Offcer
                 @elseif(Auth::user()->role === 'deliveryrider')
                 Delivery Rider
                 @else
@@ -31,147 +31,71 @@
         </div> -->
     </div>
 
+    @php
+    function renderChange($value) {
+    $class = $value >= 0 ? 'text-success' : 'text-danger';
+    $icon = $value >= 0 ? 'arrow-up' : 'arrow-down';
+    $prefix = $value >= 0 ? '+' : '';
+    return "<p class='mb-0 $class'>
+        <span>{$prefix}" . number_format($value, 1) . "%</span>
+        <i data-lucide='$icon' class='icon-sm mb-1'></i>
+    </p>";
+    }
+    @endphp
+
     <div class="row">
-        <div class="col-12 col-xl-12 stretch-card">
-            <div class="row flex-grow-1">
-                <div class="col-md-4 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">New Customers</h6>
-                                <div class="dropdown mb-2">
-                                    <a type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="icon-lg text-secondary pb-3px" data-lucide="more-horizontal"></i>
-                                    </a>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="edit-2" class="icon-sm me-2"></i> <span class="">Edit</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="trash" class="icon-sm me-2"></i> <span class="">Delete</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="printer" class="icon-sm me-2"></i> <span class="">Print</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="download" class="icon-sm me-2"></i> <span class="">Download</span></a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6 col-md-12 col-xl-5">
-                                    <h3 class="mb-2">3,897</h3>
-                                    <div class="d-flex align-items-baseline">
-                                        <p class="text-success">
-                                            <span>+3.3%</span>
-                                            <i data-lucide="arrow-up" class="icon-sm mb-1"></i>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-12 col-xl-7">
-                                    <div id="customersChart" class="mt-md-3 mt-xl-0"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">New Orders</h6>
-                                <div class="dropdown mb-2">
-                                    <a type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="icon-lg text-secondary pb-3px" data-lucide="more-horizontal"></i>
-                                    </a>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="edit-2" class="icon-sm me-2"></i> <span class="">Edit</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="trash" class="icon-sm me-2"></i> <span class="">Delete</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="printer" class="icon-sm me-2"></i> <span class="">Print</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="download" class="icon-sm me-2"></i> <span class="">Download</span></a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6 col-md-12 col-xl-5">
-                                    <h3 class="mb-2">35,084</h3>
-                                    <div class="d-flex align-items-baseline">
-                                        <p class="text-danger">
-                                            <span>-2.8%</span>
-                                            <i data-lucide="arrow-down" class="icon-sm mb-1"></i>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-12 col-xl-7">
-                                    <div id="ordersChart" class="mt-md-3 mt-xl-0"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Growth</h6>
-                                <div class="dropdown mb-2">
-                                    <a type="button" id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <i class="icon-lg text-secondary pb-3px" data-lucide="more-horizontal"></i>
-                                    </a>
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="edit-2" class="icon-sm me-2"></i> <span class="">Edit</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="trash" class="icon-sm me-2"></i> <span class="">Delete</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="printer" class="icon-sm me-2"></i> <span class="">Print</span></a>
-                                        <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="download" class="icon-sm me-2"></i> <span class="">Download</span></a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-6 col-md-12 col-xl-5">
-                                    <h3 class="mb-2">89.87%</h3>
-                                    <div class="d-flex align-items-baseline">
-                                        <p class="text-success">
-                                            <span>+2.8%</span>
-                                            <i data-lucide="arrow-up" class="icon-sm mb-1"></i>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="col-6 col-md-12 col-xl-7">
-                                    <div id="growthChart" class="mt-md-3 mt-xl-0"></div>
-                                </div>
-                            </div>
-                        </div>
+        @foreach ([
+        ['label' => 'Total Pending PR', 'value' => $totalPendingPR, 'change' => $totalPendingPRChange],
+        ['label' => 'Total PO Submitted PR', 'value' => $totalPOSubmittedPR, 'change' => $totalPOSubmittedPRChange],
+        ['label' => 'Total Sales Order PR', 'value' => $totalSalesOrderPR, 'change' => $totalSalesOrderPRChange],
+        ['label' => 'Total Delivered PR', 'value' => $totalDeliveredPR, 'change' => $totalDeliveredPRChange],
+        ] as $stat)
+        <div class="col-md-3 grid-margin stretch-card">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title mb-0">{{ $stat['label'] }}</h6>
+                    <h3 class="mb-2">{{ number_format($stat['value']) }}</h3>
+                    <div class="d-flex align-items-baseline">
+                        {!! renderChange($stat['change']) !!}
                     </div>
                 </div>
             </div>
         </div>
-    </div> <!-- row -->
+        @endforeach
+    </div>
+
 
     <div class="row">
         <div class="col-lg-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
+                    @if(Auth::user()->role === 'deliveryrider')
                     <div class="d-flex justify-content-between align-items-baseline mb-2">
                         <h6 class="card-title mb-0">My Assign Deliveries</h6>
-                        <div class="dropdown mb-2 {{ Auth::user()->role === 'deliveryrider' ? 'd-none' : '' }}">
-                            <a type="button" id="dropdownMenuButton4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="icon-lg text-secondary pb-3px" data-lucide="more-horizontal"></i>
-                            </a>
-                            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton4">
-                                <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="eye" class="icon-sm me-2"></i> <span class="">View</span></a>
-                                <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="edit-2" class="icon-sm me-2"></i> <span class="">Edit</span></a>
-                                <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="trash" class="icon-sm me-2"></i> <span class="">Delete</span></a>
-                                <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="printer" class="icon-sm me-2"></i> <span class="">Print</span></a>
-                                <a class="dropdown-item d-flex align-items-center" href="javascript:;"><i data-lucide="download" class="icon-sm me-2"></i> <span class="">Download</span></a>
+                    </div>
+                    @include('components.delivery-list', ['deliveries' => $deliveries])
+                    @else
+                    <div class="d-flex justify-content-between align-items-baseline mb-4 mb-md-3">
+                        <h6 class="card-title mb-0">Sales Revenue</h6>
+                    </div>
+                    <div class="row align-items-start">
+                        <div class="col-md-7">
+                            <p class="text-secondary fs-13px mb-3 mb-md-0">Sales Revenue represents the income generated
+                                by Tantuco CTC from the successful delivery of hardware product sales. It reflects the
+                                earnings from regular business operations, specifically through the fulfillment of
+                                delivered goods to customers.</p>
+                        </div>
+                        <div class="col-md-5 d-flex justify-content-md-end">
+                            <div class="btn-group mb-3 mb-md-0" role="group" aria-label="Basic example">
+                                <button type="button" class="btn btn-outline-primary">Today</button>
+                                <button type="button" class="btn btn-outline-primary d-none d-md-block">Week</button>
+                                <button type="button" class="btn btn-primary">Month</button>
+                                <button type="button" class="btn btn-outline-primary">Year</button>
                             </div>
                         </div>
                     </div>
-
-
-                    @if(Auth::user()->role === 'deliveryrider')
-                    @include('components.delivery-list', ['deliveries' => $deliveries])
-                    @else
-                    <p class="text-secondary">Sales are activities related to selling or the number of goods or services sold in a given time period.</p>
-                    <div id="monthlySalesChart"></div>
+                    <div id="revenueChart"></div>
                     @endif
-
-
                 </div>
             </div>
         </div>
@@ -186,6 +110,124 @@
 
 @push('scripts')
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const revenueChartElement = document.querySelector('#revenueChart');
+        const buttons = document.querySelectorAll('.btn-group button');
+        let revenueChart;
+
+        function fetchAndRenderChart(filter = 'month') {
+            fetch(`/api/sales-revenue-data?filter=${filter}`)
+                .then(res => res.json())
+                .then(data => {
+                    const chartOptions = {
+                        chart: {
+                            type: "line",
+                            height: 400,
+                            parentHeightOffset: 0,
+                            toolbar: {
+                                show: false
+                            },
+                            zoom: {
+                                enabled: false
+                            },
+                            animations: {
+                                enabled: true,
+                                easing: 'easeinout',
+                                speed: 800
+                            },
+                            foreColor: '#6c757d'
+                        },
+                        colors: ['#727cf5'],
+                        grid: {
+                            padding: {
+                                bottom: -4
+                            },
+                            borderColor: '#dee2e6',
+                            xaxis: {
+                                lines: {
+                                    show: true
+                                }
+                            }
+                        },
+                        series: [{
+                            name: "Sales Revenue",
+                            data: data.chart_values
+                        }],
+                        xaxis: {
+                            type: "category",
+                            categories: data.chart_categories,
+                            axisBorder: {
+                                color: '#dee2e6'
+                            },
+                            axisTicks: {
+                                color: '#dee2e6'
+                            },
+                            crosshairs: {
+                                stroke: {
+                                    color: '#6c757d'
+                                }
+                            }
+                        },
+                        yaxis: {
+                            min: 0,
+                            title: {
+                                text: 'Revenue (₱)',
+                                style: {
+                                    fontSize: '12px',
+                                    color: '#6c757d'
+                                }
+                            },
+                            tickAmount: 4,
+                            crosshairs: {
+                                stroke: {
+                                    color: '#6c757d'
+                                }
+                            }
+                        },
+                        markers: {
+                            size: 0
+                        },
+                        stroke: {
+                            width: 2,
+                            curve: "straight"
+                        }
+                    };
+
+                    // If chart already exists, update it
+                    if (revenueChart) {
+                        revenueChart.updateOptions(chartOptions);
+                    } else {
+                        revenueChart = new ApexCharts(revenueChartElement, chartOptions);
+                        revenueChart.render();
+                    }
+                });
+        }
+
+        // Initial fetch
+        fetchAndRenderChart();
+
+        // Button click handlers
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Remove active from all
+                buttons.forEach(b => b.classList.remove('btn-primary'));
+                buttons.forEach(b => b.classList.add('btn-outline-primary'));
+
+                // Set active to current
+                this.classList.remove('btn-outline-primary');
+                this.classList.add('btn-primary');
+
+                const label = this.textContent.trim().toLowerCase();
+                let filter = 'month';
+                if (label === 'today') filter = 'day';
+                else if (label === 'week') filter = 'week';
+                else if (label === 'year') filter = 'year';
+
+                fetchAndRenderChart(filter);
+            });
+        });
+    });
+
     $(document).on('click', '.pickup-btn', function() {
         const deliveryId = $(this).data('delivery-id');
 

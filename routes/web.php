@@ -32,7 +32,6 @@ Route::get('/google/callback', [App\Http\Controllers\Auth\GoogleLoginController:
 Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function () {
 
     /* Super Admin */
-    //Route::prefix('superadmin')->name('superadmin.')->group(function () {
 
     // Management
     Route::resource('product-management', App\Http\Controllers\Superadmin\ProductManagementController::class);
@@ -61,7 +60,8 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::post('/delivery/upload-proof', [App\Http\Controllers\Superadmin\TrackingController::class, 'uploadProof'])->name('tracking.delivery.upload-proof');
     Route::get('/delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'deliveryPersonnel'])->name('tracking.delivery-personnel');
     Route::post('/assign-delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'assignDeliveryPersonnel'])->name('tracking.assign-delivery-personnel');
-    //});
+    Route::get('/b2b/requirements', [App\Http\Controllers\Superadmin\TrackingController::class, 'b2bRequirements'])->name('tracking.b2b.requirement');
+    Route::post('/b2b/requirement/update-status', [App\Http\Controllers\Superadmin\TrackingController::class, 'updateStatus']);
 
     /* Sales Officer */
     Route::prefix('salesofficer')->name('salesofficer.')->group(function () {
@@ -83,10 +83,18 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/delivery/history/{order}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'getDeliveryDetails']);
         Route::post('/delivery/upload-proof', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'uploadProof'])->name('delivery.upload-proof');
         Route::post('/delivery/cancel/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'cancelDelivery'])->name('delivery.cancel');
+        Route::get('/delivery/ratings', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'deliveryRatings'])->name('delivery.ratings');
     });
 
     /* B2B */
     Route::prefix('b2b')->name('b2b.')->group(function () {
+       
+        Route::post('/business/requirement', [App\Http\Controllers\B2B\B2BController::class, 'business_requirement'])->name('business.requirement');
+
+        Route::get('/profile', [App\Http\Controllers\B2B\B2BController::class, 'index'])->name('profile.index');
+        Route::put('/profile/update', [App\Http\Controllers\B2B\B2BController::class, 'update'])->name('profile.update');
+        Route::post('/profile/upload', [App\Http\Controllers\B2B\B2BController::class, 'upload'])->name('profile.upload');
+
         Route::get('/purchase-requests', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
         Route::post('/purchase-requests/store', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'store'])->name('purchase-requests.store');
         Route::delete('/purchase-requests/items/{id}', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'destroyItem'])->name('purchase-requests.destroyItem');
@@ -94,8 +102,8 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/quotations/review', [App\Http\Controllers\B2B\QuotationController::class, 'review'])->name('quotations.review');
         Route::get('/quotations/review/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'show'])->name('quotations.show');
         Route::post('/quotations/cancel/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'cancelQuotation'])->name('quotations.cancel');
-
-        //Route::post('/quotations/submit/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'submitQuotation'])->name('quotations.submit');
+       
+        Route::post('/quotations/payment/paylater', [App\Http\Controllers\B2B\QuotationController::class, 'payLater'])->name('quotations.payment.paylater');
         Route::post('/quotations/payment/upload', [App\Http\Controllers\B2B\QuotationController::class, 'uploadPaymentProof'])->name('quotations.payment.upload');
         Route::get('/quotations/status/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'checkStatus']);
 
@@ -105,7 +113,18 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
 
         Route::get('/delivery', [App\Http\Controllers\B2B\DeliveryController::class, 'index'])->name('delivery.index');
         Route::get('/delivery/track/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'track_delivery'])->name('delivery.track.index');
-        Route::get('/profile', [App\Http\Controllers\B2B\B2BController::class, 'index'])->name('profile.index');
+        Route::get('/delivery/invoice/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'view_invoice'])->name('delivery.invoice');
+        Route::get('/delivery/invoice/download/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'downloadInvoice'])->name('delivery.invoice.download');
+        Route::get('/delivery/rider/rate/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'rate_page'])->name('delivery.rider.rate');
+        Route::post('/delivery/rider/rate/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'save_rating'])->name('delivery.rider.rate.submit');
+
+        Route::get('/purchase', [App\Http\Controllers\B2B\PurchaseController::class, 'index'])->name('purchase.index');
+        Route::post('/purchase/return', [App\Http\Controllers\B2B\PurchaseController::class, 'requestReturn']);
+        Route::post('/purchase/refund', [App\Http\Controllers\B2B\PurchaseController::class, 'requestRefund']);
+        Route::get('/purchase/return-refund/data', [App\Http\Controllers\B2B\PurchaseController::class, 'purchaseReturnRefund'])->name('purchase.rr');
+
+        Route::get('/purchase/credit', [App\Http\Controllers\B2B\CreditController::class, 'index'])->name('purchase.credit');
+        Route::post('/purchase/credit/payment', [App\Http\Controllers\B2B\CreditController::class, 'credit_payment'])->name('purchase.credit.payment');
     });
 
 

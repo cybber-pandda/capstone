@@ -13,6 +13,8 @@ use App\Models\Order;
 use App\Models\Delivery;
 use App\Models\DeliveryHistory;
 use App\Models\Notification;
+use App\Models\PurchaseRequest;
+use App\Models\Inventory;
 
 class DeliveryController extends Controller
 {
@@ -274,19 +276,43 @@ class DeliveryController extends Controller
             $delivery->status = 'delivered';
             $delivery->save();
 
+            if ($delivery->order?->order_number) {
+                preg_match('/REF (\d+)-/', $delivery->order->order_number, $matches);
+                if (isset($matches[1])) {
+                    $purchaseRequestId = $matches[1];
+                    $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
+                    if ($purchaseRequest) {
+                        $purchaseRequest->status = 'delivered';
+                        $purchaseRequest->save();
+                    }
+                }
+            }
+
+
+            // Add to inventory as 'sold'
+            foreach ($delivery->order->items as $item) {
+                Inventory::create([
+                    'product_id' => $item->product_id,
+                    'type' => 'out',
+                    'quantity' => $item->quantity,
+                    'reason' => 'sold',
+                ]);
+            }
+
+
+            $user = $delivery->order?->user;
+            if ($user) {
+                Notification::create([
+                    'user_id' => $user->id,
+                    'type' => 'delivery',
+                    'message' => 'Your order #' . $delivery->order->order_number . ' has been delivered.',
+                ]);
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Proof of delivery uploaded successfully.',
                 'file_path' => $delivery->proof_delivery
-            ]);
-        }
-
-        $user = $delivery->order?->user;
-        if ($user) {
-            Notification::create([
-                'user_id' => $user->id,
-                'type' => 'delivery',
-                'message' => 'Your order #' . $delivery->order->order_number . ' has been delivered.',
             ]);
         }
 
@@ -309,5 +335,68 @@ class DeliveryController extends Controller
         $delivery->save();
 
         return response()->json(['message' => 'Delivery has been cancelled.']);
+    }
+
+    public function deliveryRatings(Request $request)
+    {
+        $user = auth()->user(); // Delivery Rider
+        $riderId = $user->id;
+
+        if ($request->ajax()) {
+            // Only fetch deliveries assigned to the current rider
+            $query = \App\Models\Delivery::with([
+                'order.user',
+                'order.items.product',
+                'rating'
+            ])
+                ->where('delivery_rider_id', $riderId)
+                ->has('order') // Ensure it has an order
+                ->latest();
+
+            return datatables()->of($query)
+                ->addColumn('order_number', fn($delivery) => $delivery->order->order_number ?? 'N/A')
+                ->addColumn('customer_name', fn($delivery) => optional($delivery->order->user)->name ?? 'N/A')
+                ->addColumn('total_items', fn($delivery) => $delivery->order->items->sum('quantity') ?? 0)
+                ->addColumn('grand_total', function ($delivery) {
+                    $order = $delivery->order;
+                    $subtotal = $order->items->sum(function ($item) {
+                        return $item->quantity * ($item->product->price ?? 0);
+                    });
+
+                    $vatRate = 0;
+                    $deliveryFee = 0;
+
+                    if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
+                        $purchaseRequestId = $matches[1];
+                        $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+                        if ($purchaseRequest) {
+                            $vatRate = $purchaseRequest->vat ?? 0;
+                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                        }
+                    }
+
+                    $vat = $subtotal * ($vatRate / 100);
+                    $grandTotal = $subtotal + $vat + $deliveryFee;
+
+                    return '₱' . number_format($grandTotal, 2);
+                })
+                ->addColumn('rating', function ($delivery) {
+                    $rating = $delivery->rating->rating ?? null;
+
+                    if (!$rating) {
+                        return '<span class="text-muted">Not rated</span>';
+                    }
+
+                    return collect(range(1, 5))->map(function ($i) use ($rating) {
+                        return '<i data-lucide="star' . ($i <= $rating ? '' : '-off') . '" class="' . ($i <= $rating ? 'text-warning' : 'text-muted') . '"></i>';
+                    })->implode('');
+                })
+                ->rawColumns(['rating'])
+                ->make(true);
+        }
+
+        return view('pages.admin.deliveryrider.v_deliveryRating', [
+            'page' => 'My Delivery Rating',
+        ]);
     }
 }

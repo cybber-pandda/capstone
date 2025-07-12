@@ -20,7 +20,29 @@ $(document).ready(function () {
         autoWidth: false,
         columns: [
             { data: "content_type", name: "content_type", width: "20%" },
-            { data: "content", name: "content", width: "20%" },
+            {
+                data: "content",
+                name: "content",
+                width: "20%",
+                render: function (data, type, row) {
+                    const div = document.createElement("div");
+                    div.innerHTML = data;
+                    const plainText = div.innerText || div.textContent || "";
+
+                    const shortText =
+                        plainText.length > 30
+                            ? plainText.slice(0, 30) + "..."
+                            : plainText;
+
+                    return `
+                        <span class="view-full-content text-primary" style="cursor:pointer" 
+                            data-content='${_.escape(data)}' 
+                            title="Click to view full content">
+                            ${_.escape(shortText)} <i class="link-icon" data-lucide="eye"></i>
+                        </span>
+                    `;
+                },
+            },
             {
                 data: "created_at",
                 name: "created_at",
@@ -56,15 +78,21 @@ $(document).ready(function () {
     $(document).on("click", ".edit", function () {
         $(".modal-title").text("Edit Terms & Condition");
         termsId = $(this).data("id");
+
         $("#termsModal").modal("show");
         $("#termsForm").attr("action", `/terms/${termsId}`);
         $("#termsForm").attr("method", "POST");
         $("#termsForm input[name='_method']").remove();
-        $("#termsForm").append('<input type="hidden" name="_method" value="PUT">');
+        $("#termsForm").append(
+            '<input type="hidden" name="_method" value="PUT">'
+        );
 
         $.get(`/terms/${termsId}/edit`, function (response) {
-            $('#termsForm select[name="content_type"]').val(response.data.content_type).trigger('change');
-            $('#termsForm textarea[name="content"]').val(response.data.content);
+            $('#termsForm select[name="content_type"]')
+                .val(response.data.content_type)
+                .trigger("change");
+            // $('#termsForm textarea[name="content"]').val(response.data.content);
+            tinymce.get("content").setContent(response.data.content);
         });
     });
 
@@ -95,6 +123,9 @@ $(document).ready(function () {
         let url = $(form).attr("action");
         let method = $(form).attr("method");
         let formData = new FormData(form);
+
+        const content = tinymce.get("content").getContent();
+        formData.append("content", content);
 
         $("#saveTerms").prop("disabled", true);
 
@@ -146,4 +177,12 @@ $(document).ready(function () {
                 console.log(data);
             });
     }
+
+    $(document).on("click", ".view-full-content", function () {
+        const fullContent = _.unescape($(this).data("content"));
+
+        $(".modal-title").text("Full Content");
+        $("#termContentDetails").html(fullContent);
+        $("#viewContentModal").modal("show");
+    });
 });

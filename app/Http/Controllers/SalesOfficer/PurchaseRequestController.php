@@ -27,7 +27,12 @@ class PurchaseRequestController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $vatRate = $pr->vat ?? 0; // VAT percentage
+                    $vatAmount = $subtotal * ($vatRate / 100);
+                    $deliveryFee = $pr->delivery_fee ?? 0;
+                    $total = $subtotal + $vatAmount + $deliveryFee;
+
                     return '₱' . number_format($total, 2);
                 })
                 ->editColumn('created_at', function ($pr) {
@@ -55,7 +60,7 @@ class PurchaseRequestController extends Controller
         return response()->json(['html' => $html]);
     }
 
-    public function updateSendQuotation($id)
+    public function updateSendQuotation(Request $request, $id)
     {
         $purchaseRequest = PurchaseRequest::findOrFail($id);
 
@@ -66,7 +71,18 @@ class PurchaseRequestController extends Controller
             ]);
         }
 
-        $purchaseRequest->update(['status' => 'quotation_sent']);
+        // Optional: Validate vat and delivery_fee
+        $validated = $request->validate([
+            'vat' => 'nullable|numeric|min:0',
+            'delivery_fee' => 'nullable|numeric|min:0',
+        ]);
+
+        // Update with additional fees + status
+        $purchaseRequest->update([
+            'status' => 'quotation_sent',
+            'vat' => $validated['vat'] ?? null,
+            'delivery_fee' => $validated['delivery_fee'] ?? null,
+        ]);
 
         // Notify customer
         if ($purchaseRequest->customer) {
@@ -82,6 +98,4 @@ class PurchaseRequestController extends Controller
             'message' => 'Quotation sent successfully!'
         ]);
     }
-
-  
 }

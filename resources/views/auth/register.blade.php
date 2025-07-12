@@ -121,11 +121,16 @@
             <div class="mb-2 ml-3 w-100">
                 <div class="form-check custom-checkbox">
                     <input type="checkbox" class="form-check-input" name="agree" id="agree" />
-                    <label class="form-check-label text-muted" for="agree">{{ __('Agree to our Terms and Conditions') }}</label>
+                    <label class="form-check-label text-muted" for="agree">
+                        {{ __('Agree to our') }}
+                        <a href="javascript:void(0);" class="showTCP" data-tab="terms">Terms and Conditions</a>
+                        {{ __('and') }}
+                        <a href="javascript:void(0);" class="showTCP" data-tab="policy">Privacy Policy</a>
+                    </label>
                     <span class="invalid-feedback d-block" role="alert" id="agree_error"></span>
                 </div>
             </div>
-
+            
             <!-- Submit Button -->
             <div class="form-group col-lg-12 mx-auto mb-0">
                 <button type="button" id="registerAccount" class="btn btn-primary btn-block py-2">
@@ -160,15 +165,97 @@
         </div>
     </div>
 </form>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" role="dialog" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <!-- <div class="modal-header border-0">
+                <h5 class="modal-title" id="termsModalLabel">Accept our Terms & Conditions and Privacy Policy</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div> -->
+            <div class="modal-body">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs mb-3" id="termsTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="terms-tab" data-toggle="tab" href="#terms" role="tab" aria-controls="terms" aria-selected="true">Terms & Conditions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="policy-tab" data-toggle="tab" href="#policy" role="tab" aria-controls="policy" aria-selected="false">Privacy Policy</a>
+                    </li>
+                </ul>
+
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="terms" role="tabpanel" aria-labelledby="terms-tab">
+                        <div class="p-3" style="max-height: 400px; overflow-y: auto;">
+                            @if($terms && $conditions)
+                                @if($terms->content)
+                                    {!! $terms->content !!}
+                                @endif
+                                
+                                @if($conditions->content)
+                                    <hr>
+                                    {!! $conditions->content !!}
+                                @endif
+                            @else
+                                <h4>Default Terms and Conditions</h4>
+                                <p>Please contact the administrator for the terms and conditions.</p>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="policy" role="tabpanel" aria-labelledby="policy-tab">
+                        <div class="p-3" style="max-height: 400px; overflow-y: auto;">
+                            @if($policy && $policy->content)
+                                {!! $policy->content !!}
+                            @else
+                                <h4>Default Privacy Policy</h4>
+                                <p>Please contact the administrator for the privacy policy.</p>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script src="{{ route('secure.js', ['filename' => 'register']) }}"></script>
 <script>
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        this.submit();
-        window.location.href = '{{ route("verification.notice") }}';
+    $(document).ready(function() {
+        // Form submission handler
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.submit();
+            window.location.href = '{{ route("verification.notice") }}';
+        });
+
+        // Handle modal show and tab switching
+        $(document).on('click', '.showTCP', function(e) {
+            e.preventDefault();
+            var tabToShow = $(this).data('tab');
+
+            // Show the modal
+            $('#termsModal').modal('show');
+
+            // After modal is shown, switch to the correct tab
+            $('#termsModal').on('shown.bs.modal', function() {
+                $('.nav-tabs a[href="#' + tabToShow + '"]').tab('show');
+            });
+        });
+
+        // Initialize tabs
+        $('.nav-tabs a').on('click', function(e) {
+            e.preventDefault();
+            $(this).tab('show');
+        });
     });
 </script>
 @endpush

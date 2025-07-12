@@ -29,12 +29,17 @@ class CreatePurchaseRequestsTable extends Migration
                 'returned',          // customer returned the item
                 'refunded'           // refund processed
             ])->default('pending');
+            $table->integer('vat')->nullable();
+            $table->decimal('delivery_fee', 10, 2)->nullable();
+            $table->boolean('credit')->default(false);
+            $table->enum('payment_method', ['pay_now', 'pay_later'])->nullable();
             $table->string('proof_payment')->nullable();
             $table->text('pr_remarks')->nullable();
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade');
+            $table->softDeletes();
         });
     }
 

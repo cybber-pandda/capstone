@@ -68,11 +68,15 @@ class RegisterController extends Controller
         //     $businessPermitPath = 'assets/uploads/' . $permitName;
         // }
 
+        $user = User::getCurrentUser();
+        $creditLimit = $user && $user->role === 'b2b' ? 300000 : 0;
+
         // Create user
         $user = User::create([
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => Hash::make($data['reg_password']),
+            'credit_limit' => $creditLimit
             // 'cor' => $corPath,
             // 'businesspermit' => $businessPermitPath,
         ]);
@@ -97,6 +101,9 @@ class RegisterController extends Controller
     {
         $page = 'Sign Up';
         $companysettings = DB::table('company_settings')->first();
-        return view('auth.register', compact('page', 'companysettings'));
+        $terms = DB::table('terms_conditions')->where('content_type', 'Terms')->first();
+        $conditions = DB::table('terms_conditions')->where('content_type', 'Condition')->first();
+        $policy = DB::table('terms_conditions')->where('content_type', 'Policy')->first();
+        return view('auth.register', compact('page', 'companysettings', 'terms', 'conditions', 'policy'));
     }
 }

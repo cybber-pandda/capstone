@@ -1,4 +1,4 @@
-<div class="form-group mb-3">
+<div class="form-group mb-3" id="{{ $name === 'creditlimit' ? 'creditlimit-form' : '' }}">
     <label class="form-label">{{ $label }}</label>
     <input
         type="{{ $type ?? 'text' }}"

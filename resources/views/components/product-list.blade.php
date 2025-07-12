@@ -33,7 +33,7 @@
             @auth
             <button class="add-to-cart-btn purchase-request-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
             @else
-            <button class="add-to-cart-btn guest-purchase-request-btn-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
+            <button class="add-to-cart-btn guest-purchase-request-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
             @endauth
         </div>
     </div>

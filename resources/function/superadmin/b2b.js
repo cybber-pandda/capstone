@@ -79,6 +79,9 @@ $(document).ready(function () {
     $(document).on("click", "#add", function () {
         $(".modal-title").text("Add B2B");
         $("#B2BModal").modal("show");
+
+        //$('#creditlimit-form').hide();
+
         $("#B2BForm")[0].reset();
     });
 
@@ -86,8 +89,10 @@ $(document).ready(function () {
         $(".modal-title").text("Edit B2B");
         B2BId = $(this).data("id");
 
+        //$('#creditlimit-form').show();
+
         $("#B2BModal").modal("show");
-        $("#B2BForm").attr("action", `/delivery-rider-creation/${B2BId}`);
+        $("#B2BForm").attr("action", `/b2b-creation/${B2BId}`);
         $("#B2BForm").attr("method", "POST");
         $("#B2BForm").find('input[name="_method"]').remove();
         $("#B2BForm").append(
@@ -96,7 +101,8 @@ $(document).ready(function () {
 
         $.get(`/b2b-creation/${B2BId}/edit`, function (response) {
             const fullName = response.data.name.split(" ");
-
+            
+            // $('#B2BForm input[name="creditlimit"]').val(response.data.credit_limit);
             $('#B2BForm input[name="firstname"]').val(fullName[0]);
             $('#B2BForm input[name="lastname"]').val(fullName[1]);
             $('#B2BForm input[name="username"]').val(response.data.username);
@@ -184,7 +190,7 @@ $(document).ready(function () {
     function removeB2B(id) {
         $.ajax({
             type: "DELETE",
-            url: `/delivery-rider-creation/${id}`,
+            url: `/b2b-creation/${id}`,
             dataType: "json",
             beforeSend: function (xhr) {
                 xhr.setRequestHeader(

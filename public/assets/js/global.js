@@ -147,9 +147,8 @@ function activateStatusTab(status) {
 const selectedStatus = getStatusFromURL();
 activateStatusTab(selectedStatus); // Set tab active on page load
 
-
 function refreshRecentMessages() {
-    $.get('/recent-messages', function (response) {
+    $.get("/recent-messages", function (response) {
         const messages = response.messages;
         const currentUserId = response.current_user_id;
         renderRecentMessagesDropdown(messages, currentUserId);
@@ -157,22 +156,24 @@ function refreshRecentMessages() {
 }
 
 function renderRecentMessagesDropdown(messages, currentUserId) {
-    const $container = $('#recentMessagesList');
-    const $count = $('#messageCount');
-    const $indicator = $('#messageIndicator');
+    const $container = $("#recentMessagesList");
+    const $count = $("#messageCount");
+    const $indicator = $("#messageIndicator");
 
     $container.empty();
 
     if (!messages.length) {
-        $container.append(`<div class="dropdown-item py-2 text-center text-muted">No new messages</div>`);
+        $container.append(
+            `<div class="dropdown-item py-2 text-center text-muted">No new messages</div>`
+        );
         $count.text("0 New Messages");
-        $indicator.addClass('d-none');
+        $indicator.addClass("d-none");
         return;
     }
 
     let hasUnread = false;
 
-    messages.forEach(msg => {
+    messages.forEach((msg) => {
         const isUnread = msg.recipient_id === currentUserId;
         if (isUnread) hasUnread = true;
 
@@ -180,8 +181,8 @@ function renderRecentMessagesDropdown(messages, currentUserId) {
             ? msg.sender.profile
             : `/assets/avatars/${Math.floor(Math.random() * 17 + 1)}.avif`;
 
-        const name = msg.sender?.name ?? 'Unknown';
-        const text = msg.text?.substring(0, 30) ?? '';
+        const name = msg.sender?.name ?? "Unknown";
+        const text = msg.text?.substring(0, 30) ?? "";
         const time = dayjs(msg.created_at).fromNow();
 
         const html = `
@@ -201,29 +202,32 @@ function renderRecentMessagesDropdown(messages, currentUserId) {
         $container.append(html);
     });
 
-    $count.text(`${messages.length} New Message${messages.length !== 1 ? 's' : ''}`);
+    $count.text(
+        `${messages.length} New Message${messages.length !== 1 ? "s" : ""}`
+    );
     if (hasUnread) {
-        $indicator.removeClass('d-none');
+        $indicator.removeClass("d-none");
     } else {
-        $indicator.addClass('d-none');
+        $indicator.addClass("d-none");
     }
 }
 
-
 function fetchNotifications() {
-    $.get('/notifications/api', function(res) {
-        const $list = $('#notificationItems');
-        const $count = $('#notificationCount');
-        const $indicator = $('#notificationIndicator');
+    $.get("/notifications/api", function (res) {
+        const $list = $("#notificationItems");
+        const $count = $("#notificationCount");
+        const $indicator = $("#notificationIndicator");
 
         $list.empty();
 
         if (res.notifications.length === 0) {
-            $list.append(`<div class="text-center py-2 text-muted">No notifications</div>`);
-            $count.text('0 New Notifications');
+            $list.append(
+                `<div class="text-center py-2 text-muted">No notifications</div>`
+            );
+            $count.text("0 New Notifications");
             $indicator.hide();
         } else {
-            res.notifications.forEach(noti => {
+            res.notifications.forEach((noti) => {
                 $list.append(`
                     <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
                         <div class="w-30px h-30px d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
@@ -237,40 +241,59 @@ function fetchNotifications() {
                 `);
             });
 
-            $count.text(`${res.count} New Notification${res.count > 1 ? 's' : ''}`);
+            $count.text(
+                `${res.count} New Notification${res.count > 1 ? "s" : ""}`
+            );
             $indicator.show();
         }
 
-        if (typeof lucide !== 'undefined') lucide.createIcons();
+        if (typeof lucide !== "undefined") lucide.createIcons();
     });
 }
 
 function markAllNotificationsRead() {
-    $.post('/notifications/mark-all-read', {
-        _token: $('meta[name="csrf-token"]').attr('content')
-    }, function() {
-        fetchNotifications();
-    });
+    $.post(
+        "/notifications/mark-all-read",
+        {
+            _token: $('meta[name="csrf-token"]').attr("content"),
+        },
+        function () {
+            fetchNotifications();
+        }
+    );
 }
-
 
 function getProfileDetails(userId) {
     $.ajax({
-        url: '/user-profile/settings',
-        type: 'GET',
+        url: "/user-profile/settings",
+        type: "GET",
         data: { id: userId },
         success: function (data) {
-            $('.profile-name').text(data.name);
-            $('.profile-username').text(data.username);
-            $('.profile-email').text(data.email);
-            $('.profile-about').text(data.about);
-            $('.profile-joined').text(data.joined);
-            $('.profile-image').attr('src', data.profile_image);
+            $(".profile-name").text(data.name);
+            $(".profile-username").text(data.username);
+            $(".profile-email").text(data.email);
+            $(".profile-about").text(data.about);
+            $(".profile-joined").text(data.joined);
+            $(".profile-image").attr("src", data.profile_image);
         },
         error: function (xhr) {
-            console.error('Profile not found');
-        }
+            console.error("Profile not found");
+        },
     });
 }
 
+$(document).on("click", "#bank_id", function () {
+    const selected = $(this).find(":selected");
+    const account = selected.data("account");
+    const qrCode = selected.data("qr");
 
+    if (account && qrCode) {
+        $("#bankDetails").removeClass("d-none");
+        $("#accountNumber").text(account);
+        $("#qrCodeImage").attr("src", qrCode);
+    } else {
+        $("#bankDetails").addClass("d-none");
+        $("#accountNumber").text("");
+        $("#qrCodeImage").attr("src", "");
+    }
+});

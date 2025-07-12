@@ -22,11 +22,11 @@
                     'id' => 'notificationTable',
                     'thead' => '
                                 <tr>
-                                    <<th><input type="checkbox" id="selectAllCheckboxes"></th>
                                     <th>Message</th>
                                     <th>Type</th>
                                     <th>Time</th>
                                     <th>Read At</th>
+                                    <th><input type="checkbox" id="selectAllCheckboxes"></th>
                                 </tr>
                                 '
                 ])

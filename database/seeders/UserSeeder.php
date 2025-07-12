@@ -50,6 +50,7 @@ class UserSeeder extends Seeder
             'email' => 'b2b@example.com',
             'password' => Hash::make('password'),
             'role' => 'b2b',
+            'credit_limit' => 300000
         ]);
     }
 }

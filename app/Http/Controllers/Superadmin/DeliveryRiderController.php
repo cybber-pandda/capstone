@@ -20,9 +20,6 @@ class DeliveryRiderController extends Controller
      */
     public function index(Request $request)
     {
-
-        $user = User::getCurrentUser();
-
         if ($request->ajax()) {
             $deliveryRiders = User::select(['id', 'name', 'profile', 'username', 'email', 'created_at'])->where('role', 'deliveryrider/admin');
 

@@ -8,7 +8,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $page }} | {{ config('app.name', 'Laravel') }}</title>
+    <title>{{ $page ?? '' }} | {{ config('app.name', 'Laravel') }}</title>
 
     <!-- Google font -->
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700" rel="stylesheet">
@@ -54,7 +54,7 @@
                 /* Prevent body scroll */
             }
 
-            .address-map-view{
+            .address-map-view {
                 display: none !important;
             }
 
@@ -97,6 +97,69 @@
 
     @include('layouts.shop.footer')
 
+    @auth
+    @if($showB2BModal)
+    <div class="modal fade" id="B2BDetailsFormModal" tabindex="-1" aria-labelledby="B2BDetailsFormModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-md modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">B2B Requirements</h5>
+                </div>
+                <div class="modal-body">
+                    <form id="requirementForm" enctype="multipart/form-data" method="POST" action="{{ route('b2b.business.requirement') }}">
+                        @csrf
+
+                        @if($b2bDetails && $b2bDetails->status === 'rejected')
+                        <div class="alert alert-danger">
+                            Your previous submission was rejected. Please correct and resubmit.
+                        </div>
+                        @endif
+
+                        <div style="margin-bottom:10px;">
+                            <label for="certificate_registration" class="form-label">Certificate Registration:</label>
+                            <input type="file" class="form-control" name="certificate_registration" id="certificate_registration">
+                            <div class="invalid-feedback certificate_registration_error text-danger"></div>
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="business_permit" class="form-label">Business Permit:</label>
+                            <input type="file" class="form-control" name="business_permit" id="business_permit">
+                            <div class="invalid-feedback business_permit_error text-danger"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="saveRequirementBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+  @if($showPaymentModal && $overduePayment && !request()->routeIs('purchase.credit'))
+    <div class="modal fade" id="overduePaymentModal" tabindex="-1" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="border:0px;">
+                    <h5 class="modal-title">Payment Overdue</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Payment Due: {{ number_format($overduePayment->credit_amount - $overduePayment->paid_amount, 2) }}</strong>
+                        <p>Original Due Date: {{ \Carbon\Carbon::parse($overduePayment->due_date)->format('M d, Y') }}</p>
+                    </div>
+                    <a href="{{ route('b2b.purchase.credit') }}" class="btn btn-primary btn-block">
+                        Make Payment Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    @endauth
+
     <!-- jQuery Plugins -->
     <script src="{{ asset('assets/shop/js/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/shop/js/bootstrap.min.js') }}"></script>
@@ -115,7 +178,7 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap.min.js"></script>
 
     <script src="{{ asset('assets/dashboard/vendors/sweetalert2/sweetalert2.min.js') }}"></script>
-    
+
     <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
     <!-- Leaflet JS -->
@@ -139,6 +202,96 @@
             updateCartDropdown();
         });
     </script>
+
+    @if($showB2BModal)
+    <script>
+        $(document).ready(function() {
+            $('#B2BDetailsFormModal').modal({
+                show: true,
+                backdrop: 'static',
+                keyboard: false
+            });
+
+            $('#saveRequirementBtn').click(function(e) {
+                e.preventDefault();
+
+                // Reset validation errors
+                $('.invalid-feedback').text('').hide();
+                $('.is-invalid').removeClass('is-invalid');
+
+                // Create FormData object
+                let formData = new FormData($('#requirementForm')[0]);
+
+                // Show loading state
+                $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...');
+                $(this).prop('disabled', true);
+
+                $.ajax({
+                    url: "{{ route('b2b.business.requirement') }}",
+                    type: "POST",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: response.message,
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                $('#B2BDetailsFormModal').modal('hide');
+                                location.reload();
+                            });
+                        }
+                    },
+                    error: function(xhr) {
+                        $('#saveRequirementBtn').html('Save Changes').prop('disabled', false);
+
+                        if (xhr.status === 422) {
+                            // Validation errors
+                            let errors = xhr.responseJSON.errors;
+                            for (let field in errors) {
+                                let errorMessage = errors[field][0];
+                                $(`#${field}`).addClass('is-invalid');
+                                $(`.${field}_error`).text(errorMessage).show();
+                            }
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: xhr.responseJSON.message || 'An error occurred',
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    }
+                });
+            });
+
+            // Clear validation when file is selected
+            $('input[type="file"]').change(function() {
+                let fieldName = $(this).attr('name');
+                $(this).removeClass('is-invalid');
+                $(`.${fieldName}_error`).text('').hide();
+            });
+        });
+    </script>
+    @endif
+
+    @if($showPaymentModal)
+    <script>
+        $(document).ready(function() {
+            if (!window.location.pathname.includes('purchase/credit')) {
+                $('#overduePaymentModal').modal({
+                    show: true,
+                    backdrop: 'static',
+                    keyboard: false
+                });
+            }
+        });
+    </script>
+    @endif
+
     @endauth
 
     @stack('scripts')

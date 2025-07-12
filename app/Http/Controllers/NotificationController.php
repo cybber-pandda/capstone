@@ -34,9 +34,16 @@ class NotificationController extends Controller
                 ->make(true);
         }
 
-        return view('pages.notification', [
-            'page' => 'Notifications',
-        ]);
+        $user = auth()->user();
+        if ($user->role === 'b2b') {
+            return view('pages.b2b.v_notification', [
+                'page' => 'Notifications',
+            ]);
+        } else {
+            return view('pages.notification', [
+                'page' => 'Notifications',
+            ]);
+        }
     }
 
     public function notificationsApi()
@@ -74,4 +81,3 @@ class NotificationController extends Controller
         return response()->json(['success' => true]);
     }
 }
-

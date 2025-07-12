@@ -135,8 +135,8 @@
 
                 @if(Auth::user()->role === 'salesofficer')
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
+                <li class="nav-item {{ Route::is('b2b-creation.*') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('b2b-creation.index') }}">
                         <i class="link-icon" data-lucide="users"></i>
                         <span class="menu-title">B2B Customers</span>
                     </a>
@@ -144,21 +144,21 @@
 
                 <li class="nav-item {{ Route::is('salesofficer.purchase-requests.index') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('salesofficer.purchase-requests.index') }}">
-                        <i class="link-icon" data-lucide="box"></i>
+                        <i class="link-icon" data-lucide="shopping-bag"></i>
                         <span class="menu-title">Pending Purchase Request</span>
                     </a>
                 </li>
 
                 <li class="nav-item {{ Route::is('salesofficer.sent-quotations.index') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('salesofficer.send-quotations.index') }}">
-                        <i class="link-icon" data-lucide="box"></i>
+                        <i class="link-icon" data-lucide="scroll-text"></i>
                         <span class="menu-title">Sent Quotations</span>
                     </a>
                 </li>
 
                 <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">
-                        <i class="link-icon" data-lucide="box"></i>
+                        <i class="link-icon" data-lucide="list-ordered"></i>
                         <span class="menu-title">Submitted Purchase Orders</span>
                     </a>
                 </li>
@@ -186,8 +186,8 @@
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
+                <li class="nav-item  {{ Route::is('deliveryrider.delivery.ratings') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('deliveryrider.delivery.ratings') }}">
                         <i class="link-icon" data-lucide="star"></i>
                         <span class="menu-title">Ratings</span>
                     </a>

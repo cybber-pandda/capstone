@@ -32,7 +32,7 @@ class TermsController extends Controller
                         </button>
                     ';
                 })
-                ->rawColumns(['action'])
+                ->rawColumns(['action', 'content'])
                 ->make(true);
         }
 
@@ -61,7 +61,7 @@ class TermsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'content_type' => 'required|string|max:255',
+            //'content_type' => 'required|string|max:255',
             'content' => 'required|string',
         ]);
 
@@ -113,12 +113,12 @@ class TermsController extends Controller
         $terms = TermCondition::findOrFail($id);
 
         $request->validate([
-            'content_type' => 'required|string|max:255',
+            //'content_type' => 'required|string|max:255',
             'content' => 'required|string',
         ]);
 
         $terms->update([
-            'content_type' => $request->content_type,
+           // 'content_type' => $request->content_type,
             'content' => $request->content,
         ]);
 

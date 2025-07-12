@@ -26,11 +26,11 @@ $(document).ready(function () {
         autoWidth: false,
         ajax: "/notifications",
         columns: [
-            { data: "checkbox", orderable: false, searchable: false },
             { data: "message", name: "message" },
             { data: "type", name: "type" },
             { data: "time", name: "time" },
-            { data: "read_at", name: "read_at" }
+            { data: "read_at", name: "read_at" },
+            { data: "checkbox", orderable: false, searchable: false }
         ],
         drawCallback: function () {
             // Reset select all checkbox
@@ -49,7 +49,7 @@ $(document).ready(function () {
         }).get();
 
         if (selected.length === 0) {
-            alert('Please select at least one unread notification.');
+            toast('warning', 'Please select at least one unread notification.');
             return;
         }
 
@@ -63,7 +63,7 @@ $(document).ready(function () {
                 table.ajax.reload(null, false);
             },
             error: function () {
-                alert('An error occurred while marking notifications as read.');
+                toast('error', 'An error occurred while marking notifications as read.');
             }
         });
     });

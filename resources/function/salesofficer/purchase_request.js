@@ -71,41 +71,57 @@ $(document).ready(function () {
         const id = $(this).data("id");
         if (!id) return;
 
-        $.get(
-            "/salesofficer/purchase-requests/" + id,
-            function (response) {
-                $(".modal-title").text("Purchase Items");
-                $("#prDetails").html(response.html);
-                $("#sendQuotationBtn").val(id);
-                $("#viewPRModal").modal("show");
-            }
-        ).fail(function () {
+        $.get("/salesofficer/purchase-requests/" + id, function (response) {
+            $(".modal-title").text("Purchase Items");
+            $("#prDetails").html(response.html);
+            $("#sendQuotationBtn").val(id);
+            $("#viewPRModal").modal("show");
+        }).fail(function () {
             toast("error", "Failed to fetch purchase request details.");
         });
     });
 
+    let id = null;
     $(document).on("click", "#sendQuotationBtn", function (e) {
         e.preventDefault();
 
-        const id = $(this).val();
+        id = $(this).val();
         if (!id) return;
 
-        showLoader(".sendQuotationBtn");
-        $("#sendQuotationBtn").prop("disabled", true);
+        $(".modal-title").text("Purchase Additional Fee");
+        $("#feeModal").modal("show");
+
+        $("#viewPRModal").modal("hide");
+    });
+
+    $(document).on("click", "#saveFee", function (e) {
+        e.preventDefault();
+
+        if (!id) {
+            toast("error", "Missing purchase request ID.");
+            return;
+        }
+
+        showLoader(".saveFee");
+        $("#saveFee").prop("disabled", true);
 
         $.ajax({
             url: "/salesofficer/purchase-requests/s-q/" + id,
             method: "PUT",
+            data: {
+                vat: $('#feeForm input[name="vat"]').val(),
+                delivery_fee: $('#feeForm input[name="delivery_fee"]').val(),
+            },
             success: function (response) {
-                hideLoader(".sendQuotationBtn");
-                toast(response.type, response.message); // assume toast is defined
-                $("#viewPRModal").modal("hide");
-                $("#sendQuotationBtn").prop("disabled", false);
-                table.ajax.reload(); // assuming `table` is your DataTable variable
+                hideLoader(".saveFee");
+                toast(response.type, response.message);
+                $("#feeModal").modal("hide");
+                $("#saveFee").prop("disabled", false);
+                table.ajax.reload();
             },
             error: function (xhr) {
-                hideLoader(".sendQuotationBtn");
-                $("#sendQuotationBtn").prop("disabled", false);
+                hideLoader(".saveFee");
+                $("#saveFee").prop("disabled", false);
                 console.error(xhr);
                 toast("error", "Failed to send quotation. Please try again.");
             },

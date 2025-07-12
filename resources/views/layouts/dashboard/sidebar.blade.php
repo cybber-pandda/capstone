@@ -92,6 +92,14 @@
             </li>
 
             <li class="nav-item nav-category">Tracking</li>
+
+             <li class="nav-item {{ Route::is('tracking.b2b.requirement') ? 'active' : '' }}">
+                <a href="{{ route('tracking.b2b.requirement') }}" class="nav-link">
+                    <i class="link-icon" data-lucide="book-open-text"></i>
+                    <span class="link-title">B2B Requirements</span>
+                </a>
+            </li>
+
             <li class="nav-item {{ Route::is('tracking.submitted-po') ? 'active' : '' }}">
                 <a href="{{ route('tracking.submitted-po') }}" class="nav-link">
                     <i class="link-icon" data-lucide="shopping-bag"></i>
