@@ -86,7 +86,7 @@
                         <i class="fa fa-lock text-muted"></i>
                     </span>
                 </div>
-                <input id="password_confirmation" type="text" name="password_confirmation" placeholder="Confirm Password" class="form-control bg-white border-left-0 border-md">
+                <input id="password_confirmation" type="password" name="password_confirmation" placeholder="Confirm Password" class="form-control bg-white border-left-0 border-md">
             </div>
 
             <!-- Certificate of Registration -->

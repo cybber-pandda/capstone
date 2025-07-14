@@ -68,18 +68,12 @@ class RegisterController extends Controller
         //     $businessPermitPath = 'assets/uploads/' . $permitName;
         // }
 
-        $user = User::getCurrentUser();
-        $creditLimit = $user && $user->role === 'b2b' ? 300000 : 0;
 
-        // Create user
         $user = User::create([
-            'name' => $data['firstname'].' '. $data['lastname'],
+            'name' => $data['firstname'] . ' ' . $data['lastname'],
             'username' => $data['username'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'credit_limit' => $creditLimit
-            // 'cor' => $corPath,
-            // 'businesspermit' => $businessPermitPath,
         ]);
 
         // Send OTP or verification email
