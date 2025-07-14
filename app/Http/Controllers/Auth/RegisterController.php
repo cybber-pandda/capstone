@@ -73,9 +73,10 @@ class RegisterController extends Controller
 
         // Create user
         $user = User::create([
+            'name' => $data['firstname'].' '. $data['lastname'],
             'username' => $data['username'],
             'email' => $data['email'],
-            'password' => Hash::make($data['reg_password']),
+            'password' => Hash::make($data['password']),
             'credit_limit' => $creditLimit
             // 'cor' => $corPath,
             // 'businesspermit' => $businessPermitPath,
