@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\PurchaseRequest;
 use App\Models\Category;
 use App\Models\CreditPayment;
+use App\Models\B2BDetail;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -59,9 +60,11 @@ class AppServiceProvider extends ServiceProvider
 
             $showPaymentModal = false;
             $overduePayment = null;
+            $b2bDetails = null;
 
             // 🧾 B2B-specific logic
             if ($user && $user->role === 'b2b') {
+                $b2bDetails = B2BDetail::where('user_id', $user->id)->first();
                 $pendingRequestCount = PurchaseRequest::where('customer_id', $user->id)
                     ->where('status', 'pending')
                     ->count();
@@ -128,6 +131,7 @@ class AppServiceProvider extends ServiceProvider
                 'showB2BModal' => null,
                 'overduePayment' =>  $overduePayment,
                 'showPaymentModal' => $showPaymentModal,
+                'b2bDetails' =>  $b2bDetails,
             ]);
         });
     }

@@ -49,7 +49,7 @@
                     <!-- Firstname -->
                     <div class="form-group">
                         <label for="firstname">First Name</label>
-                        <input type="text" class="form-control @error('firstname') is-invalid @enderror" name="firstname" value="{{ old('firstname', $name[0]) }}">
+                        <input type="text" class="form-control @error('firstname') is-invalid @enderror" name="firstname" value="{{ old('firstname', $name[0] ?? '') }}">
                         @error('firstname')
                         <span class="help-block">{{ $message }}</span>
                         @enderror
@@ -58,7 +58,7 @@
                     <!-- Lastname -->
                     <div class="form-group">
                         <label for="lastname">Last Name</label>
-                        <input type="text" class="form-control @error('lastname') is-invalid @enderror" name="lastname" value="{{ old('lastname', $name[1]) }}">
+                        <input type="text" class="form-control @error('lastname') is-invalid @enderror" name="lastname" value="{{ old('lastname', $name[1] ?? '' ) }}">
                         @error('lastname')
                         <span class="help-block">{{ $message }}</span>
                         @enderror

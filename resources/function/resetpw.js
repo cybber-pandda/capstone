@@ -1,51 +1,58 @@
-$(document).ready(function() {
-    $('#resetAccount').on('click', function () {
-        $('#loading-container').removeClass('d-none');
+$(document).ready(function () {
+    $("#resetAccount").on("click", function () {
+        $("#loading-container").removeClass("d-none");
         resetAccount();
     });
 
-    $('#email').on('keyup', function (e) {
-        if (e.key === 'Enter' || e.keyCode === 13) {
-            $('#loading-container').removeClass('d-none');
+    $("#email").on("keyup", function (e) {
+        if (e.key === "Enter" || e.keyCode === 13) {
+            $("#loading-container").removeClass("d-none");
             resetAccount();
         }
     });
 
     function resetAccount() {
-        var formData = $('#resetPasswordForm').serialize();
+        var formData = $("#resetPasswordForm").serialize();
 
         $.post({
-            url: $('#resetPasswordForm').attr('action'),
+            url: $("#resetPasswordForm").attr("action"),
             data: formData,
-            dataType: 'json',
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader('X-CSRF-TOKEN', $('meta[name="csrf-token"]').attr('content'));
-            }
-        }).done(function(data) {
-            $('#resetAccount').attr('disabled', 'disabled');
-            $('#loading-container').removeClass('d-none');
-            //toast('success', data.message); 
-            setTimeout(function() {
-                $('#loading-container').addClass('d-none');
-                window.location.href = '/home'; 
-            }, 3000);
-            
-        }).fail(function(data) {
+            dataType: "json",
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader(
+                    "X-CSRF-TOKEN",
+                    $('meta[name="csrf-token"]').attr("content")
+                );
+            },
+        })
+            .done(function (data) {
+                $("#resetAccount").attr("disabled", "disabled");
+                $("#loading-container").removeClass("d-none");
+                //toast('success', data.message);
+                setTimeout(function () {
+                    $("#loading-container").addClass("d-none");
+                    window.location.href = "/home";
+                }, 3000);
+            })
+            .fail(function (data) {
+                setTimeout(function () {
+                    $("#loading-container").addClass("d-none");
+                }, 2000);
 
-            setTimeout(function () {
-                $('#loading-container').addClass('d-none');
-            }, 2000);
-
-            if (data.status === 422) {
-                var errors = data.responseJSON.errors;
-                $.each(errors, function (key, value) {
-                    $('#' + key).addClass('border-danger is-invalid');
-                    $('#' + key + '_error').html('<strong>' + value[0] + '</strong>');
-                    $("#" + key + "_prepend").addClass("border-danger");
-                });
-            } else {
-                console.log(data);
-            }
-        });
+                if (data.status === 422) {
+                    var errors = data.responseJSON.errors;
+                    $.each(errors, function (key, value) {
+                        $("#" + key).addClass("border-danger is-invalid");
+                        $("#" + key + "_error").html(
+                            "<strong>" + value[0] + "</strong>"
+                        );
+                        $("#" + key + "_prepend").addClass("border-danger");
+                        $("#" + key + "_prepend_left").addClass("border-danger-left");
+                        $("#password").addClass("border-right-0");
+                    });
+                } else {
+                    console.log(data);
+                }
+            });
     }
 });

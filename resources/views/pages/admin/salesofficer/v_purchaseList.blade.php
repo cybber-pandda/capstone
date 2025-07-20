@@ -43,7 +43,7 @@
 
     @component('components.modal', ['id' => 'feeModal', 'size' => 'md', 'scrollable' => true])
     <form id="feeForm">
-        @component('components.input', ['label' => 'VAT', 'type' => 'number', 'name' => 'vat', 'attributes' => '' ]) @endcomponent
+        <!-- @component('components.input', ['label' => 'VAT', 'type' => 'number', 'name' => 'vat', 'attributes' => '' ]) @endcomponent -->
         @component('components.input', ['label' => 'Delivery Fee', 'type' => 'number', 'name' => 'delivery_fee', 'attributes' => '' ]) @endcomponent
     </form>
 

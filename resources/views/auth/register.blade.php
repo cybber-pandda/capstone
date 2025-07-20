@@ -76,8 +76,14 @@
                     </span>
                 </div>
                 <input id="password" type="password" name="password" placeholder="Password" class="form-control bg-white border-left-0 border-md">
+                <div class="input-group-append">
+                    <span class="input-group-text bg-white border-md border-left-0 toggle-password" id="password_prepend_left" data-target="#password" style="cursor: pointer;">
+                        <i class="fa fa-eye"></i>
+                    </span>
+                </div>
                 <span class="invalid-feedback d-block" role="alert" id="password_error"></span>
             </div>
+
 
             <!-- Password Confirmation -->
             <div class="input-group col-lg-12 mb-2">
@@ -86,37 +92,13 @@
                         <i class="fa fa-lock text-muted"></i>
                     </span>
                 </div>
-                <input id="password_confirmation" type="text" name="password_confirmation" placeholder="Confirm Password" class="form-control bg-white border-left-0 border-md">
+                <input id="password_confirmation" type="password" name="password_confirmation" placeholder="Confirm Password" class="form-control bg-white border-left-0 border-md">
+                <div class="input-group-append">
+                    <span class="input-group-text bg-white border-md border-left-0 toggle-password" data-target="#password_confirmation" style="cursor: pointer;">
+                        <i class="fa fa-eye"></i>
+                    </span>
+                </div>
             </div>
-
-            <!-- Certificate of Registration -->
-            <!-- <div class="form-group col-lg-6 mb-2">
-                <label for="cor" class="form-label">Certificate of Registration (PDF)</label>
-
-                <input
-                    type="file"
-                    class="bg-white  border-md"
-                    id="cor"
-                    name="cor"
-                    accept="application/pdf">
-
-                <span class="invalid-feedback d-block" role="alert" id="cor_error"></span>
-            </div> -->
-
-
-            <!-- Certificate of Registration -->
-            <!-- <div class="form-group col-lg-6 mb-2">
-                <label for="cor" class="form-label">Business Permit (PDF)</label>
-
-                <input
-                    type="file"
-                    class="bg-white  border-md"
-                    id="businesspermit"
-                    name="businesspermit"
-                    accept="application/pdf">
-                <span class="invalid-feedback d-block" role="alert" id="businesspermit_error"></span>
-            </div> -->
-
 
             <div class="mb-2 ml-3 w-100">
                 <div class="form-check custom-checkbox">
@@ -130,7 +112,7 @@
                     <span class="invalid-feedback d-block" role="alert" id="agree_error"></span>
                 </div>
             </div>
-            
+
             <!-- Submit Button -->
             <div class="form-group col-lg-12 mx-auto mb-0">
                 <button type="button" id="registerAccount" class="btn btn-primary btn-block py-2">
@@ -192,27 +174,27 @@
                     <div class="tab-pane fade show active" id="terms" role="tabpanel" aria-labelledby="terms-tab">
                         <div class="p-3" style="max-height: 400px; overflow-y: auto;">
                             @if($terms && $conditions)
-                                @if($terms->content)
-                                    {!! $terms->content !!}
-                                @endif
-                                
-                                @if($conditions->content)
-                                    <hr>
-                                    {!! $conditions->content !!}
-                                @endif
+                            @if($terms->content)
+                            {!! $terms->content !!}
+                            @endif
+
+                            @if($conditions->content)
+                            <hr>
+                            {!! $conditions->content !!}
+                            @endif
                             @else
-                                <h4>Default Terms and Conditions</h4>
-                                <p>Please contact the administrator for the terms and conditions.</p>
+                            <h4>Default Terms and Conditions</h4>
+                            <p>Please contact the administrator for the terms and conditions.</p>
                             @endif
                         </div>
                     </div>
                     <div class="tab-pane fade" id="policy" role="tabpanel" aria-labelledby="policy-tab">
                         <div class="p-3" style="max-height: 400px; overflow-y: auto;">
                             @if($policy && $policy->content)
-                                {!! $policy->content !!}
+                            {!! $policy->content !!}
                             @else
-                                <h4>Default Privacy Policy</h4>
-                                <p>Please contact the administrator for the privacy policy.</p>
+                            <h4>Default Privacy Policy</h4>
+                            <p>Please contact the administrator for the privacy policy.</p>
                             @endif
                         </div>
                     </div>

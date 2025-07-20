@@ -49,6 +49,9 @@ $(document).ready(function () {
                             "<strong>" + value[0] + "</strong>"
                         );
                         $("#" + key + "_prepend").addClass("border-danger");
+                        $("#" + key + "_prepend_left").addClass("border-danger-left");
+                        $("#password").addClass("border-right-0");
+                                                
                     });
                 } else {
                     console.log("Error:", data);

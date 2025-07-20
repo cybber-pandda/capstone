@@ -91,8 +91,8 @@ class B2BController extends Controller
     {
         // Validate the request
         $validator = Validator::make($request->all(), [
-            'certificate_registration' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
-            'business_permit' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
+            'certificate_registration' => 'required|file|mimes:pdf|max:2048',
+            'business_permit' => 'required|file|mimes:pdf|max:2048',
         ], [
             'certificate_registration.required' => 'Certificate registration is required',
             'business_permit.required' => 'Business permit is required',
@@ -139,7 +139,7 @@ class B2BController extends Controller
                     'business_permit' => $businessPermitPath,
                 ]
             );
-
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Requirements submitted successfully!'

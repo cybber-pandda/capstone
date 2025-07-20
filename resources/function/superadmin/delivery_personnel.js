@@ -74,9 +74,11 @@ $(document).ready(function () {
         const deliverydataId = $(this).data("id");
         const orderNumber = $(this).data("order-number");
 
+        
+
         if (!deliverydataId || !orderNumber) return;
 
-        const extractPRId = orderNumber.split("-")[0];
+        const extractPRId = orderNumber.replace("REF ", "").split("-")[0];
 
         deliveryId = deliverydataId;
         prId = extractPRId;

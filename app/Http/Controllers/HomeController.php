@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\Inventory;
 use App\Models\PurchaseRequest;
-use App\Models\B2BDetail;
 
 class HomeController extends Controller
 {
@@ -34,8 +33,6 @@ class HomeController extends Controller
     {
         $page = 'TantucoCTC';
         $user = User::getCurrentUser();
-        
-        $b2bDetails = null;
 
         $data = null;
         $deliveries = [];
@@ -66,9 +63,6 @@ class HomeController extends Controller
             'superadmin' => 'pages.superadmin.index',
             default => 'pages.welcome',
         };
-
-        $b2bDetails = B2BDetail::where('user_id', $user->id)->first();
-        $showB2BModal = ($role === 'b2b') && (!$b2bDetails || $b2bDetails->status === 'rejected');
 
         if ($role === 'superadmin') {
             // Current month
@@ -150,7 +144,6 @@ class HomeController extends Controller
             $totalDeliveredPRChange = $prevDeliveredPR > 0 ? (($totalDeliveredPR - $prevDeliveredPR) / $prevDeliveredPR) * 100 : 0;
         }
 
-
         if ($role === 'deliveryrider') {
 
             $deliveries = Order::with([
@@ -188,8 +181,6 @@ class HomeController extends Controller
             'totalPOSubmittedPRChange',
             'totalSalesOrderPRChange',
             'totalDeliveredPRChange',
-            'showB2BModal',
-            'b2bDetails'
         ));
     }
 

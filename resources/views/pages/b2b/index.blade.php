@@ -148,7 +148,7 @@
                     $('#modal-description').text(product.description);
                 },
                 error: function(xhr) {
-                    alert('Error loading product info');
+                    toast('error','Error loading product info');
                 }
             });
         });
@@ -161,7 +161,7 @@
             const quantity = $quantityInput.val();
 
             if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
-                alert('Please enter a valid quantity greater than 0.');
+                toast('warning','Please enter a valid quantity greater than 0.');
                 return;
             }
 

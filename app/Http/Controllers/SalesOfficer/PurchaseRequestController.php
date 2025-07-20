@@ -73,14 +73,14 @@ class PurchaseRequestController extends Controller
 
         // Optional: Validate vat and delivery_fee
         $validated = $request->validate([
-            'vat' => 'nullable|numeric|min:0',
+            // 'vat' => 'nullable|numeric|min:0',
             'delivery_fee' => 'nullable|numeric|min:0',
         ]);
 
         // Update with additional fees + status
         $purchaseRequest->update([
             'status' => 'quotation_sent',
-            'vat' => $validated['vat'] ?? null,
+            'vat' => 12,
             'delivery_fee' => $validated['delivery_fee'] ?? null,
         ]);
 

@@ -28,7 +28,7 @@ class CreateUsersTable extends Migration
             $table->timestamp('otp_expire')->nullable();
             $table->boolean('status')->default(true);
             $table->text('about')->nullable();
-            $table->decimal('credit_limit', 10,2)->nullable();
+            $table->decimal('credit_limit', 10,2)->default(300000);
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

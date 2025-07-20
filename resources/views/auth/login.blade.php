@@ -20,13 +20,18 @@
             </div>
 
             <!-- Password -->
-            <div class="input-group col-lg-12 mb-4">
+            <div class="input-group col-lg-12 mb-2">
                 <div class="input-group-prepend">
                     <span class="input-group-text bg-white px-4 border-md border-right-0  @error('password') border-danger @enderror">
                         <i class="fa fa-lock text-muted"></i>
                     </span>
                 </div>
-                <input id="password" type="password" name="password" placeholder="{{ __('Password') }}" class="form-control bg-white border-left-0 border-md  @error('password') is-invalid @enderror">
+                <input id="password" type="password" name="password" placeholder="Password" class="form-control bg-white border-left-0 border-md @error('password') is-invalid border-right-0 @enderror">
+                <div class="input-group-append">
+                    <span class="input-group-text bg-white border-md border-left-0 toggle-password @error('password') border-danger-left @enderror" data-target="#password" style="cursor: pointer;">
+                        <i class="fa fa-eye"></i>
+                    </span>
+                </div>
                 @error('password')
                 <span class="invalid-feedback d-block" role="alert">{{ $message }}</span>
                 @enderror
@@ -36,7 +41,7 @@
             <div class="mb-4 ml-3 w-100" style="display:flex;justify-content:space-between">
                 <div class="form-check custom-checkbox">
                     <input type="checkbox" class="form-check-input" name="remember" id="rememberme" {{ old('remember') ? 'checked' : '' }} />
-                    <label class="form-check-label text-muted" for="rememberme">{{ __('Remember me') }}</label>
+                    <label class="form-check-label text-muted" for="rememberme">{{ __('Remember Password (Optional)') }}</label>
                 </div>
                 <div>
                     @if (Route::has('password.request'))

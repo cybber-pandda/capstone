@@ -41,4 +41,26 @@ class ResetPasswordController extends Controller
             ['page' => $page, 'companysettings' => $companysettings, 'token' => $token, 'email' => $request->email]
         );
     }
+
+    protected function rules()
+    {
+        return [
+            'token' => 'required',
+            'email' => 'required|email',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'confirmed',
+                'regex:/^(?=.*[A-Z])(?=.*\d).+$/'
+            ],
+        ];
+    }
+
+    protected function validationErrorMessages()
+    {
+        return [
+            'password.regex' => 'Password must be at least 8 characters long and include at least one uppercase letter and one number.',
+        ];
+    }
 }

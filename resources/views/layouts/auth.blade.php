@@ -91,6 +91,13 @@
             border-left: 2px solid #dc3545;
             border-right: none;
         }
+
+        .input-group-text.border-danger-left {
+            border-top: 2px solid #dc3545;
+            border-bottom: 2px solid #dc3545;
+            border-right: 2px solid #dc3545;
+            border-left: none;
+        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

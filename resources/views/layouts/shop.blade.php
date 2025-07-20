@@ -98,12 +98,23 @@
     @include('layouts.shop.footer')
 
     @auth
+    @php
+    $showB2BModal = false;
+
+    if (Auth::user()->role === 'b2b') {
+    if (is_null($b2bDetails) || ($b2bDetails->status === 'rejected')) {
+    $showB2BModal = true;
+    }
+    }
+    @endphp
+    @endauth
+
     @if($showB2BModal)
     <div class="modal fade" id="B2BDetailsFormModal" tabindex="-1" aria-labelledby="B2BDetailsFormModalLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-md modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">B2B Requirements</h5>
+                    <h5 class="modal-title">B2B Requirements (PDF only)</h5>
                 </div>
                 <div class="modal-body">
                     <form id="requirementForm" enctype="multipart/form-data" method="POST" action="{{ route('b2b.business.requirement') }}">
@@ -117,13 +128,13 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="certificate_registration" class="form-label">Certificate Registration:</label>
-                            <input type="file" class="form-control" name="certificate_registration" id="certificate_registration">
+                            <input type="file" class="form-control" name="certificate_registration" id="certificate_registration"  accept="application/pdf">
                             <div class="invalid-feedback certificate_registration_error text-danger"></div>
                         </div>
 
                         <div style="margin-bottom:10px;">
                             <label for="business_permit" class="form-label">Business Permit:</label>
-                            <input type="file" class="form-control" name="business_permit" id="business_permit">
+                            <input type="file" class="form-control" name="business_permit" id="business_permit"  accept="application/pdf">
                             <div class="invalid-feedback business_permit_error text-danger"></div>
                         </div>
                     </form>
@@ -136,7 +147,7 @@
     </div>
     @endif
 
-  @if($showPaymentModal && $overduePayment && !request()->routeIs('purchase.credit'))
+    @if($showPaymentModal && $overduePayment && !request()->routeIs('purchase.credit'))
     <div class="modal fade" id="overduePaymentModal" tabindex="-1" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -157,8 +168,6 @@
         </div>
     </div>
     @endif
-
-    @endauth
 
     <!-- jQuery Plugins -->
     <script src="{{ asset('assets/shop/js/jquery.min.js') }}"></script>
@@ -202,7 +211,7 @@
             updateCartDropdown();
         });
     </script>
-
+ 
     @if($showB2BModal)
     <script>
         $(document).ready(function() {
@@ -277,6 +286,7 @@
         });
     </script>
     @endif
+
 
     @if($showPaymentModal)
     <script>

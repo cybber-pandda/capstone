@@ -297,3 +297,16 @@ $(document).on("click", "#bank_id", function () {
         $("#qrCodeImage").attr("src", "");
     }
 });
+
+$(document).on("click", ".toggle-password", function () {
+    var $targetInput = $($(this).data("target"));
+    var $icon = $(this).find("i");
+
+    if ($targetInput.attr("type") === "password") {
+        $targetInput.attr("type", "text");
+        $icon.removeClass("fa-eye").addClass("fa-eye-slash");
+    } else {
+        $targetInput.attr("type", "password");
+        $icon.removeClass("fa-eye-slash").addClass("fa-eye");
+    }
+});
