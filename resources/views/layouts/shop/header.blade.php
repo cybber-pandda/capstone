@@ -11,6 +11,9 @@
             <ul class="header-links pull-right">
                 @auth
                 <li class="dropdown user-dropdown">
+                    <a href="{{ route('chat.index') }}">
+                        <i class="fa fa-message"></i>
+                    </a>
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
                         <i class="fa fa-user"></i> Hi, {{ Auth::user()->username }} <span class="caret"></span>
                     </a>

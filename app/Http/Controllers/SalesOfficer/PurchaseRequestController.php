@@ -89,7 +89,7 @@ class PurchaseRequestController extends Controller
             Notification::create([
                 'user_id' => $purchaseRequest->customer->id,
                 'type' => 'quotation_sent',
-                'message' => 'A quotation has been sent for your purchase request #' . $purchaseRequest->id,
+                'message' => 'A quotation has been sent for your purchase request #' . $purchaseRequest->id . '. <br><a href="' . route('b2b.purchase-requests.index') . '">Visit Link</a>',
             ]);
         }
 

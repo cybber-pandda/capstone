@@ -61,16 +61,22 @@ class AppServiceProvider extends ServiceProvider
             $showPaymentModal = false;
             $overduePayment = null;
             $b2bDetails = null;
+            $showPendingRequirements = false;
 
             // 🧾 B2B-specific logic
             if ($user && $user->role === 'b2b') {
                 $b2bDetails = B2BDetail::where('user_id', $user->id)->first();
+
+                if ($b2bDetails && $b2bDetails->status === null) {
+                   $showPendingRequirements = true;
+                }
+    
                 $pendingRequestCount = PurchaseRequest::where('customer_id', $user->id)
-                    ->where('status', 'pending')
+                    ->where('status', null)
                     ->count();
 
                 $purchaseRequest = PurchaseRequest::where('customer_id', $user->id)
-                    ->where('status', 'pending')
+                    ->where('status', null)
                     ->first();
 
                 $sentQuotationCount = PurchaseRequest::where('customer_id', $user->id)
@@ -132,6 +138,7 @@ class AppServiceProvider extends ServiceProvider
                 'overduePayment' =>  $overduePayment,
                 'showPaymentModal' => $showPaymentModal,
                 'b2bDetails' =>  $b2bDetails,
+                'showPendingRequirements' => $showPendingRequirements
             ]);
         });
     }

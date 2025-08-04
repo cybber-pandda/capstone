@@ -30,7 +30,7 @@ class NotificationController extends Controller
                     }
                     return '';
                 })
-                ->rawColumns(['checkbox', 'read_at']) // Allow HTML
+                ->rawColumns(['checkbox','message', 'read_at']) // Allow HTML
                 ->make(true);
         }
 

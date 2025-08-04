@@ -142,7 +142,7 @@ class B2BController extends Controller
             
             return response()->json([
                 'success' => true,
-                'message' => 'Requirements submitted successfully!'
+                'message' => 'Requirements submitted successfully. Please wait for approval.',
             ]);
         } catch (\Exception $e) {
             return response()->json([

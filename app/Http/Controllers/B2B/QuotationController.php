@@ -108,7 +108,7 @@ class QuotationController extends Controller
             Notification::create([
                 'user_id' => $officer->id,
                 'type' => 'purchase_request',
-                'message' => "A PR (ID: {$pr->id}) was cancelled by {$pr->customer->name}.",
+                'message' => "A PR (ID: {$pr->id}) was cancelled by {$pr->customer->name}. <br><a href=\"" . route('salesofficer.purchase-requests.index', $pr->id) . "\">Visit Link</a>",
             ]);
         }
 
@@ -174,7 +174,7 @@ class QuotationController extends Controller
             Notification::create([
                 'user_id' => $officer->id,
                 'type' => 'purchase_request',
-                'message' => "A PO (ID: {$pr->id}) was submitted by {$pr->customer->name}.",
+                'message' => "A PO (ID: {$pr->id}) was submitted by {$pr->customer->name}. <br><a href=\"" . route('salesofficer.submitted-order.index', $pr->id) . "\">Visit Link</a>",
             ]);
         }
 
@@ -240,7 +240,7 @@ class QuotationController extends Controller
             Notification::create([
                 'user_id' => $officer->id,
                 'type' => 'purchase_request',
-                'message' => "PO #{$pr->id} submitted  by {$pr->customer->name} with (Pay Later) - Total: ₱" . number_format($pr->total_amount, 2),
+                'message' => "PO #{$pr->id} submitted  by {$pr->customer->name} with (Pay Later) - Total: ₱" . number_format($pr->total_amount, 2) . ". <br><a href=\"" . route('salesofficer.submitted-order.index') . "\">Visit Link</a>",
             ]);
         }
 

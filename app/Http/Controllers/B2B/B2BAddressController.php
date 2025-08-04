@@ -26,6 +26,10 @@ class B2BAddressController extends Controller
                 ->addColumn('full_address', function ($address) {
                     return $address->street . ', ' . $address->barangay . ', ' . $address->city . ', ' . $address->province . ', ' . $address->zip_code;
                 })
+                ->addColumn('status', function ($address) {
+                    $status = $address->status === 'active' ? 'Default' : '--';
+                    return $status;
+                })
                 ->editColumn('created_at', function ($address) {
                     return Carbon::parse($address->created_at)->format('Y-m-d H:i:s');
                 })

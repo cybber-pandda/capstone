@@ -30,7 +30,7 @@ class DeliveryController extends Controller
             Notification::create([
                 'user_id' => $user->id,
                 'type' => 'delivery',
-                'message' => 'Your order #' . $delivery->order->order_number . ' is now on the way.',
+                'message' => 'Your order #' . $delivery->order->order_number . ' is now on the way. <br><a href="' . route('b2b.delivery.track.index', $delivery->id) . '">Visit Link</a>',
             ]);
         }
 
@@ -305,7 +305,7 @@ class DeliveryController extends Controller
                 Notification::create([
                     'user_id' => $user->id,
                     'type' => 'delivery',
-                    'message' => 'Your order #' . $delivery->order->order_number . ' has been delivered.',
+                    'message' => 'Your order #' . $delivery->order->order_number . ' has been delivered. <br><a href="' . route('b2b.delivery.index') . '">Visit Link</a>',
                 ]);
             }
 

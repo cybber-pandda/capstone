@@ -9,6 +9,8 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $page }} | {{ config('app.name', 'Laravel') }}</title>
+    
+    <link rel="icon" type="image/png" href="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}">
 
     <!-- color-modes:js -->
     <script src="{{ asset('assets/dashboard/js/color-modes.js') }}"></script>
@@ -22,8 +24,6 @@
 
     <link rel="stylesheet" href="{{ asset('assets/dashboard/vendors/core/core.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/dashboard/vendors/flatpickr/flatpickr.min.css') }}">
-
-    <link rel="shortcut icon" href="{{ asset('assets/dashboard/images/favicon.png') }}" />
 
     @auth
     @if(Auth::user()->role === 'superadmin' )

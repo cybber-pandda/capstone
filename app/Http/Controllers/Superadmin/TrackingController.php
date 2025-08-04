@@ -141,7 +141,7 @@ class TrackingController extends Controller
             Notification::create([
                 'user_id' => $pr->customer_id,
                 'type' => 'order',
-                'message' => 'Your submitted PO has been processed. A sales order #' . $order->order_number . ' was created.',
+                'message' => 'Your submitted PO has been processed. A sales order #' . $order->order_number . ' was created. <br><a href="' . route('b2b.quotations.review', $order->id) . '">Visit Link</a>',
             ]);
 
             DB::commit();
@@ -253,14 +253,14 @@ class TrackingController extends Controller
             Notification::create([
                 'user_id' => $request->delivery_rider_id,
                 'type' => 'assignment',
-                'message' => 'You have been assigned to deliver order #' . $delivery->order->order_number,
+                'message' => 'You have been assigned to deliver order #' . $delivery->order->order_number . '. <br><a href="' . route('home') . '">Visit Link</a>',
             ]);
 
             // Notify customer
             Notification::create([
                 'user_id' => $pr->customer_id,
                 'type' => 'delivery',
-                'message' => 'Your order #' . $delivery->order->order_number . ' is now assigned for delivery.',
+                'message' => 'Your order #' . $delivery->order->order_number . ' is now assigned for delivery. <br><a href="' . route('b2b.delivery.index') . '">Visit Link</a>',
             ]);
 
             return response()->json([

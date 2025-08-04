@@ -10,11 +10,14 @@
 
     <title>{{ $page ?? '' }} | {{ config('app.name', 'Laravel') }}</title>
 
+    <link rel="icon" type="image/png" href="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}">
+
     <!-- Google font -->
     <link href="https://fonts.googleapis.com/css?family=Montserrat:400,500,700" rel="stylesheet">
 
     <!-- Bootstrap -->
     <link type="text/css" rel="stylesheet" href="{{ asset('assets/shop/css/bootstrap.min.css') }}" />
+    
 
     <!-- Slick -->
     <link type="text/css" rel="stylesheet" href="{{ asset('assets/shop/css/slick.css') }}" />
@@ -100,12 +103,16 @@
     @auth
     @php
     $showB2BModal = false;
+    $showPendingRequirements = false;
 
     if (Auth::user()->role === 'b2b') {
-    if (is_null($b2bDetails) || ($b2bDetails->status === 'rejected')) {
-    $showB2BModal = true;
+        if (is_null($b2bDetails) || ($b2bDetails->status === 'rejected')) {
+        $showB2BModal = true;
+        } elseif ($b2bDetails->status == null) {
+        $showPendingRequirements = true;
+        }
     }
-    }
+
     @endphp
     @endauth
 

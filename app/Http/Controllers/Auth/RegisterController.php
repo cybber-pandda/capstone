@@ -48,26 +48,6 @@ class RegisterController extends Controller
 
     protected function create(array $data)
     {
-        // Create user
-        // Handle file uploads
-        // $corPath = null;
-        // $businessPermitPath = null;
-
-        // if (request()->hasFile('cor')) {
-        //     $corFile = request()->file('cor');
-        //     $corName = 'cor_' . Str::random(10) . '.' . $corFile->getClientOriginalExtension();
-        //     $corFile->move(public_path('assets/uploads'), $corName);
-        //     $corPath = 'assets/uploads/' . $corName;
-        // }
-
-        // if (request()->hasFile('businesspermit')) {
-        //     $permitFile = request()->file('businesspermit');
-        //     $permitName = 'permit_' . Str::random(10) . '.' . $permitFile->getClientOriginalExtension();
-        //     $permitFile->move(public_path('assets/uploads'), $permitName);
-        //     $businessPermitPath = 'assets/uploads/' . $permitName;
-        // }
-
-
         $user = User::create([
             'name' => $data['firstname'] . ' ' . $data['lastname'],
             'username' => $data['username'],

@@ -41,28 +41,42 @@
 
 <!-- Product Modal -->
 <div class="modal fade" id="productModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" role="document"> <!-- Enlarged modal -->
         <div class="modal-content">
 
-            <div class="modal-header" style="border: 0px;">
+            <div class="modal-header" style="border:0px;">
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title" id="modal-title">Product Details</h4>
+                <h4 class="modal-title" id="modal-name">Product Name</h4>
             </div>
 
-            <div class="modal-body" id="modal-body">
-                <!-- Filled by AJAX -->
-                <div class="text-center">
-                    <img id="modal-image" src="" alt="" class="img-responsive" style="margin: 0 auto; max-height: 200px;">
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Image Gallery -->
+                    <div class="col-md-6">
+                        <div id="product-images" class="text-center" style="margin-bottom: 15px;">
+                            <!-- Main Image -->
+                            <img id="modal-image" src="{{ asset('assets/dashboard/images/noimage.png') }}" 
+                                 class="img-responsive center-block main-product-image" style="max-height: 300px;" alt="Product Image">
+                        </div>
+                        <div id="image-thumbnails" class="text-center clearfix" style="margin-bottom: 15px;">
+                            <!-- Thumbnails will be appended here by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Product Info -->
+                    <div class="col-md-6">
+                        <p><strong>Category:</strong> <span id="modal-category" class="text-muted"></span></p>
+                        <p class="h4 text-danger" style="margin-top: 15px;">₱<span id="modal-price">0.00</span></p>
+
+                        <p><strong>Description:</strong></p>
+                        <p id="modal-description" class="text-justify"></p>
+
+                        <!-- Inventory -->
+                        <div id="modal-inventory" style="margin-top: 20px;margin-bottom: 15px;">
+                            <ul id="inventory-list" class="list-unstyled"></ul>
+                        </div>
+                    </div>
                 </div>
-                <p><strong>Category:</strong> <span id="modal-category"></span></p>
-                <p><strong>Name:</strong> <span id="modal-name"></span></p>
-                <p><strong>Price:</strong> ₱<span id="modal-price"></span></p>
-                <p><strong>Description:</strong></p>
-                <p id="modal-description"></p>
-            </div>
-
-            <div class="modal-footer" style="border: 0px;">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
 
         </div>
@@ -115,22 +129,77 @@
             fetchProducts(url);
         });
 
-        $(document).on('click', '.quick-view', function() {
+       $(document).on('click', '.quick-view', function () {
             var productId = $(this).data('id');
 
             $.ajax({
-                url: '/products/' + productId, // your endpoint (see controller below)
+                url: '/product/details/' + productId,
                 type: 'GET',
-                success: function(product) {
+                success: function (response) {
+                    var product = response.product;
+
+                    console.log(product);
+
+                    // Basic Info
                     $('#modal-title').text(product.name);
-                    $('#modal-image').attr('src', product.image || "{{ asset('assets/dashboard/images/noimage.png') }}");
-                    $('#modal-category').text(product.category_name || 'Uncategorized');
                     $('#modal-name').text(product.name);
                     $('#modal-price').text(parseFloat(product.price).toFixed(2));
                     $('#modal-description').text(product.description);
+                    $('#modal-category').text(product.category ? product.category.name : 'Uncategorized');
+
+                    // Show main image if available
+                    const mainImage = product.product_images.find(img => img.is_main == 1);
+                    if (mainImage) {
+                        const imagePath = '/' + mainImage.image_path;
+                        $('#modal-image').attr('src', imagePath);
+                    } else {
+                        $('#modal-image').attr('src', '/assets/dashboard/images/noimage.png');
+                    }
+
+                    // Render thumbnails
+                    const thumbnailsContainer = $('#image-thumbnails');
+                    thumbnailsContainer.empty();
+
+                    product.product_images.forEach(img => {
+                        const thumbPath = '/' + img.image_path;
+                        const thumbnail = $(`
+                            <img src="${thumbPath}" class="img-thumbnail m-1" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;">
+                        `);
+                        
+                        // When thumbnail clicked, update the main image
+                        thumbnail.on('click', function () {
+                            $('#modal-image').attr('src', thumbPath);
+                        });
+
+                        thumbnailsContainer.append(thumbnail);
+                    });
+
+
+                    // Inventory - Compute net quantity (in - out)
+                    let totalIn = 0;
+                    let totalOut = 0;
+
+                    if (product.inventories && product.inventories.length > 0) {
+                        product.inventories.forEach(function (inv) {
+                            if (inv.type === 'in') {
+                                totalIn += parseInt(inv.quantity);
+                            } else if (inv.type === 'out') {
+                                totalOut += parseInt(inv.quantity);
+                            }
+                        });
+
+                        const netStock = totalIn - totalOut;
+                        $('#inventory-list').html(`<li><strong>Available Stock:</strong> ${netStock}</li>`);
+                    } else {
+                        $('#inventory-list').html('<li>No inventory info</li>');
+                    }
+
+
+                    // Show modal
+                    $('#productModal').modal('show');
                 },
-                error: function(xhr) {
-                    alert('Error loading product info');
+                error: function () {
+                    toast('error', 'Error loading product info');
                 }
             });
         });

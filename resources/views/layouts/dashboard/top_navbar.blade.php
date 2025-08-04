@@ -36,6 +36,7 @@
                             </div>
                         </label>
                     </li>
+                    @if(Auth::user()->role != 'b2b')
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="messageDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i data-lucide="mail"></i>
@@ -110,6 +111,7 @@
                             </ul>
                         </div>
                     </li>
+                    @endif
                 </ul>
 
                 <!-- navbar toggler for small devices -->
@@ -126,10 +128,17 @@
     <nav class="bottom-navbar">
         <div class="container">
             <ul class="nav page-navigation">
+                
                 <li class="nav-item {{ Route::is('home') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('home') }}">
-                        <i class="link-icon" data-lucide="layout-dashboard"></i>
-                        <span class="menu-title">Dashboard</span>
+                        @if(Auth::user()->role === 'b2b')
+                           <i class="link-icon" data-lucide="house"></i>
+                           <span class="menu-title">Return to Home</span>
+                        @else
+                           <i class="link-icon" data-lucide="layout-dashboard"></i>
+                           <span class="menu-title">Dashboard</span>
+                        @endif
+
                     </a>
                 </li>
 
@@ -160,6 +169,20 @@
                     <a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">
                         <i class="link-icon" data-lucide="list-ordered"></i>
                         <span class="menu-title">Submitted Purchase Orders</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="link-icon" data-lucide="list-ordered"></i>
+                        <span class="menu-title">Email Order</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="link-icon" data-lucide="hand-coins"></i>
+                        <span class="menu-title">Accounts Receivable</span>
                     </a>
                 </li>
 

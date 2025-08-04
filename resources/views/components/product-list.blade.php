@@ -31,7 +31,13 @@
         </div>
         <div class="add-to-cart">
             @auth
-            <button class="add-to-cart-btn purchase-request-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
+
+            @if($showPendingRequirements)
+             <button class="add-to-cart-btn pending-requirements-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
+            @else
+              <button class="add-to-cart-btn purchase-request-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
+            @endif
+            
             @else
             <button class="add-to-cart-btn guest-purchase-request-btn" data-id="{{ $product->id }}"><i class="fa fa-shopping-cart"></i> <span style="font-size:13px;">Purchase Request</span></button>
             @endauth

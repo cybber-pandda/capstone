@@ -38,11 +38,11 @@
             </div>
 
             <!-- Checkbox -->
-            <div class="mb-4 ml-3 w-100" style="display:flex;justify-content:space-between">
-                <div class="form-check custom-checkbox">
+            <div class="mb-4 ml-3 w-100" style="display:flex;justify-content:start">
+                <!-- <div class="form-check custom-checkbox">
                     <input type="checkbox" class="form-check-input" name="remember" id="rememberme" {{ old('remember') ? 'checked' : '' }} />
                     <label class="form-check-label text-muted" for="rememberme">{{ __('Remember Password (Optional)') }}</label>
-                </div>
+                </div> -->
                 <div>
                     @if (Route::has('password.request'))
                     <a class="text-inherit fs-5 mr-3" href="{{ route('password.request') }}">

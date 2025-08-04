@@ -18,6 +18,7 @@ class CreatePurchaseRequestItemsTable extends Migration
             $table->unsignedBigInteger('purchase_request_id');
             $table->unsignedBigInteger('product_id');
             $table->integer('quantity');
+            $table->decimal('subtotal', 10, 2)->nullable();
             $table->timestamps();
 
             $table->foreign('purchase_request_id')->references('id')->on('purchase_requests')->onDelete('cascade');
