@@ -6,8 +6,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 use App\Models\Notification;
+use App\Models\B2BAddress;
+use App\Models\B2BDetail;
 use App\Models\PurchaseRequest;
 
 class PurchaseRequestController extends Controller
@@ -39,7 +42,7 @@ class PurchaseRequestController extends Controller
                     return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
                 })
                 ->addColumn('action', function ($pr) {
-                    return '<button type="button" class="btn btn-sm btn-inverse-primary  review-pr p-2" data-id="' . $pr->id . '">
+                    return '<button type="button" class="btn btn-sm btn-inverse-dark  review-pr p-2" data-id="' . $pr->id . '">
                             <i class="link-icon" data-lucide="eye"></i> Review PR
                         </button>';
                 })
@@ -55,10 +58,27 @@ class PurchaseRequestController extends Controller
     public function show($id)
     {
         $pr = PurchaseRequest::with(['items.product.productImages'])->findOrFail($id);
-        $html = view('components.pr-items', compact('pr'))->render();
+
+        $b2bDetails = null;
+        $b2bAddress = null;
+
+        if ($pr->customer_id) {
+            $b2bDetails = B2BDetail::where('user_id', $pr->customer_id)
+                ->where('status', 'approved')
+                ->first();
+
+            //  Log::info('B2B Details:', $b2bDetails->toArray());
+
+            $b2bAddress = B2BAddress::where('user_id', $pr->customer_id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        $html = view('components.pr-items', compact('pr', 'b2bDetails', 'b2bAddress'))->render();
 
         return response()->json(['html' => $html]);
     }
+
 
     public function updateSendQuotation(Request $request, $id)
     {
@@ -95,7 +115,40 @@ class PurchaseRequestController extends Controller
 
         return response()->json([
             'type' => 'success',
-            'message' => 'Quotation sent successfully!'
+            'message' => 'Quotation sent successfully!',
+            'prId' => $purchaseRequest->id,
+        ]);
+    }
+
+     public function updateRejectQuotation(Request $request, $id)
+    {
+        $purchaseRequest = PurchaseRequest::findOrFail($id);
+
+        if ($purchaseRequest->status !== 'pending') {
+            return response()->json([
+                'type' => 'warning',
+                'message' => 'Only pending requests can be rejected.'
+            ]);
+        }
+
+        // Update with additional fees + status
+        $purchaseRequest->pr_remarks .= "\n" . $request->type . ': ' . $request->rejection_reason;
+        $purchaseRequest->status = 'reject_quotation';
+        $purchaseRequest->save();
+
+        // Notify customer
+        if ($purchaseRequest->customer) {
+            Notification::create([
+                'user_id' => $purchaseRequest->customer->id,
+                'type' => 'quotation_sent',
+                'message' => 'A quotation has been rejected for your purchase request #' . $purchaseRequest->id . '. <br><a href="' . route('b2b.purchase-requests.index') . '">Visit Link</a>',
+            ]);
+        }
+
+        return response()->json([
+            'type' => 'success',
+            'message' => 'Quotation rejected successfully!',
+            'prId' => $purchaseRequest->id,
         ]);
     }
 }

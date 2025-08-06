@@ -16,6 +16,7 @@ class CreatePurchaseRequestsTable extends Migration
         Schema::create('purchase_requests', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('customer_id');
+            $table->unsignedBigInteger('prepared_by_id');
             $table->unsignedBigInteger('bank_id')->nullable();
             $table->enum('status', [
                 'pending',           // default, customer just submitted
@@ -29,7 +30,7 @@ class CreatePurchaseRequestsTable extends Migration
                 'returned',          // customer returned the item
                 'refunded'           // refund processed
             ])->default('pending');
-            $table->integer('vat')->nullable();
+            $table->integer('vat')->default(12);
             $table->decimal('delivery_fee', 10, 2)->nullable();
             $table->boolean('credit')->default(false);
             $table->enum('payment_method', ['pay_now', 'pay_later'])->nullable();
@@ -39,6 +40,7 @@ class CreatePurchaseRequestsTable extends Migration
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('prepared_by_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('bank_id')->references('id')->on('banks')->onDelete('cascade');
             $table->softDeletes();
         });

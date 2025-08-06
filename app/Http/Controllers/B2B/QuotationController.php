@@ -22,10 +22,16 @@ class QuotationController extends Controller
         $hasAddress = B2BAddress::where('user_id', $userId)->exists();
 
         if ($request->ajax()) {
+            $type = $request->get('type', 'processing');
+
             $query = PurchaseRequest::with(['customer', 'items.product'])
-                ->whereIn('status', ['quotation_sent', 'po_submitted', 'so_created'])
-                ->where('customer_id', $userId)
-                ->latest();
+                ->where('customer_id', auth()->id());
+
+            if ($type === 'processing') {
+                $query->whereIn('status', ['quotation_sent', 'po_submitted', 'so_created']);
+            } elseif ($type === 'rejected') {
+                $query->where('status', 'reject_quotation');
+            }
 
             return DataTables::of($query)
                 ->addColumn('customer_name', function ($pr) {
@@ -52,6 +58,17 @@ class QuotationController extends Controller
                             return '<span class="badge bg-info text-dark p-2">Purchase Order Submitted — Sales Officer Reviewing Order</span>';
                         case 'so_created':
                             return '<span class="badge bg-info text-dark p-2">Sales Order Created — Processing Delivery</span>';
+                        case 'reject_quotation':
+                            return '
+                            <div style="display: flex; flex-direction: column;">
+                                <span class="badge bg-danger text-white p-2">
+                                    Quotation Rejected
+                                </span>
+                                <div style="margin-top: 10px; font-size: 14px;">
+                                    <strong>Remarks:</strong><br>
+                                    ' . nl2br(e($pr->pr_remarks)) . '
+                                </div>
+                            </div>';
                         case 'quotation_sent':
                         default:
                             return '<a href="/b2b/quotations/review/' . $pr->id . '" class="btn btn-sm btn-primary review-pr">
@@ -73,8 +90,6 @@ class QuotationController extends Controller
             'hasAddress' => $hasAddress
         ]);
     }
-
-
     public function show($id)
     {
         $page = "Purchase Request Quotation";

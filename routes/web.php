@@ -68,6 +68,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/purchase-requests/all', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
         Route::get('/purchase-requests/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'show']);
         Route::put('/purchase-requests/s-q/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'updateSendQuotation']);
+        Route::put('/purchase-requests/r-q/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'updateRejectQuotation']);
         Route::get('/send-quotations/all', [App\Http\Controllers\SalesOfficer\QuotationsController::class, 'index'])->name('send-quotations.index');
         Route::get('/submitted-order/all', [App\Http\Controllers\SalesOfficer\OrderController::class, 'index'])->name('submitted-order.index');
     });

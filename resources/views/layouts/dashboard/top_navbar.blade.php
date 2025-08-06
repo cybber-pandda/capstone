@@ -154,7 +154,7 @@
                 <li class="nav-item {{ Route::is('salesofficer.purchase-requests.index') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('salesofficer.purchase-requests.index') }}">
                         <i class="link-icon" data-lucide="shopping-bag"></i>
-                        <span class="menu-title">Pending Purchase Request</span>
+                        <span class="menu-title">B2B Pending PR</span>
                     </a>
                 </li>
 
@@ -168,7 +168,7 @@
                 <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">
                         <i class="link-icon" data-lucide="list-ordered"></i>
-                        <span class="menu-title">Submitted Purchase Orders</span>
+                        <span class="menu-title">B2B Submitted PO</span>
                     </a>
                 </li>
 

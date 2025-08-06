@@ -96,7 +96,7 @@ $(document).ready(function () {
             text: 'Please add a shipping address before proceeding.',
             icon: 'warning',
             confirmButtonText: 'Add Address',
-            showCancelButton: true,
+            showCancelButton: false,
             cancelButtonText: 'Cancel',
             allowOutsideClick: false,
             allowEscapeKey: false,

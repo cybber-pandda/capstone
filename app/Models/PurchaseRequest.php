@@ -10,11 +10,16 @@ class PurchaseRequest extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['customer_id', 'bank_id', 'status', 'vat', 'delivery_fee', 'credit', 'payment_method', 'proof_payment', 'reference_number', 'pr_remarks'];
+    protected $fillable = ['customer_id', 'prepared_by_id', 'bank_id', 'status', 'vat', 'delivery_fee', 'credit', 'payment_method', 'proof_payment', 'reference_number', 'pr_remarks'];
 
     public function customer()
     {
         return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    public function preparedBy()
+    {
+        return $this->belongsTo(User::class, 'prepared_by_id');
     }
 
     public function items()

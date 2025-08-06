@@ -107,13 +107,13 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
+                        <div style="margin-bottom:10px;">
                             <label for="proof_payment" class="form-label">Upload Proof:</label>
                             <input type="file" class="form-control" name="proof_payment" id="proof_payment" accept="image/*">
                             <div class="invalid-feedback proof_payment_error text-danger"></div>
                         </div>
 
-                         <div class="mb-3">
+                         <div style="margin-bottom:10px;">
                             <label for="reference_number" class="form-label">Reference Number:</label>
                             <input type="text" class="form-control" name="reference_number" id="reference_number" placeholder="Enter reference number">
                             <div class="invalid-feedback reference_number_error text-danger"></div>

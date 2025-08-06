@@ -5,7 +5,7 @@
         name="{{ $name }}"
         class="form-control {{ $class ?? '' }}"
         value="{{ old($name, $value ?? '') }}"
-        {{ $attributes }}
+        {!! $attributes ?? '' !!}
     >
 
      <span class="invalid-feedback d-block" role="alert" id="{{ $name }}_error"></span>

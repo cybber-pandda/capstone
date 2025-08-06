@@ -27,7 +27,7 @@ $(document).ready(function () {
         autoWidth: false,
         columns: [
             { data: "id", name: "id", className: "dt-left-int", width: "5%" },
-            { data: "customer_name", name: "customer_name", width: "20%" },
+            { data: "customer_name", name: "customer_name", width: "15%" },
             {
                 data: "total_items",
                 name: "total_items",
@@ -70,16 +70,39 @@ $(document).ready(function () {
     $(document).on("click", ".review-pr", function () {
         const id = $(this).data("id");
         if (!id) return;
+        showB2BPR(id);
+    });
 
+    function showB2BPR(id) {
         $.get("/salesofficer/purchase-requests/" + id, function (response) {
-            $(".modal-title").text("Purchase Items");
+            $(".modal-title").text("(B2B) Purchase Request Order");
             $("#prDetails").html(response.html);
             $("#sendQuotationBtn").val(id);
+            $("#rejectQuotationBtn").val(id);
             $("#viewPRModal").modal("show");
+            
+            setTimeout(() => {
+                const feeData = $("#totalFooter").attr("data-has-fee");
+                const hasFee = feeData === "true";
+
+                if (!hasFee) {
+                    $("#prActions").removeClass("d-none");
+                    $("#totalFooter").addClass("d-none");
+                } else {
+                    $("#prActions").addClass("d-none");
+                    $("#totalFooter").removeClass("d-none");
+                }
+            }, 50);
+
+
+             // ✅ Call lucide after new HTML is added
+            if (typeof lucide !== "undefined") {
+                lucide.createIcons();
+            }
         }).fail(function () {
             toast("error", "Failed to fetch purchase request details.");
         });
-    });
+    }
 
     let id = null;
     $(document).on("click", "#sendQuotationBtn", function (e) {
@@ -88,7 +111,7 @@ $(document).ready(function () {
         id = $(this).val();
         if (!id) return;
 
-        $(".modal-title").text("Purchase Additional Fee");
+        $(".modal-title").text("B2B Purchase Request Fee");
         $("#feeModal").modal("show");
 
         $("#viewPRModal").modal("hide");
@@ -109,13 +132,15 @@ $(document).ready(function () {
             url: "/salesofficer/purchase-requests/s-q/" + id,
             method: "PUT",
             data: {
-                vat: $('#feeForm input[name="vat"]').val(),
                 delivery_fee: $('#feeForm input[name="delivery_fee"]').val(),
             },
             success: function (response) {
                 hideLoader(".saveFee");
                 toast(response.type, response.message);
+                $('#feeForm input[name="delivery_fee"]').val('')
                 $("#feeModal").modal("hide");
+                $("#viewPRModal").modal("show");
+                showB2BPR(response.prId);
                 $("#saveFee").prop("disabled", false);
                 table.ajax.reload();
             },
@@ -127,4 +152,55 @@ $(document).ready(function () {
             },
         });
     });
+
+    $(document).on("click", "#rejectQuotationBtn", function (e) {
+        e.preventDefault();
+
+        id = $(this).val();
+        if (!id) return;
+
+        $(".modal-title").text("B2B Purchase Request Rejection");
+        $("#rejectModal").modal("show");
+
+        $("#viewPRModal").modal("hide");
+    });
+
+    $(document).on("click", "#rejectFormbtn", function (e) {
+        e.preventDefault();
+
+        if (!id) {
+            toast("error", "Missing purchase request ID.");
+            return;
+        }
+
+        showLoader(".rejectFormbtn");
+        $("#rejectFormbtn").prop("disabled", true);
+
+        $.ajax({
+            url: "/salesofficer/purchase-requests/r-q/" + id,
+            method: "PUT",
+            data: {
+                type: $('#rejectForm input[name="type"]').val(),
+                rejection_reason: $('#rejectForm input[name="rejection_reason"]').val(),
+            },
+            success: function (response) {
+                hideLoader(".rejectFormbtn");
+                toast(response.type, response.message);
+                $('#rejectForm input[name="delivery_fee"]').val('')
+                $("#rejectModal").modal("hide");
+                $("#viewPRModal").modal("show");
+                showB2BPR(response.prId);
+                $("#rejectFormbtn").prop("disabled", false);
+                table.ajax.reload();
+            },
+            error: function (xhr) {
+                hideLoader(".rejectFormbtn");
+                $("#rejectFormbtn").prop("disabled", false);
+                console.error(xhr);
+                toast("error", "Failed to reject quotation. Please try again.");
+            },
+        });
+    });
+
+    
 });
