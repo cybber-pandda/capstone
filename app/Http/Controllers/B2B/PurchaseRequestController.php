@@ -56,15 +56,11 @@ class PurchaseRequestController extends Controller
     // }
     public function index(Request $request)
     {
-<<<<<<< Updated upstream
+
+        $userId = auth()->id();
+        
         $purchaseRequests = PurchaseRequest::with(['items.product.productImages'])
             ->where('status', null)
-=======
-        $userId = auth()->id();
-
-        $purchaseRequests = PurchaseRequest::with(['items.product.productImages'])
-            ->where('status', 'pending')
->>>>>>> Stashed changes
             ->where('customer_id', auth()->id()) // Only for current user
             ->latest()
             ->get();
@@ -73,12 +69,8 @@ class PurchaseRequestController extends Controller
       
         return view('pages.b2b.v_purchaseList', [
             'page' => 'Purchase Requests',
-<<<<<<< Updated upstream
-            'purchaseRequests' => $purchaseRequests
-=======
             'purchaseRequests' => $purchaseRequests,
             'hasAddress' => $hasAddress
->>>>>>> Stashed changes
         ]);
     }
 
@@ -157,11 +149,7 @@ class PurchaseRequestController extends Controller
 
         if (
             $item->purchaseRequest->customer_id !== auth()->id() ||
-<<<<<<< Updated upstream
             $item->purchaseRequest->status !== null
-=======
-            $item->purchaseRequest->status !== 'pending'
->>>>>>> Stashed changes
         ) {
             return response()->json([
                 'message' => 'You can only update items from pending purchase requests.'
@@ -175,7 +163,6 @@ class PurchaseRequestController extends Controller
         return response()->json(['message' => 'Quantity updated.']);
     }
 
-<<<<<<< Updated upstream
     public function submitItem(Request $request, $id)
     {
         $purchaseRequest = PurchaseRequest::where('id', $id)
@@ -195,8 +182,6 @@ class PurchaseRequestController extends Controller
         ]);
     }
 
-=======
->>>>>>> Stashed changes
     public function deleteItem($id)
     {
         $item = PurchaseRequestItem::with('purchaseRequest')->findOrFail($id);
@@ -204,14 +189,10 @@ class PurchaseRequestController extends Controller
 
         if (
             $purchaseRequest->customer_id !== auth()->id() ||
-<<<<<<< Updated upstream
             $purchaseRequest->status !== null
-=======
-            $purchaseRequest->status !== 'pending'
->>>>>>> Stashed changes
         ) {
             return response()->json([
-                'message' => 'You can only delete items from pending purchase requests.'
+                'message' => 'You can only delete items from waiting purchase requests.'
             ], 403);
         }
 

@@ -4,80 +4,10 @@
     <div class="section section-scrollable" style="margin-bottom: 20px;">
         <div class="container">
 
-            @php
-                $hasItems = $purchaseRequests->sum(fn($pr) => $pr->items->count()) > 0;
-            @endphp
-
-            <div class="section-title text-center">
-                <h3 class="title">{{ $page }}</h3><br>
-                @if ($hasItems)
-                <i>Waiting for quotation to your request.</i>
-                @endif
-            </div>
-            
-            @if ($hasItems)
-            <a href="{{ route('home') }}" class="btn btn-primary" style="margin-bottom: 15px;"><i class="fa fa-plus"></i> Add Item</a>
-            <table class="table table-bordered table-hover">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>SKU</th>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Subtotal</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($purchaseRequests as $pr)
-                        @foreach($pr->items as $item)
-                            @php
-                                $product = $item->product;
-                                $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
-                            @endphp
-                            <tr data-id="{{ $item->id }}">
-                                <td><img src="{{ asset($image) }}" width="50" height="50" alt="Image"></td>
-                                <td>{{ $product->sku }}</td>
-                                <td>{{ $product->name }}</td>
-                                <td>₱{{ number_format($product->price, 2) }}</td>
-                                <td>
-                                    <center>
-                                    <div class="input-group" style="max-width: 130px;display: flex; align-items: center;">
-                                        <button class="btn btn-sm btn-outline-secondary qty-decrease">−</button>
-                                        <input type="text" class="form-control form-control-sm text-center item-qty"
-                                            value="{{ $item->quantity }}" readonly>
-                                        <button class="btn btn-sm btn-outline-secondary qty-increase">+</button>
-                                    </div>
-                                    </center>
-                                </td>
-                                <td>₱{{ $item->subtotal }}</td>
-                                <td>{{ $item->created_at->toDateTimeString() }}</td>
-                                <td>
-                                    <center>
-                                    <button class="btn btn-danger btn-sm btn-remove-item">Remove</button>
-                                    </center>
-                                </td>
-                            </tr>
-                        @endforeach
-                    @endforeach
-                </tbody>
-            </table>
-
-            @else
-                <div class="d-flex flex-column align-items-center justify-content-center text-center mt-5">
-                    <p class="mb-3">No items found in your purchase requests.</p>
-                    <a href="{{ route('home') }}" class="btn btn-primary">Purchase Item</a>
-                </div>
-            @endif
-
         @php
-        $hasItems = $purchaseRequests->sum(fn($pr) => $pr->items->count()) > 0;
-        $prId = null
+            $hasItems = $purchaseRequests->sum(fn($pr) => $pr->items->count()) > 0;
         @endphp
 
-<<<<<<< Updated upstream
         <div class="section-title text-center">
             <h3 class="title">{{ $page }}</h3><br>
         </div>
@@ -150,38 +80,12 @@
         @endif
 
 
-=======
-        </div>
->>>>>>> Stashed changes
     </div>
 @endsection
 
 
 @push('scripts')
 <script>
-<<<<<<< Updated upstream
-    $(document).ready(function() {
-        // Quantity Increase
-        $('.qty-increase').click(function(e) {
-            e.preventDefault();
-            let row = $(this).closest('tr');
-            let itemId = row.data('id');
-            let qtyInput = row.find('.item-qty');
-            let quantity = parseInt(qtyInput.val()) + 1;
-
-            updateQuantity(itemId, quantity, qtyInput);
-        });
-
-        // Quantity Decrease
-        $('.qty-decrease').click(function(e) {
-            e.preventDefault();
-            let row = $(this).closest('tr');
-            let itemId = row.data('id');
-            let qtyInput = row.find('.item-qty');
-            let quantity = Math.max(1, parseInt(qtyInput.val()) - 1);
-
-            updateQuantity(itemId, quantity, qtyInput);
-=======
 $(document).ready(function () {
 
     const checkAddress = '<?php echo $hasAddress ? 'true' : 'false'; ?>';
@@ -193,7 +97,10 @@ $(document).ready(function () {
             icon: 'warning',
             confirmButtonText: 'Add Address',
             showCancelButton: true,
-            cancelButtonText: 'Cancel'
+            cancelButtonText: 'Cancel',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
         }).then((result) => {
             if (result.isConfirmed) {
                 window.location.href = '/b2b/address';
@@ -266,7 +173,6 @@ $(document).ready(function () {
                     }
                 });
             }
->>>>>>> Stashed changes
         });
 
         // Remove Item

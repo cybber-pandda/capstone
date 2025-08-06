@@ -64,7 +64,10 @@
                 icon: 'warning',
                 confirmButtonText: 'Add Address',
                 showCancelButton: true,
-                cancelButtonText: 'Cancel'
+                cancelButtonText: 'Cancel',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = '/b2b/address';
