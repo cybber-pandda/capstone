@@ -19,6 +19,8 @@ class QuotationController extends Controller
     {
         $userId = auth()->id();
 
+        $hasAddress = B2BAddress::where('user_id', $userId)->exists();
+
         if ($request->ajax()) {
             $query = PurchaseRequest::with(['customer', 'items.product'])
                 ->whereIn('status', ['quotation_sent', 'po_submitted', 'so_created'])
@@ -67,7 +69,8 @@ class QuotationController extends Controller
 
 
         return view('pages.b2b.v_quotationList', [
-            'page' => 'Sent Quotations'
+            'page' => 'Sent Quotations',
+            'hasAddress' => $hasAddress
         ]);
     }
 
@@ -122,6 +125,7 @@ class QuotationController extends Controller
             'quotation_id' => 'required|exists:purchase_requests,id',
             'bank_id' => 'required|exists:banks,id',
             'proof_payment' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+            'reference_number' => 'required|string|max:30'
         ]);
 
         $userId = auth()->id();
@@ -165,6 +169,7 @@ class QuotationController extends Controller
         $pr->update([
             'bank_id' => $request->bank_id,
             'proof_payment' => $path,
+            'reference_number' => $request->reference_number,
             'status' => 'po_submitted',
         ]);
 

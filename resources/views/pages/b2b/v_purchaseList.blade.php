@@ -1,14 +1,83 @@
 @extends('layouts.shop')
 
 @section('content')
-<div class="section section-scrollable" style="margin-bottom: 20px;">
-    <div class="container">
+    <div class="section section-scrollable" style="margin-bottom: 20px;">
+        <div class="container">
+
+            @php
+                $hasItems = $purchaseRequests->sum(fn($pr) => $pr->items->count()) > 0;
+            @endphp
+
+            <div class="section-title text-center">
+                <h3 class="title">{{ $page }}</h3><br>
+                @if ($hasItems)
+                <i>Waiting for quotation to your request.</i>
+                @endif
+            </div>
+            
+            @if ($hasItems)
+            <a href="{{ route('home') }}" class="btn btn-primary" style="margin-bottom: 15px;"><i class="fa fa-plus"></i> Add Item</a>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>SKU</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Subtotal</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($purchaseRequests as $pr)
+                        @foreach($pr->items as $item)
+                            @php
+                                $product = $item->product;
+                                $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
+                            @endphp
+                            <tr data-id="{{ $item->id }}">
+                                <td><img src="{{ asset($image) }}" width="50" height="50" alt="Image"></td>
+                                <td>{{ $product->sku }}</td>
+                                <td>{{ $product->name }}</td>
+                                <td>₱{{ number_format($product->price, 2) }}</td>
+                                <td>
+                                    <center>
+                                    <div class="input-group" style="max-width: 130px;display: flex; align-items: center;">
+                                        <button class="btn btn-sm btn-outline-secondary qty-decrease">−</button>
+                                        <input type="text" class="form-control form-control-sm text-center item-qty"
+                                            value="{{ $item->quantity }}" readonly>
+                                        <button class="btn btn-sm btn-outline-secondary qty-increase">+</button>
+                                    </div>
+                                    </center>
+                                </td>
+                                <td>₱{{ $item->subtotal }}</td>
+                                <td>{{ $item->created_at->toDateTimeString() }}</td>
+                                <td>
+                                    <center>
+                                    <button class="btn btn-danger btn-sm btn-remove-item">Remove</button>
+                                    </center>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @endforeach
+                </tbody>
+            </table>
+
+            @else
+                <div class="d-flex flex-column align-items-center justify-content-center text-center mt-5">
+                    <p class="mb-3">No items found in your purchase requests.</p>
+                    <a href="{{ route('home') }}" class="btn btn-primary">Purchase Item</a>
+                </div>
+            @endif
 
         @php
         $hasItems = $purchaseRequests->sum(fn($pr) => $pr->items->count()) > 0;
         $prId = null
         @endphp
 
+<<<<<<< Updated upstream
         <div class="section-title text-center">
             <h3 class="title">{{ $page }}</h3><br>
         </div>
@@ -81,12 +150,16 @@
         @endif
 
 
+=======
+        </div>
+>>>>>>> Stashed changes
     </div>
-</div>
 @endsection
+
 
 @push('scripts')
 <script>
+<<<<<<< Updated upstream
     $(document).ready(function() {
         // Quantity Increase
         $('.qty-increase').click(function(e) {
@@ -108,6 +181,92 @@
             let quantity = Math.max(1, parseInt(qtyInput.val()) - 1);
 
             updateQuantity(itemId, quantity, qtyInput);
+=======
+$(document).ready(function () {
+
+    const checkAddress = '<?php echo $hasAddress ? 'true' : 'false'; ?>';
+
+    if (checkAddress === 'false') {
+        Swal.fire({
+            title: 'No Address Found',
+            text: 'Please add a shipping address before proceeding.',
+            icon: 'warning',
+            confirmButtonText: 'Add Address',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/b2b/address';
+            }
+        });
+    }
+    
+    // Quantity Increase
+    $('.qty-increase').click(function (e) {
+        e.preventDefault();
+        let row = $(this).closest('tr');
+        let itemId = row.data('id');
+        let qtyInput = row.find('.item-qty');
+        let quantity = parseInt(qtyInput.val()) + 1;
+
+        updateQuantity(itemId, quantity, qtyInput);
+    });
+
+    // Quantity Decrease
+    $('.qty-decrease').click(function (e) {
+        e.preventDefault();
+        let row = $(this).closest('tr');
+        let itemId = row.data('id');
+        let qtyInput = row.find('.item-qty');
+        let quantity = Math.max(1, parseInt(qtyInput.val()) - 1);
+
+        updateQuantity(itemId, quantity, qtyInput);
+    });
+
+    // Remove Item
+    $('.btn-remove-item').click(function () {
+        let row = $(this).closest('tr');
+        let itemId = row.data('id');
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you really want to remove this item?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, remove it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/b2b/purchase-requests/items/' + itemId,
+                    method: 'DELETE',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        toast('success', response.message);
+
+                        if (response.purchase_request_deleted) {
+                            // Reload the page if the purchase request was deleted
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000); // optional delay to allow toast to show
+                        } else {
+                            row.remove(); // Just remove the item row
+                        }
+                    },
+                    error: function (xhr) {
+                        if (xhr.status === 403) {
+                            toast('error', xhr.responseJSON.message);
+                        } else {
+                            toast('error', 'Something went wrong.');
+                        }
+                    }
+                });
+            }
+>>>>>>> Stashed changes
         });
 
         // Remove Item
@@ -235,5 +394,38 @@
             });
         }
     });
+
+
+    // Update quantity function
+    function updateQuantity(itemId, quantity, input) {
+        $.ajax({
+            url: '/b2b/purchase-requests/item/' + itemId,
+            method: 'PUT',
+            data: {
+                _token: '{{ csrf_token() }}',
+                quantity: quantity
+            },
+            success: function (response) {
+                input.val(quantity);
+                toast('success', 'Quantity updated.');
+
+                // Update subtotal
+                let price = parseFloat(input.closest('tr').find('td:nth-child(4)').text().replace(/[^\d.]/g, ''));
+                let subtotal = quantity * price;
+                input.closest('tr').find('td:nth-child(6)').text('₱' + subtotal.toFixed(2));
+
+                updateCartDropdown()
+
+            },
+            error: function (xhr) {
+                if (xhr.status === 403) {
+                    toast('error', xhr.responseJSON.message);
+                } else {
+                    toast('error', 'Something went wrong.');
+                }
+            }
+        });
+    }
+});
 </script>
 @endpush

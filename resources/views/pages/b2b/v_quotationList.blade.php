@@ -54,6 +54,24 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+
+        const checkAddress = '<?php echo $hasAddress ? 'true' : 'false'; ?>';
+
+        if (checkAddress === 'false') {
+            Swal.fire({
+                title: 'No Address Found',
+                text: 'Please add a shipping address before proceeding.',
+                icon: 'warning',
+                confirmButtonText: 'Add Address',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/b2b/address';
+                }
+            });
+        }
+
         let table = $('#sentQuotationsTable').DataTable({
             processing: true,
             serverSide: true,

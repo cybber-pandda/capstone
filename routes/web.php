@@ -98,7 +98,10 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/purchase-requests', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
         Route::post('/purchase-requests/store', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'store'])->name('purchase-requests.store');
         Route::put('/purchase-requests/item/{id}', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'updateItem'])->name('purchase-requests.updateItem');
+<<<<<<< Updated upstream
         Route::put('/purchase-requests/submit/{id}', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'submitItem'])->name('purchase-requests.submitItem');
+=======
+>>>>>>> Stashed changes
         Route::delete('/purchase-requests/items/{id}', [App\Http\Controllers\B2B\PurchaseRequestController::class, 'deleteItem'])->name('purchase-requests.deleteItem');
 
         Route::get('/quotations/review', [App\Http\Controllers\B2B\QuotationController::class, 'review'])->name('quotations.review');

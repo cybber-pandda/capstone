@@ -34,6 +34,7 @@ class CreatePurchaseRequestsTable extends Migration
             $table->boolean('credit')->default(false);
             $table->enum('payment_method', ['pay_now', 'pay_later'])->nullable();
             $table->string('proof_payment')->nullable();
+            $table->string('reference_number', 30)->nullable();
             $table->text('pr_remarks')->nullable();
             $table->timestamps();
 

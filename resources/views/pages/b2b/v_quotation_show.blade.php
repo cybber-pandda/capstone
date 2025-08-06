@@ -90,7 +90,7 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="bank_id" class="form-label">Select Bank:</label>
-                            <select class="form-select form-control" name="bank_id" id="bank_id" required>
+                            <select class="form-select form-control" name="bank_id" id="bank_id">
                                 <option selected disabled value="">-- Choose a bank --</option>
                                 @foreach ($banks as $bank)
                                 <option value="{{ $bank->id }}"
@@ -98,6 +98,8 @@
                                     data-qr="{{ asset( $bank->image ) }}">{{ $bank->name }}</option>
                                 @endforeach
                             </select>
+                            <div class="invalid-feedback bank_id_error text-danger"></div>
+                            
 
                             <div id="bankDetails" class="text-center  d-none" style="margin-top:5px;margin-bottom:5px;">
                                 <p class="mb-1"><strong>Account Number:</strong> <span id="accountNumber"></span></p>
@@ -107,7 +109,14 @@
 
                         <div class="mb-3">
                             <label for="proof_payment" class="form-label">Upload Proof:</label>
-                            <input type="file" class="form-control" name="proof_payment" id="proof_payment" required accept="image/*">
+                            <input type="file" class="form-control" name="proof_payment" id="proof_payment" accept="image/*">
+                            <div class="invalid-feedback proof_payment_error text-danger"></div>
+                        </div>
+
+                         <div class="mb-3">
+                            <label for="reference_number" class="form-label">Reference Number:</label>
+                            <input type="text" class="form-control" name="reference_number" id="reference_number" placeholder="Enter reference number">
+                            <div class="invalid-feedback reference_number_error text-danger"></div>
                         </div>
 
                     </form>
@@ -212,6 +221,9 @@
         let form = $('#paymentForm')[0];
         let formData = new FormData(form);
 
+        $$(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...');
+        $(this).prop('disabled', true);
+
         $.ajax({
             url: $(form).attr('action'),
             method: 'POST',
@@ -229,11 +241,24 @@
                 });
             },
             error: function(xhr) {
-                Swal.fire({
+
+                $('#submitPaymentBtn').html('Save Changes').prop('disabled', false);
+
+                if (xhr.status === 422) {
+                    // Validation errors
+                    let errors = xhr.responseJSON.errors;
+                    for (let field in errors) {
+                        let errorMessage = errors[field][0];
+                        $(`#${field}`).addClass('is-invalid');
+                        $(`.${field}_error`).text(errorMessage).show();
+                    }
+                } else {
+                   Swal.fire({
                     icon: 'error',
                     title: 'Failed',
                     text: xhr.responseJSON?.message || 'Something went wrong.',
                 });
+                }
             }
         });
     });

@@ -144,6 +144,31 @@
                             <input type="file" class="form-control" name="business_permit" id="business_permit"  accept="application/pdf">
                             <div class="invalid-feedback business_permit_error text-danger"></div>
                         </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="tin_number" class="form-label">Tin Number:</label>
+                            <input type="text" class="form-control" name="tin_number" id="tin_number">
+                            <div class="invalid-feedback tin_number_error text-danger"></div>
+                        </div>
+
+                        <div style="margin-bottom:10px;">
+                            <label for="contact_number" class="form-label">Contact Number:</label>
+                            <input type="text" class="form-control" name="contact_number" id="contact_number">
+                            <div class="invalid-feedback contact_number_error text-danger"></div>
+                        </div>
+
+                         <div style="margin-bottom:10px;">
+                            <label for="contact_person" class="form-label">Contact Person:</label>
+                            <input type="text" class="form-control" name="contact_person" id="contact_person">
+                            <div class="invalid-feedback contact_person_error text-danger"></div>
+                        </div>
+
+                         <div style="margin-bottom:10px;">
+                            <label for="contact_person_number" class="form-label">Contact Person Phone #:</label>
+                            <input type="text" class="form-control" name="contact_person_number" id="contact_person_number">
+                            <div class="invalid-feedback contact_person_number_error text-danger"></div>
+                        </div>
+
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -235,10 +260,8 @@
                 $('.invalid-feedback').text('').hide();
                 $('.is-invalid').removeClass('is-invalid');
 
-                // Create FormData object
                 let formData = new FormData($('#requirementForm')[0]);
 
-                // Show loading state
                 $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...');
                 $(this).prop('disabled', true);
 
