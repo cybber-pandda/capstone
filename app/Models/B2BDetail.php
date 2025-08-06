@@ -12,7 +12,7 @@ class B2BDetail extends Model
     protected $table = 'b2b_details';
 
     protected $fillable = [
-        'user_id', 'certificate_registration', 'business_permit', 'tin_number', 'contact_number', 'contact_person', 'contact_person_number', 'status'
+        'user_id', 'certificate_registration', 'business_permit', 'business_name', 'tin_number', 'contact_number', 'contact_person', 'contact_person_number', 'status'
     ];
 
     public function user()

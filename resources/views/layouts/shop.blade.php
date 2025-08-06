@@ -146,6 +146,12 @@
                         </div>
 
                         <div style="margin-bottom:10px;">
+                            <label for="business_name" class="form-label">Business Store Name:</label>
+                            <input type="text" class="form-control" name="business_name" id="business_name">
+                            <div class="invalid-feedback business_name_error text-danger"></div>
+                        </div>
+
+                        <div style="margin-bottom:10px;">
                             <label for="tin_number" class="form-label">Tin Number:</label>
                             <input type="text" class="form-control" name="tin_number" id="tin_number">
                             <div class="invalid-feedback tin_number_error text-danger"></div>

@@ -180,8 +180,8 @@ $(document).ready(function () {
             url: "/salesofficer/purchase-requests/r-q/" + id,
             method: "PUT",
             data: {
-                type: $('#rejectForm input[name="type"]').val(),
-                rejection_reason: $('#rejectForm input[name="rejection_reason"]').val(),
+                type: $('#rejectForm [name="type"]').val(),
+                rejection_reason: $('#rejectForm [name="rejection_reason"]').val(),
             },
             success: function (response) {
                 hideLoader(".rejectFormbtn");

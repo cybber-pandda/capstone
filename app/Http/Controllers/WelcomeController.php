@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Shelter;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Category;
 use App\Models\Product;
@@ -15,6 +16,10 @@ class WelcomeController extends Controller
     public function index(Request $request)
     {
         $page = "Welcome to TantucoCTC Hardware";
+
+        if (Auth::check()) {
+            return redirect()->route('home');
+        }
 
         $categories = Category::select(['id', 'name', 'image', 'description'])->get();
 

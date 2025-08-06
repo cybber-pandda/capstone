@@ -31,12 +31,15 @@ class CreatePurchaseRequestsTable extends Migration
                 'refunded'           // refund processed
             ])->default('pending');
             $table->integer('vat')->default(12);
+            $table->date('b2b_delivery_date')->nullable();
             $table->decimal('delivery_fee', 10, 2)->nullable();
             $table->boolean('credit')->default(false);
             $table->enum('payment_method', ['pay_now', 'pay_later'])->nullable();
             $table->string('proof_payment')->nullable();
             $table->string('reference_number', 30)->nullable();
             $table->text('pr_remarks')->nullable();
+            $table->text('pr_remarks_cancel')->nullable();
+            $table->text('date_issued')->nullable();
             $table->timestamps();
 
             $table->foreign('customer_id')->references('id')->on('users')->onDelete('cascade');

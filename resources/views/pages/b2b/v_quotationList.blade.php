@@ -11,6 +11,7 @@
         <ul class="nav nav-tabs" role="tablist">
             <li class="active"><a href="#processingTab" role="tab" data-toggle="tab">Processing</a></li>
             <li><a href="#rejectedTab" role="tab" data-toggle="tab">Rejected Quotation</a></li>
+            <li><a href="#cancelledTab" role="tab" data-toggle="tab">Cancelled Quotation</a></li>
         </ul>
 
         <!-- Tab content -->
@@ -35,6 +36,22 @@
             <div class="tab-pane" id="rejectedTab">
                 @component('components.table', [
                     'id' => 'rejectedTable',
+                    'thead' => '
+                    <tr>
+                        <th>ID</th>
+                        <th>Total Items</th>
+                        <th>Grand Total</th>
+                        <th>Date Created</th>
+                        <th></th>
+                    </tr>'
+                ])
+                @endcomponent
+            </div>
+
+            <!-- Cancelled Tab -->
+            <div class="tab-pane" id="cancelledTab">
+                @component('components.table', [
+                    'id' => 'cancelledTable',
                     'thead' => '
                     <tr>
                         <th>ID</th>
@@ -144,18 +161,28 @@ $(document).ready(function () {
         }
     }));
 
+    // Cancelled Table
+    $('#cancelledTable').DataTable($.extend({}, commonOptions, {
+        ajax: {
+            url: "/b2b/quotations/review",
+            data: { type: 'cancelled' }
+        }
+    }));
+
     // Tab memory using hash
     if (location.hash) {
-        $('.nav-tabs a[href="' + location.hash + '"]').tab('show');
+        window.scrollTo(0, 0);
+        setTimeout(() => window.scrollTo(0, 0), 1); 
     }
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-       location.hash = $(e.target).attr('href');
+        const target = $(e.target).attr('href');
+        history.replaceState(null, null, target);
 
-        // Fix misaligned columns after tab switch
+        // Adjust DataTables
         $.fn.dataTable
-        .tables({ visible: true, api: true })
-        .columns.adjust();
+            .tables({ visible: true, api: true })
+            .columns.adjust();
     });
 
     // Handle order tracking (if track_id is in URL)
@@ -205,41 +232,6 @@ $(document).ready(function () {
             });
         }, 3000);
     }
-
-    // Show Cancel Modal
-    $(document).on('click', '.cancel-pr-btn', function () {
-        const id = $(this).data('id');
-        $('#cancelQuotationId').val(id);
-        $('#cancelRemarks').val('');
-        $('#cancelPRModal').modal('show');
-    });
-
-    // Confirm Cancel Action
-    $(document).on('click', '#confirmCancelPRBtn', function () {
-        const prId = $('#cancelQuotationId').val();
-        const remarks = $('#cancelRemarks').val();
-
-        $('#confirmCancelPRBtn').prop('disabled', true);
-
-        $.ajax({
-            url: `/b2b/quotations/cancel/${prId}`,
-            method: 'POST',
-            data: {
-                remarks: remarks,
-                _token: $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function (res) {
-                $('#cancelPRModal').modal('hide');
-                toast('success', res.message);
-                $('#processingTable').DataTable().ajax.reload(null, false);
-                $('#confirmCancelPRBtn').prop('disabled', false);
-            },
-            error: function (xhr) {
-                toast('error', xhr.responseJSON?.message || 'Failed to cancel.');
-                $('#confirmCancelPRBtn').prop('disabled', false);
-            }
-        });
-    });
 });
 </script>
 @endpush

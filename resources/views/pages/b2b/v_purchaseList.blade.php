@@ -73,7 +73,7 @@
         </table>
 
         @else
-        <div class="d-flex flex-column align-items-center justify-content-center text-center mt-5">
+        <div class="d-flex flex-column align-items-center justify-content-center text-center" style="margin-bottom:20px;">
             <p class="mb-3">No items found in your purchase requests.</p>
             <a href="{{ route('home') }}" class="btn btn-primary">Purchase Item</a>
         </div>
@@ -156,12 +156,11 @@ $(document).ready(function () {
                         toast('success', response.message);
 
                         if (response.purchase_request_deleted) {
-                            // Reload the page if the purchase request was deleted
                             setTimeout(() => {
                                 location.reload();
-                            }, 1000); // optional delay to allow toast to show
+                            }, 1000);
                         } else {
-                            row.remove(); // Just remove the item row
+                            row.remove();
                         }
                     },
                     error: function (xhr) {

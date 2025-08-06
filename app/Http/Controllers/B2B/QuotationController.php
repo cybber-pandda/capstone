@@ -9,6 +9,7 @@ use Carbon\Carbon;
 
 use App\Models\PurchaseRequest;
 use App\Models\B2BAddress;
+use App\Models\B2BDetail;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Bank;
@@ -31,6 +32,8 @@ class QuotationController extends Controller
                 $query->whereIn('status', ['quotation_sent', 'po_submitted', 'so_created']);
             } elseif ($type === 'rejected') {
                 $query->where('status', 'reject_quotation');
+            }  elseif ($type === 'cancelled') {
+                $query->where('status', 'cancelled');
             }
 
             return DataTables::of($query)
@@ -69,12 +72,23 @@ class QuotationController extends Controller
                                     ' . nl2br(e($pr->pr_remarks)) . '
                                 </div>
                             </div>';
+                        case 'cancelled':
+                            return '
+                            <div style="display: flex; flex-direction: column;">
+                                <span class="badge bg-danger text-white p-2">
+                                    Quotation Cancelled
+                                </span>
+                                <div style="margin-top: 10px; font-size: 14px;">
+                                    <strong>Remarks:</strong><br>
+                                    ' . nl2br(e($pr->pr_remarks_cancel)) . '
+                                </div>
+                            </div>';
                         case 'quotation_sent':
                         default:
                             return '<a href="/b2b/quotations/review/' . $pr->id . '" class="btn btn-sm btn-primary review-pr">
                                         <i class="link-icon" data-lucide="eye"></i> Review Quotation
                                     </a>
-                                    <button class="btn btn-sm btn-danger cancel-pr-btn" data-id="' . $pr->id . '">
+                                    <button class="btn btn-sm btn-danger cancel-pr-btn" style="display:none;" data-id="' . $pr->id . '">
                                         <i class="link-icon" data-lucide="x-circle"></i> Cancel
                                     </button>
                                     ';
@@ -90,17 +104,32 @@ class QuotationController extends Controller
             'hasAddress' => $hasAddress
         ]);
     }
+
     public function show($id)
     {
         $page = "Purchase Request Quotation";
         $banks = Bank::get();
+        $b2bReqDetails = null;
+        $b2bAddress = null;
+        $salesOfficer = null;
+
+        $superadmin = User::where('role', 'superadmin')->first();
 
         $quotation = PurchaseRequest::with(['customer', 'items.product'])
             ->where('status', 'quotation_sent')
             ->where('customer_id', auth()->id())
             ->findOrFail($id);
 
-        return view('pages.b2b.v_quotation_show', compact('quotation', 'page', 'banks'));
+        if($quotation->customer_id) {
+            $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
+            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+        }
+
+         if($quotation->prepared_by_id) {
+            $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+        }
+
+        return view('pages.b2b.v_quotation_show', compact('quotation', 'page', 'banks', 'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin'));
     }
 
     public function cancelQuotation(Request $request, $id)
@@ -117,7 +146,7 @@ class QuotationController extends Controller
         }
 
         $pr->status = 'cancelled';
-        $pr->pr_remarks = $request->remarks ?? 'Cancelled by customer.';
+        $pr->pr_remarks_cancel = $request->remarks ?? 'Cancelled by customer.';
         $pr->save();
 
         // Optional: notify the sales officers

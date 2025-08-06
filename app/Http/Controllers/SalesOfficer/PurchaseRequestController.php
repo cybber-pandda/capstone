@@ -59,22 +59,20 @@ class PurchaseRequestController extends Controller
     {
         $pr = PurchaseRequest::with(['items.product.productImages'])->findOrFail($id);
 
-        $b2bDetails = null;
+        $b2bReq = null;
         $b2bAddress = null;
 
         if ($pr->customer_id) {
-            $b2bDetails = B2BDetail::where('user_id', $pr->customer_id)
+            $b2bReq = B2BDetail::where('user_id', $pr->customer_id)
                 ->where('status', 'approved')
                 ->first();
-
-            //  Log::info('B2B Details:', $b2bDetails->toArray());
 
             $b2bAddress = B2BAddress::where('user_id', $pr->customer_id)
                 ->where('status', 'active')
                 ->first();
         }
 
-        $html = view('components.pr-items', compact('pr', 'b2bDetails', 'b2bAddress'))->render();
+        $html = view('components.pr-items', compact('pr', 'b2bReq', 'b2bAddress'))->render();
 
         return response()->json(['html' => $html]);
     }
@@ -83,6 +81,7 @@ class PurchaseRequestController extends Controller
     public function updateSendQuotation(Request $request, $id)
     {
         $purchaseRequest = PurchaseRequest::findOrFail($id);
+        $userid = auth()->user()->id;
 
         if ($purchaseRequest->status !== 'pending') {
             return response()->json([
@@ -99,9 +98,11 @@ class PurchaseRequestController extends Controller
 
         // Update with additional fees + status
         $purchaseRequest->update([
+            'prepared_by_id' => $userid,
             'status' => 'quotation_sent',
             'vat' => 12,
             'delivery_fee' => $validated['delivery_fee'] ?? null,
+            'date_issued' => Carbon::today()
         ]);
 
         // Notify customer
@@ -120,9 +121,10 @@ class PurchaseRequestController extends Controller
         ]);
     }
 
-     public function updateRejectQuotation(Request $request, $id)
+    public function updateRejectQuotation(Request $request, $id)
     {
         $purchaseRequest = PurchaseRequest::findOrFail($id);
+        $userid = auth()->user()->id;
 
         if ($purchaseRequest->status !== 'pending') {
             return response()->json([
@@ -130,9 +132,10 @@ class PurchaseRequestController extends Controller
                 'message' => 'Only pending requests can be rejected.'
             ]);
         }
-
-        // Update with additional fees + status
-        $purchaseRequest->pr_remarks .= "\n" . $request->type . ': ' . $request->rejection_reason;
+        
+        $purchaseRequest->prepared_by_id = $userid;
+        $prefix = $request->type ? $request->type . ': ' : '';
+        $purchaseRequest->pr_remarks .= $prefix . $request->rejection_reason;
         $purchaseRequest->status = 'reject_quotation';
         $purchaseRequest->save();
 

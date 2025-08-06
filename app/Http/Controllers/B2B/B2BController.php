@@ -93,11 +93,13 @@ class B2BController extends Controller
         $validator = Validator::make($request->all(), [
             'certificate_registration' => 'required|file|mimes:pdf|max:2048',
             'business_permit' => 'required|file|mimes:pdf|max:2048',
+            'business_name' => 'required|max:100',
             'tin_number' => 'required|max:20',
             'contact_number' => 'required|max:20',
             'contact_person' => 'required|max:100',
             'contact_person_number' => 'required|max:20',
         ], [
+            'business.required' => 'Business store name is required',
             'certificate_registration.required' => 'Certificate registration is required',
             'business_permit.required' => 'Business permit is required',
             'certificate_registration.mimes' => 'Certificate must be PDF, JPG, JPEG, or PNG',
@@ -141,6 +143,7 @@ class B2BController extends Controller
                 [
                     'certificate_registration' => $certificatePath,
                     'business_permit' => $businessPermitPath,
+                    'business_name' => $request->business_name,
                     'tin_number' => $request->tin_number,
                     'contact_number' => $request->contact_number,
                     'contact_person' => $request->contact_person,

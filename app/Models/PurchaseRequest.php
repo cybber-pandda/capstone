@@ -10,7 +10,7 @@ class PurchaseRequest extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['customer_id', 'prepared_by_id', 'bank_id', 'status', 'vat', 'delivery_fee', 'credit', 'payment_method', 'proof_payment', 'reference_number', 'pr_remarks'];
+    protected $fillable = ['customer_id', 'prepared_by_id', 'bank_id', 'status', 'vat', 'b2b_delivery_date', 'delivery_fee', 'credit', 'payment_method', 'proof_payment', 'reference_number', 'pr_remarks', 'pr_remarks_cancel', 'date_issued'];
 
     public function customer()
     {

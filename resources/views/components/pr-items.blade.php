@@ -49,33 +49,77 @@
             <b>Customer:</b> {{ $pr->customer->name }}
         </h6>
 
+        <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
+            <b>Email:</b> {{ $pr->customer->email }}
+        </h6>
+
         @if($b2bAddress)
             <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
                 <b>Address:</b> {{ $b2bAddress->full_address ?? 'No address provided' }}
             </h6>
         @endif
 
-        @if($b2bDetails)
-            <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
-                <b>Tin Number:</b> {{ $b2bDetails->tin_number ?? 'No Tin Number provided' }}
+        @if($b2bReq)
+            
+           <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
+                <b>Business Name:</b> {{ $b2bReq->business_name ?? 'No business store name provided' }}
             </h6>
 
             <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
-                <b>Contact Number:</b> {{ $b2bDetails->contact_number ?? 'No Contact Number provided' }}
+                <b>Tin Number:</b> {{ $b2bReq->tin_number ?? 'No Tin Number provided' }}
             </h6>
 
             <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
-                <b>Contact Person:</b> {{ $b2bDetails->contact_person ?? 'No Contact Person provided' }}
+                <b>Contact Number:</b> {{ $b2bReq->contact_number ?? 'No Contact Number provided' }}
             </h6>
 
             <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
-                <b>Contact Person Phone #:</b> {{ $b2bDetails->contact_person_number ?? 'No Contact Person Phone Number provided' }}
+                <b>Contact Person:</b> {{ $b2bReq->contact_person ?? 'No Contact Person provided' }}
             </h6>
+
+            <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
+                <b>Contact Person Phone #:</b> {{ $b2bReq->contact_person_number ?? 'No Contact Person Phone Number provided' }}
+            </h6>
+
+            @php
+                function isPdf($filePath) {
+                    return strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf';
+                }
+            @endphp
+
+            <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
+                <b>Certificate Registration:</b>
+                @if (isset($b2bReq->certificate_registration))
+                    @if (isPdf($b2bReq->certificate_registration))
+                        <a href="{{ asset($b2bReq->certificate_registration) }}" target="_blank">View PDF</a>
+                    @else
+                        <br><br>
+                        <img src="{{ asset($b2bReq->certificate_registration) }}" alt="Certificate" style="max-width: 200px;">
+                    @endif
+                @else
+                    <span class="text-muted">No certificate uploaded</span>
+                @endif
+            </h6>
+
+            <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
+                <b>Business Permit:</b>
+                @if (isset($b2bReq->business_permit))
+                    @if (isPdf($b2bReq->business_permit))
+                        <a href="{{ asset($b2bReq->business_permit) }}" target="_blank">View PDF</a>
+                    @else
+                        <br><br>
+                        <img src="{{ asset($b2bReq->business_permit) }}" alt="Permit" style="max-width: 200px;">
+                    @endif
+                @else
+                    <span class="text-muted">No permit uploaded</span>
+                @endif
+            </h6>
+
         @endif
     </div>
 
     <div class="col-md-8 p-3">
-
+      <div class="table-responsive">
         <table class="table table-striped">
             <thead>
                 <tr>
@@ -137,7 +181,7 @@
                 </tr>
             </tfoot>
         </table>
-
+      </div>
     </div>
 
 </div>

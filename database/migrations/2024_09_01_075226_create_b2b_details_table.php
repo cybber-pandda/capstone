@@ -18,6 +18,7 @@ class CreateB2bDetailsTable extends Migration
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->string('certificate_registration');
             $table->string('business_permit');
+            $table->string('business_name', 100);
             $table->string('tin_number', 20);
             $table->string('contact_number', 20);
             $table->string('contact_person', 100);
