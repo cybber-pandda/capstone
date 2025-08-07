@@ -109,6 +109,8 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::post('/quotations/payment/paylater', [App\Http\Controllers\B2B\QuotationController::class, 'payLater'])->name('quotations.payment.paylater');
         Route::post('/quotations/payment/upload', [App\Http\Controllers\B2B\QuotationController::class, 'uploadPaymentProof'])->name('quotations.payment.upload');
         Route::get('/quotations/status/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'checkStatus']);
+        Route::get('/quotation/pdfdownload/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'downloadQuotation'])->name('quotation.download');
+
 
         Route::resource('address', App\Http\Controllers\B2B\B2BAddressController::class);
         Route::get('/geocode', [App\Http\Controllers\B2B\B2BAddressController::class, 'geoCode']);

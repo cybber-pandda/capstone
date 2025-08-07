@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 use App\Models\PurchaseRequest;
 use App\Models\B2BAddress;
@@ -130,6 +131,32 @@ class QuotationController extends Controller
         }
 
         return view('pages.b2b.v_quotation_show', compact('quotation', 'page', 'banks', 'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin'));
+    }
+
+    public function downloadQuotation($id)
+    {
+        $b2bReqDetails = null;
+        $b2bAddress = null;
+        $salesOfficer = null;
+
+        $superadmin = User::where('role', 'superadmin')->first();
+
+        $quotation = PurchaseRequest::with(['customer', 'items.product'])
+            ->where('status', 'quotation_sent')
+            ->where('customer_id', auth()->id())
+            ->findOrFail($id);
+
+        if($quotation->customer_id) {
+            $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
+            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+        }
+
+        if($quotation->prepared_by_id) {
+            $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+        }
+
+        $pdf = Pdf::loadView('components.quotation-items-pdf', compact('quotation', 'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin'));
+        return $pdf->download($quotation->customer->name . '_quotation_' . $quotation->id . '-' . Carbon::parse($quotation->created_at)->format('Ymd') . '.pdf');
     }
 
     public function cancelQuotation(Request $request, $id)
