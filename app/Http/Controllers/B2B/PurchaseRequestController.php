@@ -60,8 +60,8 @@ class PurchaseRequestController extends Controller
         $userId = auth()->id();
         
         $purchaseRequests = PurchaseRequest::with(['items.product.productImages'])
-            ->where('status', null)
-            ->where('customer_id', auth()->id()) // Only for current user
+            ->whereIn('status', [null, 'pending'])
+            ->where('customer_id', $userId)
             ->latest()
             ->get();
 
@@ -170,6 +170,7 @@ class PurchaseRequestController extends Controller
             ->firstOrFail();
 
         $purchaseRequest->status = 'pending';
+        $purchaseRequest->b2b_delivery_date = $request->expected_delivery_date ?? null;
         $purchaseRequest->save();
 
         return response()->json([
