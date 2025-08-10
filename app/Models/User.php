@@ -81,6 +81,11 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->notify(new OTPVerifyEmail($otpCode));
     }
 
+    public function purchaseRequests()
+    {
+        return $this->hasMany(PurchaseRequest::class, 'customer_id');
+    }
+
     public function userLog()
     {
         return $this->hasMany(UserLog::class);

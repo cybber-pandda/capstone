@@ -43,8 +43,10 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-
-
+     
+     <!-- Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+    
     <style>
         /* Left-align content */
         td.dt-left-int,
@@ -170,6 +172,9 @@
     </div>
 
     <script src="{{ asset('assets/dashboard/vendors/jquery/jquery.min.js') }}"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+
     <script src="{{ asset('assets/dashboard/vendors/core/core.js') }}"></script>
     <script src="{{ asset('assets/dashboard/vendors/flatpickr/flatpickr.min.js') }}"></script>
     <script src="{{ asset('assets/dashboard/vendors/apexcharts/apexcharts.min.js') }}"></script>

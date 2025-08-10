@@ -85,9 +85,9 @@ class DeliveryController extends Controller
                 ->addColumn('rating', function ($order) {
                     $rating = $order->delivery->rating->rating ?? null;
 
-                    if (!$rating) return '—';
+                    if (!$rating) return '';
 
-                    return str_repeat('<i class="fa fa-star text-warning"></i>', $rating) .
+                    return 'Rating: '.str_repeat('<i class="fa fa-star text-warning"></i>', $rating) .
                         str_repeat('<i class="fa fa-star-o text-muted"></i>', 5 - $rating);
                 })
                 ->addColumn('action', function ($order) {

@@ -18,6 +18,10 @@ use Illuminate\Support\Facades\DB;
 Route::get('/', [App\Http\Controllers\WelcomeController::class, 'index'])->name('welcome');
 Route::get('/product/details/{id}', [App\Http\Controllers\WelcomeController::class, 'product_details'])->name('product.details');
 
+Route::get('/customer-email-order', [App\Http\Controllers\WelcomeController::class, 'manual_order'])->name('manual-order.process');
+Route::get('/manual-order/products/{category}', [App\Http\Controllers\WelcomeController::class, 'getProductsByCategory'])->name('manual-order.products');
+Route::post('/manual-order/store', [App\Http\Controllers\WelcomeController::class, 'store'])->name('manualorder.store');
+
 // routes/web.php
 Route::post('/login/ajax', [App\Http\Controllers\Auth\LoginController::class, 'ajaxLogin']);
 
@@ -71,6 +75,19 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::put('/purchase-requests/r-q/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'updateRejectQuotation']);
         Route::get('/send-quotations/all', [App\Http\Controllers\SalesOfficer\QuotationsController::class, 'index'])->name('send-quotations.index');
         Route::get('/submitted-order/all', [App\Http\Controllers\SalesOfficer\OrderController::class, 'index'])->name('submitted-order.index');
+        Route::get('/paynow/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'paynow'])->name('paynow.index');
+        Route::post('/paynow/manual', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'manualPayment'])->name('paynow.manual');
+        Route::post('/paynow/approve/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'approvePayment'])->name('paynow.approve');
+        Route::get('/paylater/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'paylater'])->name('paylater.index');
+        Route::post('/paylater/approve/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'approvePaylaterPayment'])->name('paylater.approve');
+        Route::get('/paylater/partial/all/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'paylaterPartial'])->name('paylater.partial.index');
+        Route::post('/paylater/partial-payment/approve/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'approvePartialPaylaterPayment'])->name('paylater.partial.approve');
+        Route::get('/account-receivable/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable'])->name('account-receivable.index');
+        Route::get('/ar-details/{userid}/{prid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_details'])->name('account-receivable-details.index');
+        Route::get('/ar-payments/{userid}/{prid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_payments']);
+        Route::get('/email-manual-order', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'index'])->name('email.manual.order');
+        Route::post('/submit-email-manual-order', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'submit_manual_order'])->name('submit.email-manual.order');
+        Route::post('/manual-email-order/approve', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'approve'])->name('manualemailorder.approve');
     });
 
     /* Delivery */
@@ -85,6 +102,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::post('/delivery/upload-proof', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'uploadProof'])->name('delivery.upload-proof');
         Route::post('/delivery/cancel/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'cancelDelivery'])->name('delivery.cancel');
         Route::get('/delivery/ratings', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'deliveryRatings'])->name('delivery.ratings');
+        Route::get('/delivery/sales-inv/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'show_sales_inv'])->name('delivery.sales.inv');
     });
 
     /* B2B */
@@ -130,6 +148,9 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
 
         Route::get('/purchase/credit', [App\Http\Controllers\B2B\CreditController::class, 'index'])->name('purchase.credit');
         Route::post('/purchase/credit/payment', [App\Http\Controllers\B2B\CreditController::class, 'credit_payment'])->name('purchase.credit.payment');
+        
+        Route::get('/my-purchase-order', [App\Http\Controllers\B2B\B2BController::class, 'my_purchase_order'])->name('purchase.order');
+        Route::get('/my-purchase-order/show/{id}', [App\Http\Controllers\B2B\B2BController::class, 'show_po'])->name('purchase.order.show');
     });
 
 

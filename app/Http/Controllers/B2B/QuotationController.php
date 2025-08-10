@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 use App\Models\PurchaseRequest;
+use App\Models\PaidPayment;
 use App\Models\B2BAddress;
 use App\Models\B2BDetail;
 use App\Models\Notification;
@@ -33,7 +34,7 @@ class QuotationController extends Controller
                 $query->whereIn('status', ['quotation_sent', 'po_submitted', 'so_created']);
             } elseif ($type === 'rejected') {
                 $query->where('status', 'reject_quotation');
-            }  elseif ($type === 'cancelled') {
+            } elseif ($type === 'cancelled') {
                 $query->where('status', 'cancelled');
             }
 
@@ -121,12 +122,12 @@ class QuotationController extends Controller
             ->where('customer_id', auth()->id())
             ->findOrFail($id);
 
-        if($quotation->customer_id) {
+        if ($quotation->customer_id) {
             $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
             $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
         }
 
-         if($quotation->prepared_by_id) {
+        if ($quotation->prepared_by_id) {
             $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
         }
 
@@ -146,12 +147,12 @@ class QuotationController extends Controller
             ->where('customer_id', auth()->id())
             ->findOrFail($id);
 
-        if($quotation->customer_id) {
+        if ($quotation->customer_id) {
             $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
             $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
         }
 
-        if($quotation->prepared_by_id) {
+        if ($quotation->prepared_by_id) {
             $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
         }
 
@@ -189,18 +190,28 @@ class QuotationController extends Controller
         return response()->json(['message' => 'Quotation cancelled successfully.']);
     }
 
-
     public function uploadPaymentProof(Request $request)
     {
-        $request->validate([
+        $rules = [
             'quotation_id' => 'required|exists:purchase_requests,id',
-            'bank_id' => 'required|exists:banks,id',
-            'proof_payment' => 'required|image|mimes:jpg,jpeg,png|max:2048',
-            'reference_number' => 'required|string|max:30'
-        ]);
+            'cod_flg' => 'required|integer|in:0,1',
+        ];
+
+        // If NOT COD (Bank Transfer), require these fields
+        if ($request->cod_flg == 0) {
+            $rules = array_merge($rules, [
+                'bank_id' => 'required|exists:banks,id',
+                'paid_amount' => 'required|numeric|min:1',
+                'proof_payment' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+                'reference_number' => 'required|string|max:30',
+            ]);
+        }
+
+        $request->validate($rules);
 
         $userId = auth()->id();
 
+        // Ensure the user has an active address
         $hasAddress = B2BAddress::where('user_id', $userId)->exists();
         if (!$hasAddress) {
             return response()->json([
@@ -228,7 +239,8 @@ class QuotationController extends Controller
             return response()->json(['message' => 'Quotation cannot be paid now.'], 400);
         }
 
-        if ($request->hasFile('proof_payment')) {
+        $path = null;
+        if ($request->cod_flg == 0 && $request->hasFile('proof_payment')) {
             $file = $request->file('proof_payment');
             $filename = time() . '_' . $file->getClientOriginalName();
             $destinationPath = public_path('assets/upload/proofpayment');
@@ -238,19 +250,30 @@ class QuotationController extends Controller
         }
 
         $pr->update([
-            'bank_id' => $request->bank_id,
-            'proof_payment' => $path,
-            'reference_number' => $request->reference_number,
             'status' => 'po_submitted',
+            'payment_method' => 'pay_now',
+            'cod_flg' => $request->cod_flg,
         ]);
 
-        // Notify sales officers
-        $officers = User::where('role', 'salesofficer')->get();
-        foreach ($officers as $officer) {
+        // Insert payment only if not COD
+        if ($request->cod_flg == 0) {
+            PaidPayment::create([
+                'purchase_request_id' => $pr->id,
+                'bank_id' => $request->bank_id,
+                'paid_amount' => $request->paid_amount,
+                'paid_date' => Carbon::today(),
+                'proof_payment' => $path,
+                'reference_number' => $request->reference_number,
+            ]);
+        }
+
+        // Notify sales officers or superadmins
+        $superadmin = User::where('role', 'superadmin')->get();
+        foreach ($superadmin as $sa) {
             Notification::create([
-                'user_id' => $officer->id,
+                'user_id' => $sa->id,
                 'type' => 'purchase_request',
-                'message' => "A PO (ID: {$pr->id}) was submitted by {$pr->customer->name}. <br><a href=\"" . route('salesofficer.submitted-order.index', $pr->id) . "\">Visit Link</a>",
+                'message' => "A PO (ID: {$pr->id}) was submitted by {$pr->customer->name} with (Pay Now). <a href=\"" . route('home', $pr->id) . "\" class='d-none'>Visit Link</a>",
             ]);
         }
 
@@ -261,6 +284,7 @@ class QuotationController extends Controller
     {
         $request->validate([
             'quotation_id' => 'required|exists:purchase_requests,id',
+            'payment_type' => 'required|string|max:8',
         ]);
 
         $userId = auth()->id();
@@ -286,7 +310,7 @@ class QuotationController extends Controller
         }
 
         // Calculate amounts with VAT and delivery
-        $subtotal = $pr->items->sum(fn($item) => $item->quantity * $item->product->price);
+        $subtotal = $pr->items->sum('subtotal'); 
         $vatRate = $pr->vat ?? 0;
         $vatAmount = $subtotal * ($vatRate / 100);
         $deliveryFee = $pr->delivery_fee ?? 0;
@@ -302,27 +326,46 @@ class QuotationController extends Controller
         // Deduct from credit limit
         $user->decrement('credit_limit', $totalAmount);
 
-        $creditPayment = $pr->createCreditPayment(Carbon::now()->addMonth()->toDateString(), $totalAmount);
-
         $pr->update([
             'status' => 'po_submitted',
             'credit' => 1,
+            'credit_amount' => $totalAmount,
             'payment_method' => 'pay_later',
-        ]);
+            'credit_payment_type' => ucfirst($request->payment_type) . ' Payment',
+        ]); // after this update 
+
+        if($request->payment_type === 'straight') {
+            $pr->createStraightCreditPayment(Carbon::now()->addMonth()->toDateString());
+        } elseif ($request->payment_type === 'partial') {
+            $pr->createPartialCreditPayments(Carbon::now(), $totalAmount);
+        }
 
         // Notify sales officers
-        $officers = User::where('role', 'salesofficer')->get();
-        foreach ($officers as $officer) {
+        // $officers = User::where('role', 'salesofficer')->get();
+        // foreach ($officers as $officer) {
+        //     Notification::create([
+        //         'user_id' => $officer->id,
+        //         'type' => 'purchase_request',
+        //         'message' => "PO #{$pr->id} submitted  by {$pr->customer->name} with (Pay Later) - Total: ₱" . number_format($pr->total_amount, 2) . ". <br><a href=\"" . route('salesofficer.submitted-order.index') . "\">Visit Link</a>",
+        //     ]);
+        // }
+
+        // Notify sales officers or superadmins
+        $superadmin = User::where('role', 'superadmin')->get();
+
+        foreach ($superadmin as $sa) {
             Notification::create([
-                'user_id' => $officer->id,
+                'user_id' => $sa->id,
                 'type' => 'purchase_request',
-                'message' => "PO #{$pr->id} submitted  by {$pr->customer->name} with (Pay Later) - Total: ₱" . number_format($pr->total_amount, 2) . ". <br><a href=\"" . route('salesofficer.submitted-order.index') . "\">Visit Link</a>",
+                'message' => "PO #{$pr->id} submitted by {$pr->customer->name} with (Pay Later) - Total: ₱" 
+                    . number_format($pr->total_amount, 2),
             ]);
         }
 
+        
         return response()->json([
             'message' => 'Purchase order submitted with pay later option. You have 1 month to complete payment.',
-            'credit_limit_remaining' => number_format($user->fresh()->credit_limit,2),
+            'credit_limit_remaining' => number_format($user->fresh()->credit_limit, 2),
         ]);
     }
 

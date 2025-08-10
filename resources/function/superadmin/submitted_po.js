@@ -100,7 +100,7 @@ $(document).ready(function () {
                         title: "Order Ready for Delivery",
                         html: "This order is ready for delivery. Please assign a delivery personnel to deliver this item.",
                         confirmButtonText: "Assign Delivery Personnel",
-                        showCancelButton: true,
+                        showCancelButton: false,
                         cancelButtonText: "Cancel",
                         allowEscapeKey: false,
                         allowOutsideClick: false,

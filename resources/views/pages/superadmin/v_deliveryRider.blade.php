@@ -41,7 +41,19 @@
         @component('components.input', ['label' => 'Last Name', 'type' => 'text', 'name' => 'lastname', 'attributes' => '' ]) @endcomponent
         @component('components.input', ['label' => 'Username', 'type' => 'text', 'name' => 'username', 'attributes' => '' ]) @endcomponent
         @component('components.input', ['label' => 'Email Address', 'type' => 'email', 'name' => 'email', 'attributes' => '' ]) @endcomponent
-        @component('components.input', ['label' => 'Password', 'type' => 'password', 'name' => 'password', 'attributes' => '' ]) @endcomponent
+        @component('components.input', [
+            'label' => 'Password',
+            'type' => 'password',
+            'name' => 'password',
+            'attributes' => 'id=password'
+        ])
+        @endcomponent
+
+        <div class="mt-2">
+            <button type="button" id="togglePassword" class="btn btn-sm btn-secondary">
+                Show Password
+            </button>
+        </div>
 
     </form>
 

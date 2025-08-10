@@ -63,6 +63,14 @@ $(document).ready(function () {
         $("#inventoryMangementForm")[0].reset();
     });
 
+    $('#inventoryManagementModal').on('shown.bs.modal', function () {
+        $('select[name="product_id"]').select2({
+            dropdownParent: $('#inventoryManagementModal'), // Important for modals
+            placeholder: "",
+            allowClear: true
+        });
+    });
+
     $("#saveInventory").on("click", function (e) {
         e.preventDefault();
 

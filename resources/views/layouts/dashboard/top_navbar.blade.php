@@ -128,15 +128,15 @@
     <nav class="bottom-navbar">
         <div class="container">
             <ul class="nav page-navigation">
-                
+
                 <li class="nav-item {{ Route::is('home') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('home') }}">
                         @if(Auth::user()->role === 'b2b')
-                           <i class="link-icon" data-lucide="house"></i>
-                           <span class="menu-title">Return to Home</span>
+                        <i class="link-icon" data-lucide="house"></i>
+                        <span class="menu-title">Return to Home</span>
                         @else
-                           <i class="link-icon" data-lucide="layout-dashboard"></i>
-                           <span class="menu-title">Dashboard</span>
+                        <i class="link-icon" data-lucide="layout-dashboard"></i>
+                        <span class="menu-title">Dashboard</span>
                         @endif
 
                     </a>
@@ -151,36 +151,56 @@
                     </a>
                 </li>
 
-                <li class="nav-item {{ Route::is('salesofficer.purchase-requests.index') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('salesofficer.purchase-requests.index') }}">
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
                         <i class="link-icon" data-lucide="shopping-bag"></i>
-                        <span class="menu-title">B2B Pending PR</span>
+                        <span class="menu-title">B2B Purchase</span>
+                        <i class="link-arrow"></i>
                     </a>
+                    <div class="submenu">
+                        <ul class="submenu-item">
+                            <li class="category-heading text-dark fw-bolder">Purchase Request</li>
+                            <li class="nav-item {{ Route::is('salesofficer.purchase-requests.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.purchase-requests.index') }}">B2B Pending PR</a></li>
+                            <li class="category-heading text-dark fw-bolder">Quotation</li>
+                            <li class="nav-item {{ Route::is('salesofficer.sent-quotations.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.send-quotations.index') }}">Sent Quotations</a></li>
+                            <li class="category-heading text-dark fw-bolder">Purchase Order</li>
+                            <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">B2B Submitted PO</a></li>
+                        </ul>
+                    </div>
                 </li>
 
-                <li class="nav-item {{ Route::is('salesofficer.sent-quotations.index') ? 'active' : '' }}">
-                    <a class="nav-link" href="{{ route('salesofficer.send-quotations.index') }}">
-                        <i class="link-icon" data-lucide="scroll-text"></i>
-                        <span class="menu-title">Sent Quotations</span>
-                    </a>
-                </li>
-
-                <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}">
+                <!-- <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">
-                        <i class="link-icon" data-lucide="list-ordered"></i>
-                        <span class="menu-title">B2B Submitted PO</span>
+                        <i class="link-icon" data-lucide="coins"></i>
+                        <span class="menu-title">Order Payments</span>
+                    </a>
+                </li> -->
+
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="link-icon" data-lucide="coins"></i>
+                        <span class="menu-title">Order Payments</span>
+                        <i class="link-arrow"></i>
+                    </a>
+                    <div class="submenu">
+                        <ul class="submenu-item">
+                            <li class="category-heading text-dark fw-bolder">(Pay-Now) Payment Method</li>
+                            <li class="nav-item {{ Route::is('salesofficer.paynow.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.paynow.index') }}">Pay-now</a></li>
+                            <li class="category-heading text-dark fw-bolder">(Pay-Later) Payment Method</li>
+                            <li class="nav-item {{ Route::is('salesofficer.paylater.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.paylater.index') }}">Pay-later</a></li>
+                        </ul>
+                    </div>
+                </li>
+
+                <li class="nav-item  {{ Route::is('salesofficer.email.manual.order') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('salesofficer.email.manual.order') }}">
+                        <i class="link-icon" data-lucide="mails"></i>
+                        <span class="menu-title">Manual Order</span>
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
-                        <i class="link-icon" data-lucide="list-ordered"></i>
-                        <span class="menu-title">Email Order</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="#">
+                <li class="nav-item {{ Route::is('salesofficer.paylater.index') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('salesofficer.account-receivable.index') }}"> 
                         <i class="link-icon" data-lucide="hand-coins"></i>
                         <span class="menu-title">Accounts Receivable</span>
                     </a>

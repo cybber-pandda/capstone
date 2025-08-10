@@ -21,13 +21,14 @@ class PurchaseController extends Controller
                 'items.returnRequest', // add this relation
                 'items.refundRequest'  // add this relation
             ])
-                ->where('status', 'delivered')
+                // ->where('status', 'delivered')
                 ->latest()
                 ->get();
 
             $data = [];
 
             foreach ($purchaseRequests as $pr) {
+                // i want to hide first the button it will show only if $pr->status === 'delivered'
                 foreach ($pr->items as $item) {
                     $product = $item->product;
                     $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
@@ -40,17 +41,22 @@ class PurchaseController extends Controller
                     $showRefund = !$refund || $refund->processed_by === null;
 
                     $actions = [];
+                   
+                    if ($pr->status === 'delivered') {
+                        if ($showReturn) {
+                            $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">Return</button>';
+                        } else {
+                            $actions[] = '-';
+                        }
 
-                    if ($showReturn) {
-                        $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">Return</button>';
+                        if ($showRefund) {
+                            $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">Refund</button>';
+                        } else {
+                            $actions[] = '-';
+                        }
                     } else {
-                        $actions[] = '-';
-                    }
-
-                    if ($showRefund) {
-                        $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">Refund</button>';
-                    } else {
-                        $actions[] = '-';
+                        $actions[] = '';
+                        $actions[] = '';
                     }
 
                     $actionHtml = implode('&nbsp;', $actions);

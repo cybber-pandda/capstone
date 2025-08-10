@@ -21,6 +21,7 @@
                         <li><a href="{{ route('b2b.profile.index') }}"><i class="fa-regular fa-address-card"></i> Profile</a></li>
                         <li><a href="{{ route('b2b.address.index') }}"> <i class="fa-solid fa-map-location-dot"></i> My Address</a></li>
                         <li><a href="{{ route('b2b.purchase.index') }}"> <i class="fa-solid fa-bag-shopping"></i> My Purchase</a></li>
+                        <li><a href="{{ route('b2b.purchase.order') }}"> <i class="fa-solid fa-basket-shopping"></i> My Purchase Order</a></li>
                         <li><a href="{{ route('b2b.purchase.credit') }}"> <i class="fa-solid fa-credit-card"></i> My Credit</a></li>
                         <li><a href="{{ route('b2b.purchase.rr') }}"><i class="fa-solid fa-right-left"></i> Return/Refund Items</a></li>
                         <li><a href="{{ route('notification.index') }}"><i class="fa-solid fa-bell"></i> Notification</a></li>

@@ -1,0 +1,455 @@
+<?php
+
+namespace App\Http\Controllers\SalesOfficer;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Yajra\DataTables\Facades\DataTables;
+use Carbon\Carbon;
+
+use App\Models\PurchaseRequest;
+use App\Models\CreditPayment;
+use App\Models\CreditPartialPayment;
+use App\Models\PaidPayment;
+use App\Models\User;
+use App\Models\B2BAddress;
+use App\Models\B2BDetail;
+
+class ACPaymentController extends Controller
+{
+
+    public function paynow(Request $request)
+    {
+
+        $codPR = PurchaseRequest::with('customer')
+            ->where('cod_flg', 1)
+            ->get()
+            ->mapWithKeys(function ($pr) {
+                $formattedDate = Carbon::parse($pr->created_at)->format('M. j, Y');
+                return [$pr->id => "{$pr->customer->name} - {$formattedDate}"];
+            });
+
+        if ($request->ajax()) {
+            $query = PaidPayment::with([
+                'purchaseRequest.customer',
+                'purchaseRequest.items.product',
+                'bank'
+            ])->latest();
+
+            return DataTables::of($query)
+                ->addColumn('customer_name', function ($payment) {
+                    return optional($payment->purchaseRequest->customer)->name;
+                })
+                ->addColumn('bank_name', function ($payment) {
+                    return '<p class="ms-3">' . (optional($payment->bank)->name ?? 'No bank (COD) Payment') . '</p>';
+                })
+                ->addColumn('paid_amount', function ($payment) {
+                    return '₱' . number_format($payment->paid_amount, 2);
+                })
+                ->addColumn('paid_date', function ($payment) {
+                    return optional($payment->paid_date)->format('F d, Y');
+                })
+                ->addColumn('proof_payment', function ($payment) {
+                    return $payment->proof_payment
+                        ? '<a href="' . asset($payment->proof_payment) . '" target="_blank">Show Proof Payment</a>'
+                        : 'No proof (COD) Payment';
+                })
+                ->addColumn('reference_number', function ($payment) {
+                    return '<p class="ms-3">' . ($payment->reference_number ?: 'No reference (COD) Payment') . '</p>';
+                })
+                ->addColumn('action', function ($payment) {
+                    return $payment->proof_payment && $payment->reference_number
+                        ? '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
+                            <i class="link-icon" data-lucide="copy-check"></i> Approve Payment
+                        </button>' : '<span class="badge bg-info text-white"> <i class="link-icon" data-lucide="check"></i> Payment Approved</span>';
+                })
+                ->rawColumns(['bank_name', 'proof_payment', 'reference_number', 'action'])
+                ->make(true);
+        }
+
+        return view('pages.admin.salesofficer.v_paynow', [
+            'page' => 'Pay-Now Payment Method',
+            'cashDeliveries' => $codPR
+        ]);
+    }
+
+    public function manualPayment(Request $request)
+    {
+        $request->validate([
+            'purchase_request_id' => 'required|exists:purchase_requests,id',
+            'paid_amount' => 'required|integer',
+            'paid_date' => 'required|date'
+        ]);
+
+        PaidPayment::create([
+            'purchase_request_id' => $request->purchase_request_id,
+            'paid_amount' => $request->paid_amount,
+            'paid_date' => $request->paid_date,
+            'status' => 'paid',
+            'approved_date' => $request->paid_date,
+            'approved_by' => auth()->id()
+        ]);
+
+        return response()->json([
+            'type' => 'success',
+            'message' => 'Manual (COD) payment created successfully.',
+        ]);
+    }
+
+    public function approvePayment($id)
+    {
+        $payment = PaidPayment::findOrFail($id);
+
+        if ($payment->status === 'paid') {
+            return response()->json(['message' => 'This payment is already approved.'], 400);
+        }
+
+        $payment->status = 'paid';
+        $payment->approved_at = Carbon::today();
+        $payment->approved_by = auth()->id();
+        $payment->save();
+
+        return response()->json(['message' => 'Payment has been approved successfully.']);
+    }
+
+    public function paylater(Request $request)
+    {
+        if ($request->ajax()) {
+            $paymentType = $request->get('payment_type');
+
+            if ($paymentType === 'straight') {
+                $query = CreditPayment::with([
+                    'purchaseRequest.customer',
+                    'purchaseRequest.items.product',
+                    'bank'
+                ])->latest();
+
+                return DataTables::of($query)
+                    ->addColumn('customer_name', function ($payment) {
+                        return optional($payment->purchaseRequest->customer)->name;
+                    })
+                    ->addColumn('bank_name', function ($payment) {
+                        return '<p class="ms-3">' . (optional($payment->bank)->name ?? '--') . '</p>';
+                    })
+                    ->addColumn('paid_amount', function ($payment) {
+                        return '₱' . number_format($payment->paid_amount, 2);
+                    })
+                    ->addColumn('paid_date', function ($payment) {
+                        return '<p class="ms-3">' . (optional($payment->paid_date)->format('F d, Y') ?? '--') . '</p>';
+                    })
+                    ->addColumn('proof_payment', function ($payment) {
+                        return $payment->proof_payment
+                            ? '<a href="' . asset($payment->proof_payment) . '" target="_blank">Show Proof Payment</a>'
+                            : '--';
+                    })
+                    ->addColumn('reference_number', function ($payment) {
+                        return '<p class="ms-3">' . ($payment->reference_number ?: '--') . '</p>';
+                    })
+                    ->addColumn('status', function ($payment) {
+                        return
+                            '<span class="badge bg-warning text-dark">' . ucfirst($payment->status) . '</span>';
+                    })
+                    ->addColumn('action', function ($payment) {
+                        return $payment->proof_payment && $payment->reference_number
+                            ? '<span class="badge bg-danger text-white"> <i class="link-icon" data-lucide="clock"></i> Waiting for B2B Payment</span>'
+                            : '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
+                            <i class="link-icon" data-lucide="copy-check"></i> Approve Payment
+                        </button>';
+                    })
+                    ->rawColumns(['bank_name', 'paid_date', 'proof_payment', 'reference_number', 'status', 'action'])
+                    ->make(true);
+            } elseif ($paymentType === 'partial') {
+                $query = CreditPartialPayment::with([
+                    'purchaseRequest.customer',
+                    'purchaseRequest.items.product',
+                    'bank'
+                ])
+                    ->selectRaw('purchase_request_id, bank_id, MAX(due_date) as last_due_date, SUM(amount_to_pay) as total_amount, status')
+                    ->groupBy('purchase_request_id', 'bank_id', 'status')
+                    ->latest();
+
+                return DataTables::of($query)
+                    ->addColumn('customer_name', function ($payment) {
+                        return optional($payment->purchaseRequest->customer)->name;
+                    })
+                    ->addColumn('total_amount', function ($payment) {
+                        return '₱' . number_format($payment->total_amount, 2);
+                    })
+                    ->addColumn('due_date', function ($payment) {
+                        return '<p>' . ($payment->last_due_date ? \Carbon\Carbon::parse($payment->last_due_date)->format('F d, Y') : '--') . '</p>';
+                    })
+                    ->addColumn('action', function ($payment) {
+                        return '<button type="button" class="btn btn-sm btn-inverse-dark partial-payment-list p-2" data-id="' . $payment->purchase_request_id . '" style="font-size:11px">
+                                <i class="link-icon" data-lucide="view"></i> Show Payment List</button>';
+                    })
+                    ->rawColumns(['total_amount', 'due_date', 'action'])
+                    ->make(true);
+            }
+        }
+
+        return view('pages.admin.salesofficer.v_paylater', [
+            'page' => 'Pay-Later Payment Method',
+        ]);
+    }
+
+    public function approvePaylaterPayment($id)
+    {
+        $payment = CreditPayment::findOrFail($id);
+
+        if ($payment->status === 'paid') {
+            return response()->json(['message' => 'This payment is already approved.'], 400);
+        }
+
+        $payment->status = 'paid';
+        $payment->approved_at = Carbon::today();
+        $payment->approved_by = auth()->id();
+        $payment->save();
+
+        return response()->json(['message' => 'Payment has been approved successfully.']);
+    }
+
+    public function paylaterPartial($id)
+    {
+        $payments = CreditPartialPayment::where('purchase_request_id', $id)
+            ->orderBy('due_date', 'asc')
+            ->get()
+            ->map(function ($payment) {
+                return [
+                    'id' => $payment->id,
+                    'amount_to_pay' => $payment->amount_to_pay,
+                    'due_date_formatted' => $payment->due_date
+                        ? Carbon::parse($payment->due_date)->format('F j, Y')
+                        : null,
+                    'status' => $payment->status,
+                    'date_paid' => $payment->paid_date
+                        ? Carbon::parse($payment->paid_date)->format('F j, Y')
+                        : null,
+                    'paid_amount' => $payment->paid_amount,
+                    'proof_payment' => $payment->proof_payment
+                        ? asset($payment->proof_payment)
+                        : null,
+                    'reference_number' => $payment->reference_number,
+                ];
+            });
+
+        return response()->json($payments);
+    }
+
+    public function approvePartialPaylaterPayment($id)
+    {
+        $payment = CreditPartialPayment::findOrFail($id);
+
+        if ($payment->status === 'paid') {
+            return response()->json(['message' => 'This payment is already approved.'], 400);
+        }
+
+        $payment->status = 'paid';
+        $payment->approved_at = Carbon::today();
+        $payment->approved_by = auth()->id();
+        $payment->save();
+
+        return response()->json(['message' => 'Payment has been approved successfully.']);
+    }
+
+    public function account_receivable(Request $request)
+    {
+        $today = now()->toDateString();
+
+        // Overall totals
+        $totalPendingStraight = CreditPayment::where('status', 'pending')->sum('paid_amount');
+        $totalPendingPartial  = CreditPartialPayment::where('status', 'pending')->sum('amount_to_pay');
+        $totalPending = $totalPendingStraight + $totalPendingPartial;
+
+        $totalOverDueStraight = CreditPayment::where('status', 'pending')
+            ->whereDate('due_date', '<', $today)
+            ->sum('paid_amount');
+        $totalOverDuePartial = CreditPartialPayment::where('status', 'pending')
+            ->whereDate('due_date', '<', $today)
+            ->sum('amount_to_pay');
+        $totalOverDue = $totalOverDueStraight + $totalOverDuePartial;
+
+        $totalBalance = $totalPending + $totalOverDue;
+
+        $customers = User::whereHas('purchaseRequests')
+            ->with(['purchaseRequests.creditPayment', 'purchaseRequests.creditPartialPayments'])
+            ->get()
+            ->map(function ($customer) use ($today) {
+
+                $pendingStraight = $customer->purchaseRequests
+                    ->pluck('creditPayment')
+                    ->filter(fn($payment) => $payment && $payment->status === 'pending')
+                    ->sum('paid_amount');
+
+                $pendingPartial = $customer->purchaseRequests
+                    ->flatMap(fn($pr) => $pr->creditPartialPayments)
+                    ->filter(fn($payment) => $payment->status === 'pending')
+                    ->sum('amount_to_pay');
+
+                $overdueStraight = $customer->purchaseRequests
+                    ->pluck('creditPayment')
+                    ->filter(
+                        fn($payment) =>
+                        $payment &&
+                            $payment->status === 'pending' &&
+                            $payment->due_date < $today
+                    )
+                    ->sum('paid_amount');
+
+                $overduePartial = $customer->purchaseRequests
+                    ->flatMap(fn($pr) => $pr->creditPartialPayments)
+                    ->filter(
+                        fn($payment) =>
+                        $payment->status === 'pending' &&
+                            $payment->due_date < $today
+                    )
+                    ->sum('amount_to_pay');
+
+                $pending = $pendingStraight + $pendingPartial;
+                $overdue = $overdueStraight + $overduePartial;
+                $balance = $pending + $overdue;
+
+                $firstPrId = $customer->purchaseRequests->first()?->id;
+
+                return [
+                    'user_id'       => $customer->id,
+                    'customer_name' => $customer->name,
+                    'pending'       => $pending,
+                    'overdue'       => $overdue,
+                    'balance'       => $balance,
+                    'pr_id'         => $firstPrId,
+                ];
+            });
+
+        if ($request->ajax()) {
+            return DataTables::of($customers)
+                ->addColumn('pending', fn($row) => '₱' . number_format($row['pending'], 2))
+                ->addColumn('overdue', fn($row) => '₱' . number_format($row['overdue'], 2))
+                ->addColumn('balance', fn($row) => '₱' . number_format($row['balance'], 2))
+                ->addColumn('action', function ($row) {
+                    return '<button class="btn btn-sm btn-primary view-details" data-userid="' . e($row['user_id']) . '" data-prid="' . e($row['pr_id']) . '">View Details</button>';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+
+        return view('pages.admin.salesofficer.v_accountreceivable', [
+            'page'          => 'Account Receivable',
+            'totalPending'  => $totalPending,
+            'totalOverDue'  => $totalOverDue,
+            'totalBalance'  => $totalBalance,
+            'customers'     => $customers,
+        ]);
+    }
+
+    public function account_receivable_details($userid, $prid)
+    {
+        $today = now()->toDateString();
+
+        $customer = User::where('id', $userid)
+            ->with(['purchaseRequests.creditPayment', 'purchaseRequests.creditPartialPayments'])
+            ->first();
+
+        if (!$customer) {
+            return response()->json(['error' => 'Customer not found'], 404);
+        }
+
+        $purchaseRequests = $prid
+            ? $customer->purchaseRequests->where('id', $prid)
+            : $customer->purchaseRequests;
+
+        $pendingStraight = $purchaseRequests
+            ->pluck('creditPayment')
+            ->filter(fn($payment) => $payment && $payment->status === 'pending')
+            ->sum('paid_amount');
+
+        $pendingPartial = $purchaseRequests
+            ->flatMap(fn($pr) => $pr->creditPartialPayments)
+            ->filter(fn($payment) => $payment->status === 'pending')
+            ->sum('amount_to_pay');
+
+        $overdueStraight = $purchaseRequests
+            ->pluck('creditPayment')
+            ->filter(
+                fn($payment) =>
+                $payment &&
+                    $payment->status === 'pending' &&
+                    $payment->due_date < $today
+            )
+            ->sum('paid_amount');
+
+        $overduePartial = $purchaseRequests
+            ->flatMap(fn($pr) => $pr->creditPartialPayments)
+            ->filter(
+                fn($payment) =>
+                $payment->status === 'pending' &&
+                    $payment->due_date < $today
+            )
+            ->sum('amount_to_pay');
+
+        $pending = $pendingStraight + $pendingPartial;
+        $overdue = $overdueStraight + $overduePartial;
+        $balance = $pending + $overdue;
+
+        $firstPrId = $purchaseRequests->first()?->id;
+
+        $customerAddress = B2BAddress::where('user_id', $userid)->where('status', 'active')->first();
+        $customerRequirement = B2BDetail::where('user_id', $userid)->where('status', 'approved')->first();
+        
+        $creditPaymentType = null;
+
+        if ($prid) {
+            $pr = $purchaseRequests->firstWhere('id', $prid);
+            $creditPaymentType = $pr ? $pr->credit_payment_type : null;
+        } else {
+            $pr = $purchaseRequests->first();
+            $creditPaymentType = $pr ? $pr->credit_payment_type : null;
+        }
+
+        return response()->json([ // can you in here  i want to display column credit_payment type from purchase request table
+            'customer' => [
+                'user_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'customer_email' => $customer->email,
+                'customer_creditlimit' => number_format($customer->credit_limit, 2),
+                'pending' => number_format($pending, 2),
+                'overdue' => number_format($overdue, 2),
+                'balance' => number_format($balance, 2),
+                'pr_id' => $firstPrId,
+                'credit_payment_type' => $creditPaymentType,
+            ],
+            'customerAddress' => $customerAddress,
+            'customerRequirements' => $customerRequirement
+        ]);
+    }
+
+    public function account_receivable_payments($userid, $prid, Request $request)
+    {
+        $type = $request->query('type', 'straight');
+        $customer = User::find($userid);
+
+        if (!$customer) {
+            return response()->json(['payments' => []]);
+        }
+
+        $purchaseRequest = $customer->purchaseRequests()->where('id', $prid)->first();
+
+        if (!$purchaseRequest) {
+            return response()->json(['payments' => []]);
+        }
+
+        if ($type === 'partial') {
+            $payments = $purchaseRequest->creditPartialPayments()->get();
+        } else {
+            $payments = $purchaseRequest->creditPayment ? collect([$purchaseRequest->creditPayment]) : collect();
+        }
+
+        $invoiceNumber = 'INV-' . str_pad($purchaseRequest->id, 5, '0', STR_PAD_LEFT);
+
+        $payments = $payments->map(function ($payment) use ($invoiceNumber) {
+            $payment->invoice_number = $invoiceNumber;
+            return $payment;
+        });
+
+        return response()->json(['payments' => $payments]);
+    }
+}

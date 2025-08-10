@@ -18,7 +18,7 @@
             <th>Total Items</th>
             <th>Grand Total</th>
             <th>Status</th>
-            <th>Rating</th>
+            <th></th>
             <th></th>
         </tr>'
         ])

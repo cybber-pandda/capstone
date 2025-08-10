@@ -15,6 +15,8 @@ use App\Models\DeliveryHistory;
 use App\Models\Notification;
 use App\Models\PurchaseRequest;
 use App\Models\Inventory;
+use App\Models\B2BDetail;
+use App\Models\B2BAddress;
 
 class DeliveryController extends Controller
 {
@@ -69,7 +71,7 @@ class DeliveryController extends Controller
                 ->editColumn('created_at', fn($pr) => $pr->created_at->format('Y-m-d H:i:s'))
                 ->addColumn('action', function ($pr) {
                     $btn = '<button class="btn btn-sm btn-inverse-info view-items-btn" data-id="' . $pr->id . '"><i class="link-icon" data-lucide="list"></i> View Items</button> ';
-                    //$btn .= '<a href="' . route('deliveryrider.delivery.tracking', $pr->id) . '" class="btn btn-sm btn-inverse-primary">Track</a>';
+                    $btn .= '<a href="' . route('deliveryrider.delivery.sales.inv', $pr->id) . '" class="btn btn-sm btn-inverse-primary">Show Sales Invoice</a>';
                     return $btn;
                 })
                 ->rawColumns(['action'])
@@ -398,5 +400,29 @@ class DeliveryController extends Controller
         return view('pages.admin.deliveryrider.v_deliveryRating', [
             'page' => 'My Delivery Rating',
         ]);
+    }
+
+     public function show_sales_inv($id)
+    {
+        $page = "Sales Invoice";
+        $b2bReqDetails = null;
+        $b2bAddress = null;
+        $salesOfficer = null;
+
+        $superadmin = User::where('role', 'superadmin')->first();
+
+        $quotation = PurchaseRequest::with(['customer', 'items.product'])
+            ->findOrFail($id);
+
+        if ($quotation->customer_id) {
+            $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
+            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+        }
+
+        if ($quotation->prepared_by_id) {
+            $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+        }
+
+        return view('pages.admin.deliveryrider.v_sales_invoice', compact('quotation', 'page', 'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin'));
     }
 }

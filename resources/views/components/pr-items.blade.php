@@ -15,12 +15,16 @@
     }
 @endphp
 
+
 <h5 class="font-weight-bolder">
     PR ID: {{ $pr->id }}-{{ date('Ymd', strtotime($pr->created_at)) }}
+    @if(Auth::user()->role === 'salesofficer')
     <span class="badge {{ $badgeClass }} text-white" style="font-size: 0.800rem;">
         {!! $badgeText !!}
     </span>
+    @endif
 </h5>
+
 
 
 <div class="d-flex justify-content-between mb-3">
@@ -30,7 +34,7 @@
             {{ date('M j, Y', strtotime($pr->created_at)) }}
         </h6>
     </div>
-
+    @if(Auth::user()->role === 'salesofficer')
     <div id="prActions" class="d-flex gap-2">
         <button type="button" class="btn btn-primary" id="sendQuotationBtn">
             <span class="sendQuotationBtn_button_text">Approve</span>
@@ -41,6 +45,7 @@
             <span class="rejectQuotationBtn_load_data d-none">Loading <i class="loader"></i></span>
         </button>
     </div>
+    @endif
 </div>
 
 <div class="row p-3">

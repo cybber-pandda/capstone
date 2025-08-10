@@ -22,21 +22,26 @@ class CreatePurchaseRequestsTable extends Migration
                 'pending',           // default, customer just submitted
                 'quotation_sent',    // assistant sales officer has sent quotation
                 'po_submitted',      // customer submitted purchase order
+                'payment_approved', // process payment before creating SO 
                 'so_created',        // sales officer generated a sales order
                 'delivery_in_progress', // delivery driver assigned
                 'delivered',         // delivery completed
                 'invoice_sent',      // sales invoice sent
                 'cancelled',         // purchase request cancelled
                 'returned',          // customer returned the item
-                'refunded'           // refund processed
+                'refunded',           // refund processed
+                'reject_quotation'
             ])->default('pending');
             $table->integer('vat')->default(12);
             $table->date('b2b_delivery_date')->nullable();
             $table->decimal('delivery_fee', 10, 2)->nullable();
             $table->boolean('credit')->default(false);
+            $table->decimal('credit_amount', 10, 2)->nullable();
+            $table->string('credit_payment_type', 20)->nullable();
             $table->enum('payment_method', ['pay_now', 'pay_later'])->nullable();
-            $table->string('proof_payment')->nullable();
-            $table->string('reference_number', 30)->nullable();
+            $table->boolean('cod_flg')->default(false);
+            // $table->string('proof_payment')->nullable();
+            // $table->string('reference_number', 30)->nullable();
             $table->text('pr_remarks')->nullable();
             $table->text('pr_remarks_cancel')->nullable();
             $table->text('date_issued')->nullable();

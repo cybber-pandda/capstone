@@ -32,7 +32,7 @@
                     <span><b>Name:</b> {{ $quotation->customer->name ?? 'No customer name provided' }}</span>
                     <span><b>Address:</b> {{ $b2bAddress->full_address ?? 'No full address provided' }}</span>
                     <span><b>TIN:</b> {{ $b2bReqDetails->tin_number ?? 'No TIN provided' }}</span>
-                    <span><b>Business Style:</b> {{  $b2bReqDetails->business_name ?? 'No business style provided' }}</span>
+                    <span><b>Business Style:</b> {{ $b2bReqDetails->business_name ?? 'No business style provided' }}</span>
                 </div>
 
                 <div style="display: flex; flex-direction: column;">
@@ -45,7 +45,7 @@
             <!-- Table Column -->
             <div class="col-sm-8 col-xs-12">
                 <div style="overflow-x: auto; width: 100%;">
-                     
+
                     <table class="table table-bordered" style="min-width: 600px;margin-top: 20px;margin-bottom:20px;">
                         <thead>
                             <tr>
@@ -69,33 +69,33 @@
                         </tbody>
 
                         @php
-                            $subtotal = $quotation->items->sum('subtotal');
-                            $vatRate = $quotation->vat ?? 0;
-                            $vat = $subtotal * ($vatRate / 100);
-                            $delivery_fee = $quotation->delivery_fee ?? 0;
-                            $total = $subtotal + $vat + $delivery_fee;
-                            $vatableSales = $subtotal;
-                            $amountPaid = 0.00;
+                        $subtotal = $quotation->items->sum('subtotal');
+                        $vatRate = $quotation->vat ?? 0;
+                        $vat = $subtotal * ($vatRate / 100);
+                        $delivery_fee = $quotation->delivery_fee ?? 0;
+                        $total = $subtotal + $vat + $delivery_fee;
+                        $vatableSales = $subtotal;
+                        $amountPaid = 0.00;
 
-                            $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
-                            $b2bDate = $quotation->b2b_delivery_date;
-                            $delivery_date = null;
-                            $show_note = false;
+                        $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
+                        $b2bDate = $quotation->b2b_delivery_date;
+                        $delivery_date = null;
+                        $show_note = false;
 
-                            if (!is_null($b2bDate)) {
-                                $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
-                            } elseif ($quotation->status !== 'pending') {
-                                if ($isLargeOrder) {
-                                    $delivery_date = now()->addDays(2)->format('F j, Y') . ' to ' . now()->addDays(3)->format('F j, Y');
-                                    $show_note = true;
-                                } else {
-                                    $delivery_date = now()->format('F j, Y');
-                                }
-                            }
-                          
+                        if (!is_null($b2bDate)) {
+                        $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+                        } elseif ($quotation->status !== 'pending') {
+                        if ($isLargeOrder) {
+                        $delivery_date = now()->addDays(2)->format('F j, Y') . ' to ' . now()->addDays(3)->format('F j, Y');
+                        $show_note = true;
+                        } else {
+                        $delivery_date = now()->format('F j, Y');
+                        }
+                        }
+
                         @endphp
 
-                        <tfoot> 
+                        <tfoot>
                             <tr>
                                 <td colspan="4" class="text-right"><span>Subtotal:</span></td>
                                 <td class="text-right">₱{{ number_format($subtotal, 2) }}</td>
@@ -129,18 +129,18 @@
                             <b>Delivery Date:</b><br>
                             {{ $delivery_date }}
                             @if($show_note)
-                                <br><small><i>Note: Expect delay if too many orders since we are preparing it.</i></small>
+                            <br><small><i>Note: Expect delay if too many orders since we are preparing it.</i></small>
                             @endif
-                        </span> 
+                        </span>
                         <span><b>Payment Terms:</b><br> {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}</span>
                     </div>
 
                 </div>
 
                 <div class="text-right" style="margin-top: 10px;">
-                    
+
                     <a href="{{ route('b2b.quotation.download', ['id' => $quotation->id]) }}" class="btn btn-primary">
-                       <i class="fa fa-file-pdf"></i> Download PDF
+                        <i class="fa fa-file-pdf"></i> Download PDF
                     </a>
 
                     <button type="button" class="btn btn-warning" id="submitQuotationBtn" data-id="{{ $quotation->id }}">
@@ -167,35 +167,54 @@
                         @csrf
                         <input type="hidden" name="quotation_id" id="modal_quotation_id">
 
+                        {{-- COD Dropdown --}}
                         <div style="margin-bottom:10px;">
-                            <label for="bank_id" class="form-label">Select Bank:</label>
-                            <select class="form-select form-control" name="bank_id" id="bank_id">
-                                <option selected disabled value="">-- Choose a bank --</option>
-                                @foreach ($banks as $bank)
-                                <option value="{{ $bank->id }}"
-                                    data-account="{{ $bank->account_number }}"
-                                    data-qr="{{ asset( $bank->image ) }}">{{ $bank->name }}</option>
-                                @endforeach
+                            <label for="cod_flg" class="form-label">Payment Method:</label>
+                            <select name="cod_flg" id="cod_flg" class="form-control">
+                                <option value="" selected disabled>-- Select Payment Method --</option>
+                                <option value="1">Cash on Delivery</option>
+                                <option value="0">Bank Transfer</option>
                             </select>
-                            <div class="invalid-feedback bank_id_error text-danger"></div>
-                            
+                            <div class="invalid-feedback cod_flg_error text-danger"></div>
+                        </div>
 
-                            <div id="bankDetails" class="text-center  d-none" style="margin-top:5px;margin-bottom:5px;">
-                                <p class="mb-1"><strong>Account Number:</strong> <span id="accountNumber"></span></p>
-                                <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid" style="max-height: 200px;" />
+                        {{-- Bank Transfer Details (shown only if cod_flg = 0) --}}
+                        <div id="bankTransferSection" class="d-none">
+                            <div style="margin-bottom:10px;">
+                                <label for="bank_id" class="form-label">Select Bank:</label>
+                                <select class="form-select form-control" name="bank_id" id="bank_id">
+                                    <option selected disabled value="">-- Choose a bank --</option>
+                                    @foreach ($banks as $bank)
+                                    <option value="{{ $bank->id }}"
+                                        data-account="{{ $bank->account_number }}"
+                                        data-qr="{{ asset($bank->image) }}">{{ $bank->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="invalid-feedback bank_id_error text-danger"></div>
+
+                                <div id="bankDetails" class="text-center d-none" style="margin-top:5px;margin-bottom:5px;">
+                                    <p class="mb-1"><strong>Account Number:</strong> <span id="accountNumber"></span></p>
+                                    <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid" style="max-height: 200px;" />
+                                </div>
                             </div>
-                        </div>
 
-                        <div style="margin-bottom:10px;">
-                            <label for="proof_payment" class="form-label">Upload Proof:</label>
-                            <input type="file" class="form-control" name="proof_payment" id="proof_payment" accept="image/*">
-                            <div class="invalid-feedback proof_payment_error text-danger"></div>
-                        </div>
+                            <div style="margin-bottom:10px;">
+                                <label for="paid_amount" class="form-label">Paid Amount:</label>
+                                <input type="number" class="form-control" name="paid_amount" id="paid_amount" placeholder="Enter paid amount">
+                                <div class="invalid-feedback paid_amount_error text-danger"></div>
+                            </div>
 
-                         <div style="margin-bottom:10px;">
-                            <label for="reference_number" class="form-label">Reference Number:</label>
-                            <input type="text" class="form-control" name="reference_number" id="reference_number" placeholder="Enter reference number">
-                            <div class="invalid-feedback reference_number_error text-danger"></div>
+                            <div style="margin-bottom:10px;">
+                                <label for="proof_payment" class="form-label">Upload Proof:</label>
+                                <input type="file" class="form-control" name="proof_payment" id="proof_payment" accept="image/*">
+                                <div class="invalid-feedback proof_payment_error text-danger"></div>
+                            </div>
+
+                            <div style="margin-bottom:10px;">
+                                <label for="reference_number" class="form-label">Reference Number:</label>
+                                <input type="text" class="form-control" name="reference_number" id="reference_number" placeholder="Enter reference number">
+                                <div class="invalid-feedback reference_number_error text-danger"></div>
+                            </div>
                         </div>
 
                     </form>
@@ -241,7 +260,88 @@
 
 @push('scripts')
 <script>
-    $(document).ready(function () {
+    $(document).ready(function() {
+        // $(document).on('click', '#submitQuotationBtn', function() {
+        //     const id = $(this).data('id');
+
+        //     Swal.fire({
+        //         title: 'Submit and Pay?',
+        //         text: "You're about to submit a Purchase Order. Choose your payment method.",
+        //         icon: 'info',
+        //         showDenyButton: true,
+        //         showCancelButton: true,
+        //         confirmButtonText: 'Pay Now',
+        //         denyButtonText: 'Pay Later',
+        //         cancelButtonText: 'Cancel',
+        //     }).then((result) => {
+        //         if (result.isConfirmed) {
+        //             $('#modal_quotation_id').val(id);
+        //             $('#paymentModal').modal('show');
+        //         } else if (result.isDenied) {
+        //             Swal.fire({  // in here there should be select were user can select first if straight payment or Partial Payment after done selecting enable confirm pay later button by default that is disabled
+        //                 title: 'Pay Later Confirmation',
+        //                 text: "You have 1 month to complete payment. Your credit limit will be checked.",
+        //                 icon: 'warning',
+        //                 showCancelButton: true,
+        //                 confirmButtonText: 'Confirm Pay Later',
+        //                 cancelButtonText: 'Cancel',
+        //             }).then((result) => {
+        //                 if (result.isConfirmed) {
+        //                     // Show loading state for exactly 3 seconds
+        //                     Swal.fire({
+        //                         title: 'Processing...',
+        //                         html: 'Submitting your pay later request',
+        //                         allowOutsideClick: false,
+        //                         showConfirmButton: false,
+        //                         timer: 3000, // Show for 3 seconds
+        //                         timerProgressBar: true,
+        //                         willOpen: () => Swal.showLoading(),
+        //                         didOpen: () => {
+        //                             // Submit the request after showing loading for 3 seconds
+        //                             setTimeout(() => {
+        //                                 $.ajax({
+        //                                     url: '/b2b/quotations/payment/paylater',
+        //                                     method: 'POST',
+        //                                     data: {
+        //                                         quotation_id: id,
+        //                                         _token: '{{ csrf_token() }}'
+        //                                         // we need to get the value here if straight payment or partial payment
+        //                                     },
+        //                                     success: function(response) {
+        //                                         Swal.fire({
+        //                                             icon: 'success',
+        //                                             title: 'Success!',
+        //                                             html: `${response.message}<br>Remaining Credit: ₱${response.credit_limit_remaining.toLocaleString()}`,
+        //                                             showConfirmButton: true,
+        //                                             confirmButtonText: 'View Order'
+        //                                         }).then(() => {
+        //                                             window.location.href = `/b2b/quotations/review?track_id=${id}`;
+        //                                         });
+        //                                     },
+        //                                     error: function(error) {
+        //                                         let errorMsg = error.responseJSON?.message || 'Request failed';
+        //                                         if (error.status === 400 && error.responseJSON?.credit_limit_remaining !== undefined) {
+        //                                             errorMsg += `<br>Your credit: ₱${error.responseJSON.credit_limit_remaining.toLocaleString()}`;
+        //                                         }
+
+        //                                         Swal.fire({
+        //                                             icon: 'error',
+        //                                             title: 'Error',
+        //                                             html: errorMsg,
+        //                                             confirmButtonText: 'OK'
+        //                                         });
+        //                                     }
+        //                                 });
+        //                             }, 3000);
+        //                         }
+        //                     });
+        //                 }
+        //             });
+        //         }
+        //     });
+
+        // });
+
         $(document).on('click', '#submitQuotationBtn', function() {
             const id = $(this).data('id');
 
@@ -261,30 +361,54 @@
                 } else if (result.isDenied) {
                     Swal.fire({
                         title: 'Pay Later Confirmation',
-                        text: "You have 1 month to complete payment. Your credit limit will be checked.",
+                        html: `
+                                <p>You have 1 month to complete payment. Your credit limit will be checked.</p>
+                                <select id="paymentTypeSelect" class="swal2-select">
+                                    <option value="" disabled selected>-- Select Payment Type --</option>
+                                    <option value="straight">Straight Payment</option>
+                                    <option value="partial">Partial Payment</option>
+                                </select>
+                            `,
                         icon: 'warning',
                         showCancelButton: true,
                         confirmButtonText: 'Confirm Pay Later',
                         cancelButtonText: 'Cancel',
+                        didOpen: () => {
+                            const confirmBtn = Swal.getConfirmButton();
+                            confirmBtn.disabled = true; // disable until selection
+
+                            document.getElementById('paymentTypeSelect').addEventListener('change', function() {
+                                confirmBtn.disabled = (this.value === '');
+                            });
+                        },
+                        preConfirm: () => {
+                            const type = document.getElementById('paymentTypeSelect').value;
+                            if (!type) {
+                                Swal.showValidationMessage('Please select a payment type.');
+                                return false;
+                            }
+                            return type;
+                        }
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            // Show loading state for exactly 3 seconds
+                            const paymentType = result.value; // straight or partial
+
                             Swal.fire({
                                 title: 'Processing...',
                                 html: 'Submitting your pay later request',
                                 allowOutsideClick: false,
                                 showConfirmButton: false,
-                                timer: 3000, // Show for 3 seconds
+                                timer: 3000,
                                 timerProgressBar: true,
                                 willOpen: () => Swal.showLoading(),
                                 didOpen: () => {
-                                    // Submit the request after showing loading for 3 seconds
                                     setTimeout(() => {
                                         $.ajax({
                                             url: '/b2b/quotations/payment/paylater',
                                             method: 'POST',
                                             data: {
                                                 quotation_id: id,
+                                                payment_type: paymentType,
                                                 _token: '{{ csrf_token() }}'
                                             },
                                             success: function(response) {
@@ -319,7 +443,15 @@
                     });
                 }
             });
+        });
 
+
+        $('#cod_flg').on('change', function() {
+            if ($(this).val() == '0') {
+                $('#bankTransferSection').removeClass('d-none');
+            } else {
+                $('#bankTransferSection').addClass('d-none');
+            }
         });
 
         $('#submitPaymentBtn').on('click', function(e) {
@@ -328,7 +460,7 @@
             let form = $('#paymentForm')[0];
             let formData = new FormData(form);
 
-            $$(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...');
+            $(this).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...');
             $(this).prop('disabled', true);
 
             $.ajax({
@@ -360,18 +492,18 @@
                             $(`.${field}_error`).text(errorMessage).show();
                         }
                     } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Failed',
-                        text: xhr.responseJSON?.message || 'Something went wrong.',
-                    });
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Failed',
+                            text: xhr.responseJSON?.message || 'Something went wrong.',
+                        });
                     }
                 }
             });
         });
 
         // Show Cancel Modal
-        $(document).on('click', '.cancel-pr-btn', function () {
+        $(document).on('click', '.cancel-pr-btn', function() {
             const id = $(this).data('id');
             $('#cancelQuotationId').val(id);
             $('#cancelRemarks').val('');
@@ -379,7 +511,7 @@
         });
 
         // Confirm Cancel Action
-        $(document).on('click', '#confirmCancelPRBtn', function () {
+        $(document).on('click', '#confirmCancelPRBtn', function() {
             const prId = $('#cancelQuotationId').val();
             const remarks = $('#cancelRemarks').val();
 
@@ -392,16 +524,16 @@
                     remarks: remarks,
                     _token: $('meta[name="csrf-token"]').attr('content')
                 },
-                success: function (res) {
+                success: function(res) {
                     $('#cancelPRModal').modal('hide');
                     toast('success', res.message);
                     $('#processingTable').DataTable().ajax.reload(null, false);
                     $('#confirmCancelPRBtn').prop('disabled', false);
-                    setTimeout(function(){
-                       window.location = '/b2b/quotations/review#cancelledTab';
+                    setTimeout(function() {
+                        window.location = '/b2b/quotations/review#cancelledTab';
                     }, 3000);
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     toast('error', xhr.responseJSON?.message || 'Failed to cancel.');
                     $('#confirmCancelPRBtn').prop('disabled', false);
                 }
@@ -409,6 +541,5 @@
         });
 
     });
-
 </script>
 @endpush

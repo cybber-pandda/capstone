@@ -5,12 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Carbon\Carbon;
 
 class PurchaseRequest extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $fillable = ['customer_id', 'prepared_by_id', 'bank_id', 'status', 'vat', 'b2b_delivery_date', 'delivery_fee', 'credit', 'payment_method', 'proof_payment', 'reference_number', 'pr_remarks', 'pr_remarks_cancel', 'date_issued'];
+    protected $fillable = ['customer_id', 'prepared_by_id', 'status', 'vat', 'b2b_delivery_date', 'delivery_fee', 'credit', 'credit_amount', 'credit_payment_type', 'payment_method', 'cod_flg','pr_remarks', 'pr_remarks_cancel', 'date_issued'];
 
     public function customer()
     {
@@ -25,10 +26,6 @@ class PurchaseRequest extends Model
     public function items()
     {
         return $this->hasMany(PurchaseRequestItem::class);
-    }
-    public function bank()
-    {
-        return $this->belongsTo(Bank::class);
     }
 
     public function returns()
@@ -46,12 +43,34 @@ class PurchaseRequest extends Model
         return $this->hasOne(CreditPayment::class);
     }
 
-    public function createCreditPayment($dueDate, $totalAmount)
+   public function creditPartialPayments()
+    {
+        return $this->hasMany(CreditPartialPayment::class);
+    }
+
+
+    public function createStraightCreditPayment($dueDate)
     {
         return $this->creditPayment()->create([
-            'credit_amount' => $totalAmount,
             'due_date' => $dueDate,
-            'status' => 'unpaid'
+            'status' => 'pending'
         ]);
     }
+
+    public function createPartialCreditPayments($startDate, $totalAmount)
+    {
+        $numPayments = 4;
+        $paymentAmount = round($totalAmount / $numPayments, 2);
+
+        for ($i = 1; $i <= $numPayments; $i++) {
+            $dueDate = Carbon::parse($startDate)->addWeeks($i); 
+    
+            $this->creditPartialPayments()->create([
+                'due_date' => $dueDate->toDateString(),
+                'amount_to_pay'   => $paymentAmount,
+                'status'   => 'pending'
+            ]);
+        }
+    }
+
 }

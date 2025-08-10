@@ -31,7 +31,7 @@
         </div>
     </div>
 
-    @component('components.modal', ['id' => 'viewPRModal', 'size' => 'lg', 'scrollable' => true])
+    @component('components.modal', ['id' => 'viewPRModal', 'size' => 'xl', 'scrollable' => true])
     <div id="prDetails"></div>
     @endcomponent
 

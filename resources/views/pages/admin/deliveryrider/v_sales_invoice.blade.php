@@ -1,0 +1,139 @@
+@extends('layouts.dashboard')
+
+@section('content')
+<div class="page-content container-xxl">
+    <div class="row g-4">
+
+        <!-- Customer Info Column -->
+        <div class="col-md-4">
+            <div class="p-4 border border-2 border-dark rounded">
+                <h3 class="fw-bold text-uppercase mb-3">
+                    <i>Tanctuco Construction & Trading Corporation</i>
+                </h3>
+                <div class="mb-3">
+                    <strong>Balubal, Sariaya, Quezon</strong>
+                    <div>VAT Reg TIN: {{ $companySettings->company_vat_reg ?? 'No VAT Reg TIN provided' }}</div>
+                    <div>Tel: {{ $companySettings->company_tel ?? 'No Tel provided' }}</div>
+                    <div>Telefax: {{ $companySettings->company_telefax ?? 'No Telefax provided' }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <h4 class="mb-1"><strong>Sales Invoice</strong></h4>
+                    <div><b>No:</b> {{ $quotation->id ?? 'No PO provided' }}-{{ date('Ymd', strtotime($quotation->created_at)) }}</div>
+                    <div><b>Date Issued:</b> {{ $quotation->date_issued ?? 'No date issued provided' }}</div>
+                    <div><b>Valid for 7 days</b></div>
+                </div>
+
+                <div class="mb-3">
+                    <h4 class="mb-1"><strong>Billed To</strong></h4>
+                    <div><b>Name:</b> {{ $quotation->customer->name ?? 'No customer name provided' }}</div>
+                    <div><b>Address:</b> {{ $b2bAddress->full_address ?? 'No full address provided' }}</div>
+                    <div><b>TIN:</b> {{ $b2bReqDetails->tin_number ?? 'No TIN provided' }}</div>
+                    <div><b>Business Style:</b> {{ $b2bReqDetails->business_name ?? 'No business style provided' }}</div>
+                </div>
+
+                <div>
+                    <div class="mb-3"><b>Prepared By:</b><br>{{ $superadmin->name ?? 'No superadmin name provided' }}</div>
+                    <div><b>Authorized Representative:</b><br>{{ $salesOfficer->name ?? 'No sales officer name provided' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Column -->
+        <div class="col-md-8">
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product Name</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Unit Price</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($quotation->items as $item)
+                        <tr>
+                            <td>{{ $item->product->sku }}</td>
+                            <td>{{ $item->product->name }}</td>
+                            <td class="text-center">{{ $item->quantity }}</td>
+                            <td class="text-end">₱{{ number_format($item->product->price, 2) }}</td>
+                            <td class="text-end">₱{{ number_format($item->quantity * $item->product->price, 2) }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+
+                    @php
+                        $subtotal = $quotation->items->sum('subtotal');
+                        $vatRate = $quotation->vat ?? 0;
+                        $vat = $subtotal * ($vatRate / 100);
+                        $delivery_fee = $quotation->delivery_fee ?? 0;
+                        $total = $subtotal + $vat + $delivery_fee;
+                        $vatableSales = $subtotal;
+                        $amountPaid = 0.00;
+
+                        $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
+                        $b2bDate = $quotation->b2b_delivery_date;
+                        $delivery_date = null;
+                        $show_note = false;
+
+                        if (!is_null($b2bDate)) {
+                            $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+                        } elseif ($quotation->status !== 'pending') {
+                            if ($isLargeOrder) {
+                                $delivery_date = now()->addDays(2)->format('F j, Y') . ' to ' . now()->addDays(3)->format('F j, Y');
+                                $show_note = true;
+                            } else {
+                                $delivery_date = now()->format('F j, Y');
+                            }
+                        }
+                    @endphp
+
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end">Subtotal:</td>
+                            <td class="text-end">₱{{ number_format($subtotal, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end">VAT ({{ $vatRate }}%):</td>
+                            <td class="text-end">₱{{ number_format($vat, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end">Vatable Sales:</td>
+                            <td class="text-end">₱{{ number_format($vatableSales, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end">Delivery Fee:</td>
+                            <td class="text-end">₱{{ number_format($delivery_fee, 2) }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end">Amount Paid:</td>
+                            <td class="text-end">₱{{ number_format($amountPaid, 2) }}</td>
+                        </tr>
+                        <tr class="fw-bold">
+                            <td colspan="4" class="text-end fs-5">Grand Total:</td>
+                            <td class="text-end fs-5">₱{{ number_format($total, 2) }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div>
+                <div class="mb-2">
+                    <b>Delivery Date:</b><br>
+                    {{ $delivery_date }}
+                    @if($show_note)
+                        <br><small class="text-muted fst-italic">Note: Expect delay if too many orders since we are preparing it.</small>
+                    @endif
+                </div>
+                <div>
+                    <b>Payment Terms:</b><br>
+                    {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+@endsection

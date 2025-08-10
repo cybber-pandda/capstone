@@ -49,6 +49,26 @@
                     </div>
                 </div>
             </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i data-lucide="bell"></i>
+                    <div class="indicator" id="notificationIndicator" style="display:none;">
+                        <div class="circle"></div>
+                    </div>
+                </a>
+                <div class="dropdown-menu p-0" aria-labelledby="notificationDropdown">
+                    <div class="px-3 py-2 d-flex align-items-center justify-content-between border-bottom">
+                        <p id="notificationCount">0 New Notifications</p>
+                        <a href="javascript:;" class="text-secondary mx-2" onclick="markAllNotificationsRead()">Clear all</a>
+                    </div>
+                    <div class="p-1" id="notificationItems">
+                        <div class="text-center py-2 text-muted">Loading...</div>
+                    </div>
+                    <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
+                        <a href="{{ route('notification.index') }}">View all</a>
+                    </div>
+                </div>
+            </li>
             <!-- <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <i data-lucide="bell"></i>

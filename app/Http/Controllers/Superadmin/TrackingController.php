@@ -26,7 +26,7 @@ class TrackingController extends Controller
     {
         if ($request->ajax()) {
             $query = PurchaseRequest::with(['customer', 'items.product'])
-                ->where('status', 'po_submitted')
+                ->where('status', 'payment_approved')
                 ->latest();
 
             return DataTables::of($query)
@@ -53,7 +53,7 @@ class TrackingController extends Controller
                         <button type="button" class="btn btn-sm btn-inverse-primary view-pr p-2" data-id="' . $pr->id . '" title="View Purchase Request">
                             <i class="link-icon" data-lucide="eye"></i> View PR
                         </button>
-                        <button type="button" class="btn btn-sm btn-inverse-info process-so p-2" data-id="' . $pr->id . '" title="Create Sales Order">
+                        <button type="button" class="btn btn-sm btn-inverse-success process-so p-2" data-id="' . $pr->id . '" title="Create Sales Order">
                             <i class="link-icon" data-lucide="plus-square"></i> Create SO
                         </button>
                     ';
@@ -70,7 +70,21 @@ class TrackingController extends Controller
     public function show($id)
     {
         $pr = PurchaseRequest::with(['items.product.productImages'])->findOrFail($id);
-        $html = view('components.pr-items', compact('pr'))->render();
+
+        $b2bReq = null;
+        $b2bAddress = null;
+
+        if ($pr->customer_id) {
+            $b2bReq = B2BDetail::where('user_id', $pr->customer_id)
+                ->where('status', 'approved')
+                ->first();
+
+            $b2bAddress = B2BAddress::where('user_id', $pr->customer_id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        $html = view('components.pr-items', compact('pr', 'b2bReq', 'b2bAddress'))->render();
 
         return response()->json(['html' => $html]);
     }
@@ -82,7 +96,7 @@ class TrackingController extends Controller
         try {
             $pr = PurchaseRequest::with(['items.product'])->findOrFail($id);
 
-            if ($pr->status !== 'po_submitted') {
+            if ($pr->status !== 'payment_approved') {
                 return response()->json([
                     'type' => 'error',
                     'message' => 'Purchase Request is not in a processable state.'

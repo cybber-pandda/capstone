@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Validator;
 
 use App\Models\User;
 use App\Models\B2BDetail;
+use App\Models\B2BAddress;
+use App\Models\PurchaseRequest;
 
 class B2BController extends Controller
 {
@@ -150,7 +152,7 @@ class B2BController extends Controller
                     'contact_person_number' => $request->contact_person_number,
                 ]
             );
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Requirements submitted successfully. Please wait for approval.',
@@ -161,5 +163,49 @@ class B2BController extends Controller
                 'message' => 'Error submitting requirements: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function my_purchase_order()
+    {
+        $userId = auth()->id();
+
+        $purchaseRequests = PurchaseRequest::withCount('items')
+            ->withSum('items', 'subtotal') // sum of all item subtotals
+            ->where('customer_id', $userId)
+            ->latest()
+            ->get();
+
+        $hasAddress = B2BAddress::where('user_id', $userId)->exists();
+
+        return view('pages.b2b.v_purchase_order', [
+            'page' => 'My Purchase Order',
+            'purchaseRequests' => $purchaseRequests,
+            'hasAddress' => $hasAddress
+        ]);
+    }
+
+    public function show_po($id)
+    {
+        $page = "Purchase Order Detail";
+        $b2bReqDetails = null;
+        $b2bAddress = null;
+        $salesOfficer = null;
+
+        $superadmin = User::where('role', 'superadmin')->first();
+
+        $quotation = PurchaseRequest::with(['customer', 'items.product'])
+            ->where('customer_id', auth()->id())
+            ->findOrFail($id);
+
+        if ($quotation->customer_id) {
+            $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
+            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+        }
+
+        if ($quotation->prepared_by_id) {
+            $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+        }
+
+        return view('pages.b2b.v_purchase_order_show', compact('quotation', 'page', 'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin'));
     }
 }

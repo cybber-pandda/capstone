@@ -60,7 +60,10 @@ class PurchaseRequestController extends Controller
         $userId = auth()->id();
         
         $purchaseRequests = PurchaseRequest::with(['items.product.productImages'])
-            ->whereIn('status', [null, 'pending'])
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhere('status', 'pending');
+            })
             ->where('customer_id', $userId)
             ->latest()
             ->get();

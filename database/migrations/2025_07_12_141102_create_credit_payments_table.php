@@ -17,12 +17,14 @@ class CreateCreditPaymentsTable extends Migration
             $table->id();
             $table->unsignedBigInteger('purchase_request_id');
             $table->unsignedBigInteger('bank_id')->nullable();
-            $table->decimal('credit_amount', 10, 2);
             $table->decimal('paid_amount', 10, 2)->default(0);
             $table->date('due_date');
             $table->date('paid_date')->nullable();
-            $table->enum('status', ['unpaid', 'partially_paid', 'paid', 'overdue'])->default('unpaid');
+            $table->enum('status', ['pending','unpaid', 'paid', 'overdue'])->default('pending');
             $table->string('proof_payment')->nullable();
+            $table->string('reference_number')->nullable();
+            $table->date('approved_at')->nullable();
+            $table->integer('approved_by')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 
