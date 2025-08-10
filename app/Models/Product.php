@@ -18,6 +18,7 @@ class Product extends Model
         'sku',
         'description',
         'price',
+        'discount',
         'expiry_date'
     ];
 

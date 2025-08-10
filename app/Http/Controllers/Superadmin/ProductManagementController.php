@@ -22,7 +22,7 @@ class ProductManagementController extends Controller
         $category_select = Category::select('name', 'id')->get();
 
         if ($request->ajax()) {
-           $products = Product::with('inventories', 'category')->select(['id', 'sku', 'name', 'description', 'price', 'expiry_date', 'created_at', 'category_id']);
+           $products = Product::with('inventories', 'category')->select(['id', 'sku', 'name', 'description', 'price', 'discount', 'expiry_date', 'created_at', 'category_id']);
             
             return DataTables::of($products)
                 ->addColumn('current_stock', fn($row) => $row->current_stock)
@@ -45,6 +45,7 @@ class ProductManagementController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'price' => 'required|numeric',
+            'discount' => 'nullable|numeric',
             'expiry_date' => 'nullable|date',
             'category_id' => 'required|numeric',
             'description' => 'nullable|string',
@@ -121,6 +122,7 @@ class ProductManagementController extends Controller
             $product->update([
                 'name' => $validated['name'],
                 'price' => $validated['price'],
+                'discount' => $validated['discount'],
                 'expiry_date' => $validated['expiry_date'],
                 'category_id' => $validated['category_id'],
                 'description' => $validated['description'] ?? null,

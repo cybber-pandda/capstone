@@ -1,5 +1,8 @@
 <div class="table-responsive">
-    <table id="{{ $id ?? 'dataTable' }}" class="table dataTable">
+    @php
+        $checkTable = $id === 'partialCreditTable' ? 'style="width: 100%;"' : '';
+    @endphp
+    <table id="{{ $id ?? 'dataTable' }}" class="table dataTable" {!! $checkTable !!}>
         @isset($thead)
             <thead>
                 {!! $thead !!}

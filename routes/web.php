@@ -148,7 +148,8 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
 
         Route::get('/purchase/credit', [App\Http\Controllers\B2B\CreditController::class, 'index'])->name('purchase.credit');
         Route::post('/purchase/credit/payment', [App\Http\Controllers\B2B\CreditController::class, 'credit_payment'])->name('purchase.credit.payment');
-        
+        Route::get('/purchase/partial-payments', [App\Http\Controllers\B2B\CreditController::class, 'partialPayments'])->name('purchase.partial-payments');
+
         Route::get('/my-purchase-order', [App\Http\Controllers\B2B\B2BController::class, 'my_purchase_order'])->name('purchase.order');
         Route::get('/my-purchase-order/show/{id}', [App\Http\Controllers\B2B\B2BController::class, 'show_po'])->name('purchase.order.show');
     });
