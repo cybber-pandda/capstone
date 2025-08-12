@@ -109,6 +109,9 @@ class ACPaymentController extends Controller
         $payment->approved_by = auth()->id();
         $payment->save();
 
+        PurchaseRequest::where('id', $payment->purchase_request_id)
+        ->update(['status' => 'payment_approved']);
+
         return response()->json(['message' => 'Payment has been approved successfully.']);
     }
 
@@ -205,6 +208,9 @@ class ACPaymentController extends Controller
         $payment->approved_by = auth()->id();
         $payment->save();
 
+        PurchaseRequest::where('id', $payment->purchase_request_id)
+        ->update(['status' => 'payment_approved']);
+
         return response()->json(['message' => 'Payment has been approved successfully.']);
     }
 
@@ -247,6 +253,9 @@ class ACPaymentController extends Controller
         $payment->approved_at = Carbon::today();
         $payment->approved_by = auth()->id();
         $payment->save();
+
+        PurchaseRequest::where('id', $payment->purchase_request_id)
+        ->update(['status' => 'payment_approved']);
 
         return response()->json(['message' => 'Payment has been approved successfully.']);
     }
