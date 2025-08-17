@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    const table = $("#paynowTable").DataTable({
+    let table = $("#paynowTable").DataTable({
         processing: true,
         serverSide: true,
         paginationType: "simple_numbers",

@@ -15,20 +15,20 @@
                 @endif
             </h4>
         </div>
-        <!-- <div class="d-flex align-items-center flex-wrap text-nowrap">
-            <div class="input-group flatpickr w-200px me-2 mb-2 mb-md-0" id="dashboardDate">
+        <div class="d-flex align-items-center flex-wrap text-nowrap">
+            <!-- <div class="input-group flatpickr w-200px me-2 mb-2 mb-md-0" id="dashboardDate">
                 <span class="input-group-text input-group-addon bg-transparent border-primary" data-toggle><i data-lucide="calendar" class="text-primary"></i></span>
                 <input type="text" class="form-control bg-transparent border-primary" placeholder="Select date" data-input>
-            </div>
+            </div> -->
             <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
-                <i class="btn-icon-prepend" data-lucide="printer"></i>
-                Print
+                <i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i>
+                Summary List of Sales
             </button>
-            <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
+            <!-- <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
                 <i class="btn-icon-prepend" data-lucide="download-cloud"></i>
                 Download Report
-            </button>
-        </div> -->
+            </button> -->
+        </div>
     </div>
 
     @php

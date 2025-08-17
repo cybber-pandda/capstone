@@ -333,7 +333,7 @@ class DeliveryController extends Controller
         }
 
         $delivery->status = 'cancelled';
-        $delivery->remarks = $request->remarks ?? 'Cancelled by rider.';
+        $delivery->delivery_remarks = $request->remarks ?? 'Cancelled by rider.';
         $delivery->save();
 
         return response()->json(['message' => 'Delivery has been cancelled.']);

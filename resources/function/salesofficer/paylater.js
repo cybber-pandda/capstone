@@ -118,12 +118,17 @@ $(document).ready(function () {
                 });
             },
             success: function (response) {
+                
+
                 Swal.fire({
                     icon: "success",
                     title: "Approved!",
+                    timer: 3000,
+                    showConfirmButton: false,
                     text: response.message,
                 });
-                table.ajax.reload(null, false);
+
+                straightTable.ajax.reload(null, false);
             },
             error: function (xhr) {
                 Swal.fire({
@@ -141,7 +146,13 @@ $(document).ready(function () {
         let id = $(this).data("id");
         $(".modal-title").text("Partial Payment List");
 
-        $.ajax({
+        partialPaymentListTable(id)
+
+        $("#viewPartialPaymentModal").modal("show");
+    });
+
+    function partialPaymentListTable(id){
+          $.ajax({
             url: "/salesofficer/paylater/partial/all/" + id,
             method: "GET",
             success: function (response) {
@@ -199,8 +210,7 @@ $(document).ready(function () {
                             <td>${item.reference_number ?? "--"}</td>
                             <td>
                                 ${
-                                    // item.proof_payment && reference_number
-                                    item.amount_to_pay
+                                    item.proof_payment && item.reference_number
                                         ? `<button class="btn btn-sm btn-inverse-dark approve-partial-payment p-1" data-id="${item.id}" style="font-size:11px;">Approve Payment
                                         </button>`
                                         : `<span class="badge bg-danger">Waiting for B2B Payment</span>`
@@ -224,16 +234,12 @@ $(document).ready(function () {
                 );
             },
         });
-
-        $("#viewPartialPaymentModal").modal("show");
-    });
+    }
 
     $(document).on("click", ".approve-partial-payment", function (e) {
         e.preventDefault();
 
         let id = $(this).data("id");
-
-        alert(id);
 
         if (!id) {
             toast("error", "Missing payment ID.");
@@ -274,12 +280,15 @@ $(document).ready(function () {
                 });
             },
             success: function (response) {
+                $('#viewPartialPaymentModal').modal('hide')
                 Swal.fire({
                     icon: "success",
                     title: "Approved!",
+                    timer: 3000,
+                    showConfirmButton: false,
                     text: response.message,
                 });
-                table.ajax.reload(null, false);
+                partialTable.ajax.reload(null, false);
             },
             error: function (xhr) {
                 Swal.fire({

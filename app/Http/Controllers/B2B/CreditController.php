@@ -9,6 +9,7 @@ use Yajra\DataTables\Facades\DataTables;
 use App\Models\CreditPayment;
 use App\Models\CreditPartialPayment;
 use App\Models\Bank;
+use App\Models\User;
 
 class CreditController extends Controller
 {
@@ -137,7 +138,8 @@ class CreditController extends Controller
                         if ($credit->status !== 'paid') {
                             $buttons .= '<button class="btn btn-sm btn-primary pay-btn" 
                                         data-id="' . $credit->id . '"
-                                        data-amount="' . number_format($credit->credit_amount - $credit->paid_amount, 2) . '">
+                                        data-creditamount="' . $credit->purchaseRequest->credit_amount . '"
+                                        data-amount="' . number_format($credit->purchaseRequest->credit_amount - $credit->paid_amount, 2) . '">
                                         Pay Now
                                     </button>';
                         }
@@ -157,7 +159,7 @@ class CreditController extends Controller
                         $q->where('customer_id', $userId);
                     })
                     ->selectRaw('purchase_request_id, bank_id, MAX(due_date) as last_due_date, SUM(amount_to_pay) as total_amount, status')
-                    ->groupBy('purchase_request_id', 'bank_id', 'status')
+                    ->groupBy('purchase_request_id')
                     ->latest();
 
                 return DataTables::of($query)
@@ -199,7 +201,6 @@ class CreditController extends Controller
     {
         $user = auth()->user();
 
-        // Map payment type to model class and table name for validation
         $paymentMap = [
             'straight' => [
                 'model' => \App\Models\CreditPayment::class,
@@ -250,11 +251,12 @@ class CreditController extends Controller
         $creditPayment->update([
             'bank_id' => $request->bank_id,
             'paid_amount' => $request->paid_amount,
-            'status' => 'paid',
             'paid_date' => now(),
             'proof_payment' => $path,
             'reference_number' => $request->reference_number,
         ]);
+
+        User::where('id', $user->id)->increment('credit_limit', $request->paid_amount);
 
         return response()->json([
             'message' => 'Payment submitted successfully',

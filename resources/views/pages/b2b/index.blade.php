@@ -279,10 +279,23 @@
                     }
                 },
                 error: function(xhr) {
-                   if (xhr.status === 422) {
+                    if (xhr.status === 422) {
                         const errors = xhr.responseJSON.errors;
                         const first = Object.values(errors)[0][0];
                         toast('error', first);
+                    } else if (xhr.status === 400) {
+                        let message = 'Invalid request';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            message = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                const res = JSON.parse(xhr.responseText);
+                                message = res.message || message;
+                            } catch (e) {
+                                message = xhr.responseText;
+                            }
+                        }
+                        toast('error', message);
                     } else {
                         toast('error', 'Something went wrong.');
                     }

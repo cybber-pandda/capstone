@@ -108,6 +108,7 @@ class ProductManagementController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'price' => 'required|numeric',
+            'discount' => 'nullable|numeric',
             'expiry_date' => 'nullable|date',
             'category_id' => 'required|numeric',
             'description' => 'nullable|string',

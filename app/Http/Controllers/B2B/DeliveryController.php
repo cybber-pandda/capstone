@@ -120,8 +120,14 @@ class DeliveryController extends Controller
                                         </button>';
                         } else {
                              $ratingBtn = '<a href="' . route('b2b.delivery.rider.rate', $order->delivery->id) . '" class="btn btn-warning btn-sm">
-                                                Rate
-                                            </a>';
+                                                Rate Rider
+                                            </a>  
+                                            
+                                            <a href="' . route('b2b.delivery.rider.rate', $order->delivery->id) . '" class="btn btn-success btn-sm">
+                                                Rate Product
+                                            </a>
+                                            
+                                            ';
                         }
 
                        

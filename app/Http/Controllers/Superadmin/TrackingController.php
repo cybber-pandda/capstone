@@ -26,7 +26,6 @@ class TrackingController extends Controller
     {
         if ($request->ajax()) {
             $query = PurchaseRequest::with(['customer', 'items.product'])
-                ->where('status', 'payment_approved')
                 ->latest();
 
             return DataTables::of($query)
@@ -45,9 +44,21 @@ class TrackingController extends Controller
 
                     return '₱' . number_format($total, 2);
                 })
-                ->editColumn('created_at', function ($pr) {
-                    return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
+                ->addColumn('is_credit', function ($pr) {
+                    return '<span class="badge badge-primary">'. $pr->credit  ? 'Yes' : 'No'.'</span>';
                 })
+                ->addColumn('credit_amount', function ($pr) {
+                    return is_null($pr->credit_amount) ? '0.00' : '₱'. $pr->credit_amount;
+                })
+                ->addColumn('payment_method', function ($pr) {
+                    return '<span>'. $pr->payment_method === 'pay_now'  ? 'Pay-Now' : 'Pay-Later'.'</span>';
+                })
+                ->addColumn('is_cod', function ($pr) {
+                    return '<span class="badge badge-info">'. $pr->cod_flg  ? 'Yes' : 'No'.'</span>';
+                })
+                // ->editColumn('created_at', function ($pr) {
+                //     return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
+                // })
                 ->addColumn('action', function ($pr) {
                     return '
                         <button type="button" class="btn btn-sm btn-inverse-primary view-pr p-2" data-id="' . $pr->id . '" title="View Purchase Request">
@@ -58,6 +69,7 @@ class TrackingController extends Controller
                         </button>
                     ';
                 })
+                ->rawColumns(['is_credit', 'payment_method', 'action'])
                 ->make(true);
         }
 

@@ -143,7 +143,7 @@
                         <i class="fa fa-file-pdf"></i> Download PDF
                     </a>
 
-                    <button type="button" class="btn btn-warning" id="submitQuotationBtn" data-id="{{ $quotation->id }}">
+                    <button type="button" class="btn btn-warning" id="submitQuotationBtn" data-id="{{ $quotation->id }}" data-totalpayment="{{ $total }}">
                         <i class="fa fa-check"></i> Accept
                     </button>
 
@@ -344,7 +344,6 @@
 
         $(document).on('click', '#submitQuotationBtn', function() {
             const id = $(this).data('id');
-
             Swal.fire({
                 title: 'Submit and Pay?',
                 text: "You're about to submit a Purchase Order. Choose your payment method.",
@@ -358,6 +357,7 @@
                 if (result.isConfirmed) {
                     $('#modal_quotation_id').val(id);
                     $('#paymentModal').modal('show');
+                    $('#paid_amount').val($(this).data('totalpayment'));
                 } else if (result.isDenied) {
                     Swal.fire({
                         title: 'Pay Later Confirmation',

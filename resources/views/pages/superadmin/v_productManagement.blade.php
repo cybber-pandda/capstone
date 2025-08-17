@@ -56,7 +56,7 @@
 
             <div class="col-md-6 mb-2">
                 @component('components.input', ['label' => 'Price', 'type' => 'number', 'name' => 'price', 'attributes' => '' ]) @endcomponent
-                 @component('components.input', ['label' => 'Discount', 'type' => 'number', 'name' => 'discount', 'attributes' => '' ]) @endcomponent
+                 @component('components.input', ['label' => 'Discount(%)', 'type' => 'number', 'name' => 'discount', 'attributes' => '' ]) @endcomponent
                 @component('components.textarea', ['label' => 'Description', 'rows' => 7, 'name' => 'description', 'attributes' => '']) @endcomponent
             </div>
 

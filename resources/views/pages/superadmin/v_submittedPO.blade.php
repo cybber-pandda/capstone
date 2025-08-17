@@ -16,11 +16,14 @@
             'id' => 'submittedPO',
             'thead' => '
             <tr>
-                <th>ID</th>
                 <th>Customer Name</th>
+                <th>Is Credit</th>
+                <th>Credit Amount</th>
+                <th>Payment Method</th>
+                <th>Is COD</th>
                 <th>Total Items</th>
                 <th>Grand Total</th>
-                <th>Date Created</th>
+                <!-- <th>Date Created</th> -->
                 <th>Action</th>
             </tr>
             '

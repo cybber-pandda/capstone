@@ -7,7 +7,6 @@
             <h3 class="title">{{ $page }}</h3>
         </div>
 
-        {{-- Bootstrap 3 Tabs --}}
         <ul class="nav nav-tabs" role="tablist">
             <li role="presentation" class="active">
                 <a href="#straight" aria-controls="straight" role="tab" data-toggle="tab">Straight Credit Payment</a>
@@ -65,7 +64,7 @@
                         <input type="hidden" name="credit_payment_id" id="credit_payment_id">
                         <input type="hidden" name="credit_payment_type" id="credit_payment_type">
 
-                        <!-- <h6>Amount to Pay: <span id="credit_amount"></span></h6> -->
+                        <h6>Amount to Pay: <span id="credit_amount"></span></h6>
 
                         <div style="margin-bottom:10px;display:none">
                             <label for="bank_id" class="form-label">Payment Type:</label>
@@ -108,7 +107,7 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="reference_number" class="form-label">Enter Reference Number:</label>
-                            <input type="number" class="form-control" name="reference_number" id="reference_number">
+                            <input type="text" class="form-control" name="reference_number" id="reference_number">
                             <div class="invalid-feedback reference_number_error text-danger"></div>
                         </div>
 
@@ -309,6 +308,10 @@
                 if (result.isConfirmed) {
                     $('#credit_payment_id').val(id);
                     $('#credit_payment_type').val('straight');
+                    $('#credit_amount').text($(this).data('creditamount'));
+                    $('#paid_amount').val(
+                        Math.round(parseFloat($(this).data('creditamount')))
+                    );
                     $('#paymentModal').modal('show');
                 }
             });
@@ -378,12 +381,33 @@
                         data: null,
                         orderable: false,
                         searchable: false,
-                        render: function(data, type, row) {
+                        render: function (data, type, row) {
+                            // Default disabled
+                            let disabled = 'disabled';
+
+                            if (row.due_date) {
+                                let dueDate = new Date(row.due_date);
+                                let today = new Date();
+                                today.setHours(0, 0, 0, 0); // normalize to midnight
+                                dueDate.setHours(0, 0, 0, 0);
+
+                                // enable only if dueDate >= today
+                                if (today >= dueDate) {
+                                    disabled = '';
+                                }
+                            }
+
+                            let hiddenClass = row.status === 'paid';
+                            
+                            if(hiddenClass) {
+                            return '--';
+                            } else {
                             return `
-                                <button class="btn btn-primary btn-sm payment-btn" data-id="${row.id}">
+                                <button class="btn btn-primary btn-sm payment-btn" data-id="${row.id}" data-creditamount="${row.amount_to_pay}" >
                                     Pay Now
                                 </button>
                             `;
+                            }
                         }
                     }
                 ]
@@ -396,7 +420,7 @@
 
         $(document).on('click', '.payment-btn', function() {
             const id = $(this).data('id');
-
+            
             Swal.fire({
                 title: 'Submit and Pay?',
                 text: "You're about to submit a Credit Payment. Choose your payment type.",
@@ -408,26 +432,33 @@
                 if (result.isConfirmed) {
                     $('#credit_payment_id').val(id);
                     $('#credit_payment_type').val('partial');
+                    $('#partialPaymentsModal').modal('hide');
+                    $('#credit_amount').text($(this).data('creditamount'));
+                    $('#paid_amount').val(
+                        Math.round(parseFloat($(this).data('creditamount')))
+                    );
                     $('#paymentModal').modal('show');
                 }
             });
         });
 
         // Update the payment type dropdown to work with your form
-        $(document).on('change', 'select[name="payment_type"]', function() {
-            const amount = parseFloat($('#credit_amount').text().replace(/[^\d.]/g, ''));
-            if ($(this).val() === 'paid') {
-                $('#paid_amount').val(amount.toFixed(2));
-            } else {
-                $('#paid_amount').val('');
-            }
-        });
+        // $(document).on('change', 'select[name="payment_type"]', function() {
+        //     const amount = parseFloat($('#credit_amount').text().replace(/[^\d.]/g, ''));
+        //     if ($(this).val() === 'paid') {
+        //         $('#paid_amount').val(amount.toFixed(2));
+        //     } else {
+        //         $('#paid_amount').val('');
+        //     }
+        // });
 
         $('#submitPaymentBtn').on('click', function(e) {
             e.preventDefault();
 
             let form = $('#paymentForm')[0];
             let formData = new FormData(form);
+
+            $('#submitPaymentBtn').prop("disabled", true);
 
             $.ajax({
                 url: $(form).attr('action'),
@@ -436,6 +467,9 @@
                 processData: false,
                 contentType: false,
                 success: function(response) {
+
+                    $('#submitPaymentBtn').prop("disabled", false);
+                    
                     $('#paymentModal').modal('hide');
                     Swal.fire({
                         icon: 'success',
@@ -446,7 +480,9 @@
                     });
                 },
                 error: function(xhr) {
-
+                    
+                    $('#submitPaymentBtn').prop("disabled", false);
+                
                     if (xhr.status === 422) {
                         // Validation errors
                         let errors = xhr.responseJSON.errors;

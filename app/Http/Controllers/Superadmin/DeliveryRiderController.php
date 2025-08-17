@@ -87,7 +87,7 @@ class DeliveryRiderController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'deliveryrider/admin',
+            'role' => 'deliveryrider',
             'created_by_admin' => true,
             'force_password_change' => true,
         ]);

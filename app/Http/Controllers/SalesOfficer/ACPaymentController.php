@@ -58,7 +58,7 @@ class ACPaymentController extends Controller
                     return '<p class="ms-3">' . ($payment->reference_number ?: 'No reference (COD) Payment') . '</p>';
                 })
                 ->addColumn('action', function ($payment) {
-                    return $payment->proof_payment && $payment->reference_number
+                    return is_null($payment->proof_payment) && is_null($payment->reference_number)
                         ? '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
                             <i class="link-icon" data-lucide="copy-check"></i> Approve Payment
                         </button>' : '<span class="badge bg-info text-white"> <i class="link-icon" data-lucide="check"></i> Payment Approved</span>';
@@ -153,7 +153,7 @@ class ACPaymentController extends Controller
                             '<span class="badge bg-warning text-dark">' . ucfirst($payment->status) . '</span>';
                     })
                     ->addColumn('action', function ($payment) {
-                        return $payment->proof_payment && $payment->reference_number
+                        return is_null($payment->proof_payment) && is_null($payment->reference_number)
                             ? '<span class="badge bg-danger text-white"> <i class="link-icon" data-lucide="clock"></i> Waiting for B2B Payment</span>'
                             : '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
                             <i class="link-icon" data-lucide="copy-check"></i> Approve Payment
@@ -168,7 +168,7 @@ class ACPaymentController extends Controller
                     'bank'
                 ])
                     ->selectRaw('purchase_request_id, bank_id, MAX(due_date) as last_due_date, SUM(amount_to_pay) as total_amount, status')
-                    ->groupBy('purchase_request_id', 'bank_id', 'status')
+                    ->groupBy('purchase_request_id')
                     ->latest();
 
                 return DataTables::of($query)
@@ -257,7 +257,7 @@ class ACPaymentController extends Controller
         PurchaseRequest::where('id', $payment->purchase_request_id)
         ->update(['status' => 'payment_approved']);
 
-        return response()->json(['message' => 'Payment has been approved successfully.']);
+        return response()->json(['message' => 'Payment has been approved successfully.', 'pp_id' => $payment->id]);
     }
 
     public function account_receivable(Request $request)
@@ -362,6 +362,8 @@ class ACPaymentController extends Controller
             return response()->json(['error' => 'Customer not found'], 404);
         }
 
+        // $prid = 2;
+
         $purchaseRequests = $prid
             ? $customer->purchaseRequests->where('id', $prid)
             : $customer->purchaseRequests;
@@ -414,7 +416,7 @@ class ACPaymentController extends Controller
             $creditPaymentType = $pr ? $pr->credit_payment_type : null;
         }
 
-        return response()->json([ // can you in here  i want to display column credit_payment type from purchase request table
+        return response()->json([
             'customer' => [
                 'user_id' => $customer->id,
                 'customer_name' => $customer->name,

@@ -19,8 +19,8 @@ class CreateProductsTable extends Migration
             $table->string('name');
             $table->string('sku')->unique();
             $table->text('description')->nullable();
-            $table->decimal('price', 10, 2)->default(0.00);
-            $table->decimal('discount', 10, 2)->default(0.00);
+            $table->decimal('price', 10, 02)->default(0.00);
+            $table->integer('discount')->default(0);
             $table->timestamps();
             $table->softDeletes();
         });

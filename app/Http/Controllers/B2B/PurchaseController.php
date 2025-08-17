@@ -16,19 +16,20 @@ class PurchaseController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
+            $userid = auth()->user()->id;
+
             $purchaseRequests = PurchaseRequest::with([
                 'items.product.productImages',
                 'items.returnRequest', // add this relation
                 'items.refundRequest'  // add this relation
             ])
-                // ->where('status', 'delivered')
+                ->where('customer_id', $userid)
                 ->latest()
                 ->get();
 
             $data = [];
 
             foreach ($purchaseRequests as $pr) {
-                // i want to hide first the button it will show only if $pr->status === 'delivered'
                 foreach ($pr->items as $item) {
                     $product = $item->product;
                     $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
