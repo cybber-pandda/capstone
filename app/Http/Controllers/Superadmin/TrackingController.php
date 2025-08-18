@@ -26,6 +26,7 @@ class TrackingController extends Controller
     {
         if ($request->ajax()) {
             $query = PurchaseRequest::with(['customer', 'items.product'])
+                ->where('status', 'po_submitted')
                 ->latest();
 
             return DataTables::of($query)
@@ -108,7 +109,7 @@ class TrackingController extends Controller
         try {
             $pr = PurchaseRequest::with(['items.product'])->findOrFail($id);
 
-            if ($pr->status !== 'payment_approved') {
+            if ($pr->status !== 'po_submitted') {
                 return response()->json([
                     'type' => 'error',
                     'message' => 'Purchase Request is not in a processable state.'
