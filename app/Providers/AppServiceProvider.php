@@ -13,6 +13,7 @@ use App\Models\Category;
 use App\Models\CreditPayment;
 use App\Models\CreditPartialPayment;
 use App\Models\B2BDetail;
+use App\Models\Product;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -161,7 +162,6 @@ class AppServiceProvider extends ServiceProvider
             $b2bDetails = null;
             $showPendingRequirements = false;
 
-            // 🧾 B2B-specific logic
             if ($user && $user->role === 'b2b') {
                 $b2bDetails = B2BDetail::where('user_id', $user->id)->first();
 
@@ -240,6 +240,40 @@ class AppServiceProvider extends ServiceProvider
                 if ($overduePayment) {
                     $showPaymentModal = true;
                 }
+            } else if ($user && $user->role === 'superadmin') {
+                $showCriticalStockModal = false;
+                $criticalProducts = [];
+
+                $products = Product::with('inventories')->get();
+
+                foreach ($products as $product) {
+                    $stockIn = $product->inventories->where('type', 'in')->sum('quantity');
+                    $stockOut = $product->inventories->where('type', 'out')->sum('quantity');
+                    $currentStock = $stockIn - $stockOut;
+
+                    // Calculate % of critical level relative to maximum
+                    $criticalPercent = 0;
+                    if ($product->maximum_stock > 0) {
+                        $criticalPercent = ($product->critical_stock_level / $product->maximum_stock) * 100;
+                    }
+
+                    // ✅ Trigger only if stock <= critical level
+                    if ($currentStock <= $product->critical_stock_level) {
+                        $criticalProducts[] = [
+                            'id' => $product->id,
+                            'name' => $product->name,
+                            'current_stock' => $currentStock,
+                            'maximum_stock' => $product->maximum_stock,
+                            'critical_stock_level' => $product->critical_stock_level,
+                            'critical_percent' => number_format($criticalPercent, 2) . '%',
+                        ];
+                    }
+                }
+
+
+                if (count($criticalProducts) > 0) {
+                    $showCriticalStockModal = true;
+                }
             }
 
             // Share globally
@@ -252,7 +286,9 @@ class AppServiceProvider extends ServiceProvider
                 'overduePayment' => $overduePayment,
                 'showPaymentModal' => $showPaymentModal,
                 'b2bDetails' => $b2bDetails,
-                'showPendingRequirements' => $showPendingRequirements
+                'showPendingRequirements' => $showPendingRequirements,
+                'showCriticalStockModal' => $showCriticalStockModal ?? false,
+                'criticalProducts' => $criticalProducts ?? [],
             ]);
         });
     }

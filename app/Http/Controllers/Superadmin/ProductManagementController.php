@@ -47,6 +47,8 @@ class ProductManagementController extends Controller
             'price' => 'required|numeric',
             'discount' => 'nullable|numeric',
             'expiry_date' => 'nullable|date',
+            'maximum_stock' => 'required|numeric',
+            'critical_stock_level' => 'required|numeric',
             'category_id' => 'required|numeric',
             'description' => 'nullable|string',
             'images.*' => 'image|mimes:png,jpg,webp|max:2048',
@@ -108,6 +110,8 @@ class ProductManagementController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'price' => 'required|numeric',
+            'maximum_stock' => 'required|numeric',
+            'critical_stock_level' => 'required|numeric',
             'discount' => 'nullable|numeric',
             'expiry_date' => 'nullable|date',
             'category_id' => 'required|numeric',
@@ -125,6 +129,8 @@ class ProductManagementController extends Controller
                 'price' => $validated['price'],
                 'discount' => $validated['discount'],
                 'expiry_date' => $validated['expiry_date'],
+                'maximum_stock' => $validated['maximum_stock'],
+                'critical_stock_level' => $validated['critical_stock_level'],
                 'category_id' => $validated['category_id'],
                 'description' => $validated['description'] ?? null,
             ]);

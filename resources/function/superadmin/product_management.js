@@ -36,14 +36,14 @@ $(document).ready(function () {
             { data: "sku", name: "sku", width: "10%" },
             { data: "name", name: "name", width: "20%" },
             { data: "category", name: "category", width: "10%" },
-            {
-                data: "created_at",
-                name: "created_at",
-                width: "15%",
-                render: function (data) {
-                    return new Date(data).toLocaleString();
-                },
-            },
+            // {
+            //     data: "created_at",
+            //     name: "created_at",
+            //     width: "15%",
+            //     render: function (data) {
+            //         return new Date(data).toLocaleString();
+            //     },
+            // },
             {
                 data: "price",
                 name: "price",
@@ -60,7 +60,7 @@ $(document).ready(function () {
                 orderable: false,
                 width: "5%",
             },
-            { data: "current_stock", name: "current_stock", width: "10%" },
+            { data: "current_stock", name: "current_stock",  className: "dt-left-int", responsivePriority: 1, width: "10%", orderable: false, },
             {
                 data: "action",
                 name: "action",
@@ -106,6 +106,8 @@ $(document).ready(function () {
             $('#productForm input[name="price"]').val(response.product.price);
             $('#productForm input[name="discount"]').val(response.product.discount);
             $('#productForm input[name="expiry_date"]').val(response.product.expiry_date);
+            $('#productForm input[name="maximum_stock"]').val(response.product.maximum_stock);
+            $('#productForm input[name="critical_stock_level"]').val(response.product.critical_stock_level);
             $('#productForm select[name="category_id"]').val(response.product.category_id).trigger('change');
             $('#productForm textarea[name="description"]').val(response.product.description);
 

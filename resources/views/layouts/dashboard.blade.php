@@ -171,6 +171,32 @@
         @endauth
     </div>
 
+    @if($showCriticalStockModal)
+    <!-- Modal -->
+    <div class="modal fade" id="criticalStockModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">⚠️ Critical Stock Alert</h5>
+                </div>
+                <div class="modal-body">
+                    <ul>
+                        @foreach($criticalProducts as $product)
+                            <li>
+                                <strong>{{ $product['name'] }}</strong>  
+                                (Stock: {{ $product['current_stock'] }} / {{ $product['maximum_stock'] }})  
+                                <br>
+                                ⚠ Critical level: {{ $product['critical_stock_level'] }} ({{ $product['critical_percent'] }})
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+
     <script src="{{ asset('assets/dashboard/vendors/jquery/jquery.min.js') }}"></script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
@@ -209,6 +235,14 @@
     <script>
         dayjs.extend(dayjs_plugin_relativeTime);
     </script>
+
+    @if($showCriticalStockModal)
+        <script>
+            $(function() {
+                $('#criticalStockModal').modal('show');
+            });
+        </script>
+    @endif
 
     <script>
         $.ajaxSetup({

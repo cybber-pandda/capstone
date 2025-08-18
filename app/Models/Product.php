@@ -19,7 +19,9 @@ class Product extends Model
         'description',
         'price',
         'discount',
-        'expiry_date'
+        'expiry_date',
+        'maximum_stock',
+        'critical_stock_level'
     ];
 
     public function category()

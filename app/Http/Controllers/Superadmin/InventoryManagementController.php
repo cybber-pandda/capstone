@@ -62,31 +62,143 @@ class InventoryManagementController extends Controller
         return view('pages.superadmin.v_inventoryManagement', [
             'page' => 'Inventory Managment',
             'pageCategory' => 'Management',
-            'product_select' =>  $product_select
+            'product_select' => $product_select
         ]);
     }
 
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'product_id' => 'required|exists:products,id',
+    //         'quantity' => 'required|integer',
+    //         'type' => 'required|in:in,out',
+    //         'reason' => 'nullable|string',
+    //     ]);
+
+    //     Product::findOrFail($validated['product_id'])
+    //         ->inventories()
+    //         ->create([
+    //             'type' => $validated['type'],
+    //             'quantity' => abs($validated['quantity']),
+    //             'reason' => $validated['reason'],
+    //         ]);
+
+    //     return response()->json([
+    //         'type' => 'success',
+    //         'message' => 'Inventory record created successfully.',
+    //     ]);
+    // }
+
+    // public function store(Request $request)
+    // {
+    //     $validated = $request->validate([
+    //         'product_id' => 'required|exists:products,id',
+    //         'quantity' => 'required|integer|min:1',
+    //         'type' => 'required|in:in,out',
+    //         'reason' => 'nullable|string',
+    //     ]);
+
+    //     $product = Product::with('inventories')->findOrFail($validated['product_id']);
+
+    //     $stockIn = $product->inventories->where('type', 'in')->sum('quantity');
+    //     $stockOut = $product->inventories->where('type', 'out')->sum('quantity');
+    //     $currentStock = $stockIn - $stockOut;
+
+    //     if ($validated['type'] === 'in') {
+    //         if ($currentStock + $validated['quantity'] > $product->maximum_stock) {
+    //             return response()->json([
+    //                 'type' => 'error',
+    //                 'message' => 'Adding this stock would exceed the maximum stock limit (' . $product->maximum_stock . ').'
+    //             ], 422);
+    //         }
+    //     } elseif ($validated['type'] === 'out') {
+    //         if ($currentStock - $validated['quantity'] < 0) {
+    //             return response()->json([
+    //                 'type' => 'error',
+    //                 'message' => 'Insufficient stock available. Current stock is ' . $currentStock . '.'
+    //             ], 422);
+    //         }
+    //     }
+
+    //     $product->inventories()->create([
+    //         'type' => $validated['type'],
+    //         'quantity' => abs($validated['quantity']),
+    //         'reason' => $validated['reason'],
+    //     ]);
+
+    //     return response()->json([
+    //         'type' => 'success',
+    //         'message' => 'Inventory record created successfully.',
+    //     ]);
+    // }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer',
+            'quantity' => 'required|integer|min:1',
             'type' => 'required|in:in,out',
             'reason' => 'nullable|string',
         ]);
 
-        Product::findOrFail($validated['product_id'])
-            ->inventories()
-            ->create([
-                'type' => $validated['type'],
-                'quantity' => abs($validated['quantity']),
-                'reason' => $validated['reason'],
-            ]);
+        $product = Product::with('inventories')->findOrFail($validated['product_id']);
+
+        // Current stock calculation
+        $stockIn = $product->inventories->where('type', 'in')->sum('quantity');
+        $stockOut = $product->inventories->where('type', 'out')->sum('quantity');
+        $currentStock = $stockIn - $stockOut;
+
+        if ($validated['type'] === 'in') {
+            // Check maximum stock limit
+            if ($currentStock + $validated['quantity'] > $product->maximum_stock) {
+                return response()->json([
+                    'type' => 'error',
+                    'message' => 'Adding this stock would exceed the maximum stock limit (' . $product->maximum_stock . ').'
+                ], 422);
+            }
+        } elseif ($validated['type'] === 'out') {
+            // Prevent negative stock
+            if ($currentStock - $validated['quantity'] < 0) {
+                return response()->json([
+                    'type' => 'error',
+                    'message' => 'Insufficient stock available. Current stock is ' . $currentStock . '.'
+                ], 422);
+            }
+        }
+
+        // Save inventory movement
+        $product->inventories()->create([
+            'type' => $validated['type'],
+            'quantity' => abs($validated['quantity']),
+            'reason' => $validated['reason'],
+        ]);
+
+        // Calculate % of critical stock relative to maximum
+        $criticalPercent = 0;
+        if ($product->maximum_stock > 0) {
+            $criticalPercent = ($product->critical_stock_level / $product->maximum_stock) * 100;
+        }
+
+        // Check if new stock is below critical
+        $newStock = $validated['type'] === 'in'
+            ? $currentStock + $validated['quantity']
+            : $currentStock - $validated['quantity'];
+
+        $warning = null;
+        if ($newStock <= $product->critical_stock_level) {
+            $warning = "⚠ Stock level is at or below critical threshold (" .
+                $product->critical_stock_level . " units, ~" .
+                number_format($criticalPercent, 2) . "% of maximum stock).";
+        }
 
         return response()->json([
             'type' => 'success',
             'message' => 'Inventory record created successfully.',
+            'current_stock' => $newStock,
+            'critical_percent' => number_format($criticalPercent, 2) . '%',
+            'warning' => $warning,
         ]);
     }
+
+
 }

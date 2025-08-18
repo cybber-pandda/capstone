@@ -22,7 +22,6 @@
                 <th>SKU</th>
                 <th>Name</th>
                 <th>Category</th>
-                <th>Date Created</th>
                 <th>Price</th>
                 <th>Discount</th>
                 <th>Stock</th>
@@ -52,12 +51,15 @@
                     'attributes' => 'required'
                 ])
                 @endcomponent
+
+                @component('components.input', ['label' => 'Maximum Stock', 'type' => 'number', 'name' => 'maximum_stock', 'attributes' => '' ]) @endcomponent
+                @component('components.input', ['label' => 'Critical Stock Level', 'type' => 'number', 'name' => 'critical_stock_level', 'attributes' => '' ]) @endcomponent
             </div>
 
             <div class="col-md-6 mb-2">
                 @component('components.input', ['label' => 'Price', 'type' => 'number', 'name' => 'price', 'attributes' => '' ]) @endcomponent
-                 @component('components.input', ['label' => 'Discount(%)', 'type' => 'number', 'name' => 'discount', 'attributes' => '' ]) @endcomponent
-                @component('components.textarea', ['label' => 'Description', 'rows' => 7, 'name' => 'description', 'attributes' => '']) @endcomponent
+                @component('components.input', ['label' => 'Discount(%)', 'type' => 'number', 'name' => 'discount', 'attributes' => '' ]) @endcomponent
+                @component('components.textarea', ['label' => 'Description', 'rows' => 11, 'name' => 'description', 'attributes' => '']) @endcomponent
             </div>
 
             <div class="col-md-12">
