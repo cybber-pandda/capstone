@@ -253,6 +253,8 @@
 
         const CURRENT_USER_ID = <?= auth()->id() ?>;
 
+        window.assetUrl = "{{ asset('') }}";
+
         $(document).ready(function() {
             refreshRecentMessages();
             fetchNotifications();

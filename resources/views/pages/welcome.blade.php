@@ -138,8 +138,6 @@
                 success: function (response) {
                     var product = response.product;
 
-                    console.log(product);
-
                     // Basic Info
                     $('#modal-title').text(product.name);
                     $('#modal-name').text(product.name);

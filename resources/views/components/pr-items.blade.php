@@ -19,9 +19,9 @@
 <h5 class="font-weight-bolder">
     PR ID: {{ $pr->id }}-{{ date('Ymd', strtotime($pr->created_at)) }}
     @if(Auth::user()->role === 'salesofficer')
-    <span class="badge {{ $badgeClass }} text-white" style="font-size: 0.800rem;">
-        {!! $badgeText !!}
-    </span>
+        <span class="badge {{ $badgeClass }} text-white" style="font-size: 0.800rem;">
+            {!! $badgeText !!}
+        </span>
     @endif
 </h5>
 
@@ -29,22 +29,30 @@
 
 <div class="d-flex justify-content-between mb-3">
     <div>
-        <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
+
+        @if(!empty($pr->b2b_delivery_date))
+             <h6 class="lead text-xs mt-2 text-wrap mb-2" style="font-size: 0.875rem;">
+                <strong>B2B Delivery Date:</strong>
+                {{ date('M j, Y', strtotime($pr->b2b_delivery_date)) }}
+            </h6>
+        @endif
+
+        <h6 class="lead text-xs mt-2 text-wrap mb-2" style="font-size: 0.875rem;">
             <i class="link-icon mb-1" data-lucide="calendar-days"></i>
             {{ date('M j, Y', strtotime($pr->created_at)) }}
         </h6>
     </div>
     @if(Auth::user()->role === 'salesofficer')
-    <div id="prActions" class="d-flex gap-2">
-        <button type="button" class="btn btn-primary" id="sendQuotationBtn">
-            <span class="sendQuotationBtn_button_text">Approve</span>
-            <span class="sendQuotationBtn_load_data d-none">Loading <i class="loader"></i></span>
-        </button>
-        <button type="button" class="btn btn-inverse-danger" id="rejectQuotationBtn">
-            <span class="rejectQuotationBtn_button_text">Reject</span>
-            <span class="rejectQuotationBtn_load_data d-none">Loading <i class="loader"></i></span>
-        </button>
-    </div>
+        <div id="prActions" class="d-flex gap-2">
+            <button type="button" class="btn btn-primary" id="sendQuotationBtn">
+                <span class="sendQuotationBtn_button_text">Approve</span>
+                <span class="sendQuotationBtn_load_data d-none">Loading <i class="loader"></i></span>
+            </button>
+            <button type="button" class="btn btn-inverse-danger" id="rejectQuotationBtn">
+                <span class="rejectQuotationBtn_button_text">Reject</span>
+                <span class="rejectQuotationBtn_load_data d-none">Loading <i class="loader"></i></span>
+            </button>
+        </div>
     @endif
 </div>
 
@@ -65,8 +73,8 @@
         @endif
 
         @if($b2bReq)
-            
-           <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
+
+            <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
                 <b>Business Name:</b> {{ $b2bReq->business_name ?? 'No business store name provided' }}
             </h6>
 
@@ -83,11 +91,13 @@
             </h6>
 
             <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
-                <b>Contact Person Phone #:</b> {{ $b2bReq->contact_person_number ?? 'No Contact Person Phone Number provided' }}
+                <b>Contact Person Phone #:</b>
+                {{ $b2bReq->contact_person_number ?? 'No Contact Person Phone Number provided' }}
             </h6>
 
             @php
-                function isPdf($filePath) {
+                function isPdf($filePath)
+                {
                     return strtolower(pathinfo($filePath, PATHINFO_EXTENSION)) === 'pdf';
                 }
             @endphp
@@ -124,69 +134,69 @@
     </div>
 
     <div class="col-md-8 p-3">
-      <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Image</th>
-                    <th>SKU</th>
-                    <th>Product</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Subtotal</th>
-                </tr>
-            </thead>
-            <tbody>
-                @php
-                    $subtotal = 0;
-                @endphp
-                @foreach($pr->items as $item)
-                    @php
-                        $itemSubtotal = $item->subtotal;
-                        $subtotal += $itemSubtotal;
-                    @endphp
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td>
-                            <img src="{{ asset(optional($item->product->productImages->first())->image_path ?? 'assets/shop/img/noimage.png') }}"
-                                width="50">
-                        </td>
-                        <td>{{ $item->product->sku }}</td>
-                        <td>{{ $item->product->name }}</td>
-                        <td>{{ $item->quantity }}</td>
-                        <td>₱{{ number_format($item->product->price, 2) }}</td>
-                        <td>₱{{ number_format($itemSubtotal, 2) }}</td>
+                        <th>Image</th>
+                        <th>SKU</th>
+                        <th>Product</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
                     </tr>
-                @endforeach
-            </tbody>
+                </thead>
+                <tbody>
+                    @php
+                        $subtotal = 0;
+                    @endphp
+                    @foreach($pr->items as $item)
+                        @php
+                            $itemSubtotal = $item->subtotal;
+                            $subtotal += $itemSubtotal;
+                        @endphp
+                        <tr>
+                            <td>
+                                <img src="{{ asset(optional($item->product->productImages->first())->image_path ?? 'assets/shop/img/noimage.png') }}"
+                                    width="50">
+                            </td>
+                            <td>{{ $item->product->sku }}</td>
+                            <td>{{ $item->product->name }}</td>
+                            <td>{{ $item->quantity }}</td>
+                            <td>₱{{ number_format($item->product->price, 2) }}</td>
+                            <td>₱{{ number_format($itemSubtotal, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
 
-            @php
-                $vatRate = $pr->vat ?? 0;
-                $vat = $subtotal * ($vatRate / 100);
-                $delivery_fee = $pr->delivery_fee ?? 0;
-                $total = $subtotal + $vat + $delivery_fee;
-            @endphp
+                @php
+                    $vatRate = $pr->vat ?? 0;
+                    $vat = $subtotal * ($vatRate / 100);
+                    $delivery_fee = $pr->delivery_fee ?? 0;
+                    $total = $subtotal + $vat + $delivery_fee;
+                @endphp
 
-            <tfoot id="totalFooter"
-                data-has-fee="{{ !is_null($pr->delivery_fee) && $pr->delivery_fee > 0 ? 'true' : 'false' }}">
-                <tr>
-                    <td colspan="5" class="text-end"><span class="h6">Subtotal:</span></td>
-                    <td class="text-end">₱{{ number_format($subtotal, 2) }}</td>
-                </tr>
-                <tr>
-                    <td colspan="5" class="text-end"><span class="h6">VAT ({{ $vatRate }}%):</span></td>
-                    <td class="text-end">₱{{ number_format($vat, 2) }}</td>
-                </tr>
-                <tr>
-                    <td colspan="5" class="text-end"><span class="h6">Delivery Fee:</span></td>
-                    <td class="text-end">₱{{ number_format($delivery_fee, 2) }}</td>
-                </tr>
-                <tr>
-                    <td colspan="5" class="text-end"><strong class="h4 text-uppercase">Grand Total:</strong></td>
-                    <td class="text-end">₱{{ number_format($total, 2) }}</td>
-                </tr>
-            </tfoot>
-        </table>
-      </div>
+                <tfoot id="totalFooter"
+                    data-has-fee="{{ !is_null($pr->delivery_fee) && $pr->delivery_fee > 0 ? 'true' : 'false' }}">
+                    <tr>
+                        <td colspan="5" class="text-end"><span class="h6">Subtotal:</span></td>
+                        <td class="text-end">₱{{ number_format($subtotal, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="text-end"><span class="h6">VAT ({{ $vatRate }}%):</span></td>
+                        <td class="text-end">₱{{ number_format($vat, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="text-end"><span class="h6">Delivery Fee:</span></td>
+                        <td class="text-end">₱{{ number_format($delivery_fee, 2) }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" class="text-end"><strong class="h4 text-uppercase">Grand Total:</strong></td>
+                        <td class="text-end">₱{{ number_format($total, 2) }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
     </div>
 
 </div>

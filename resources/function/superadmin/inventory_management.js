@@ -99,10 +99,11 @@ $(document).ready(function () {
                 table.ajax.reload();
             },
             error: function (response) {
-                if (response.status === 422) {
-                    hideLoader(".saveInventory");
-                    $("#saveInventory").prop("disabled", false);
+                
+                hideLoader(".saveInventory");
+                $("#saveInventory").prop("disabled", false);
 
+                if (response.status === 422) {
                     var errors = response.responseJSON.errors;
                     $.each(errors, function (key, value) {
                         $("#" + key).addClass("border-danger is-invalid");
@@ -111,7 +112,7 @@ $(document).ready(function () {
                         );
                     });
                 } else if (response.status === 400) {
-                    console.log(response.responseJSON.message);
+                    toast('warning',response.responseJSON.message);
                 } else {
                     console.log(response);
                 }

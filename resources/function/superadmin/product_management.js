@@ -33,9 +33,9 @@ $(document).ready(function () {
         ajax: "/product-management",
         autoWidth: false,
         columns: [
-            { data: "sku", name: "sku", width: "10%" },
-            { data: "name", name: "name", width: "20%" },
-            { data: "category", name: "category", width: "10%" },
+            // { data: "sku", name: "sku", width: "10%" },
+            { data: "name", name: "name", width: "5%" },
+            { data: "category", name: "category", width: "5%" },
             // {
             //     data: "created_at",
             //     name: "created_at",
@@ -55,6 +55,22 @@ $(document).ready(function () {
             {
                 data: "discount",
                 name: "discount",
+                className: "dt-left-int",
+                responsivePriority: 1,
+                orderable: false,
+                width: "5%",
+            },
+            {
+                data: "maximum_stock",
+                name: "maximum_stock",
+                className: "dt-left-int",
+                responsivePriority: 1,
+                orderable: false,
+                width: "5%",
+            },
+            {
+                data: "critical_stock_level",
+                name: "critical_stock_level",
                 className: "dt-left-int",
                 responsivePriority: 1,
                 orderable: false,
@@ -182,12 +198,24 @@ $(document).ready(function () {
                         <td>₱${res.product.price}</td>
                     </tr>
                     <tr>
+                        <th>Discounted Price</th>
+                        <td>₱${res.product.discount > 0 ? res.product.discounted_price : 0}</td>
+                    </tr>
+                    <tr>
                         <th>Description</th>
                         <td>${res.product.description ?? "-"}</td>
                     </tr>
                     <tr>
                         <th>Expiry Date</th>
                         <td>${res.product.expiry_date ?? "-"}</td>
+                    </tr>
+                    <tr>
+                        <th>Maximum Stock</th>
+                        <td>${res.product.maximum_stock ?? "-"}</td>
+                    </tr>
+                    <tr>
+                        <th>Critical Stock Level %</th>
+                        <td>${res.product.critical_stock_level ?? "-"}</td>
                     </tr>
                     <tr>
                         <th>Total Stock</th>
@@ -321,7 +349,7 @@ $(document).ready(function () {
                         );
                     });
                 } else if (response.status === 400) {
-                    console.log(response.responseJSON.message);
+                    toast('warning', response.responseJSON.message);
                 } else {
                     console.log(response);
                 }

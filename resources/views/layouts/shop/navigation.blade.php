@@ -17,7 +17,7 @@
 
             @if (Route::is('home') || Route::is('welcome') )
             <ul class="main-nav nav navbar-nav">
-                <li class="active"><a href="#" class="category-btn" data-id="">All</a></li>
+                <li><a href="#" class="category-btn" data-id="">All</a></li>
                 @foreach($categories as $category)
                 <li><a href="#" class="category-btn" data-id="{{ $category->id }}">{{ $category->name }}</a></li>
                 @endforeach
@@ -38,7 +38,7 @@
             @else
 
             <ul class="main-nav nav navbar-nav">
-                <li class="active"><a href="#" class="category-btn" data-id="">All</a></li>
+                <li><a href="#" class="category-btn" data-id="">All</a></li>
                 @foreach($categories as $category)
                 <li><a href="#" class="category-btn" data-id="{{ $category->id }}">{{ $category->name }}</a></li>
                 @endforeach

@@ -130,7 +130,7 @@ class SettingsController extends Controller
                     $filename = time() . '_' . $file->getClientOriginalName();
                     $file->move($destinationPath, $filename);
 
-                    $user->profile = 'uploads/profiles/' . $filename;
+                    $user->profile = 'assets/upload/profiles/' . $filename;
                     $user->save();
                 }
                 break;

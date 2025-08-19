@@ -85,21 +85,17 @@ function updateCartDropdown() {
             cartHtml += `
                 <div class="product-widget">
                     <div class="product-img">
-                        <img src="${
-                            item.product_image
-                        }" alt="" style="width: 50px; height: 50px; object-fit: cover;">
+                        <img src="${item.product_image
+                }" alt="" style="width: 50px; height: 50px; object-fit: cover;">
                     </div>
                     <div class="product-body">
-                        <h3 class="product-name"><a href="#">${
-                            item.product_name
-                        }</a></h3>
-                        <h4 class="product-price"><span class="qty">${
-                            item.quantity
-                        }x</span> ₱${parseFloat(item.price).toFixed(2)}</h4>
+                        <h3 class="product-name"><a href="#">${item.product_name
+                }</a></h3>
+                        <h4 class="product-price"><span class="qty">${item.quantity
+                }x</span> ₱${parseFloat(item.price).toFixed(2)}</h4>
                     </div>
-                    <button class="delete delete-purchase-request" style="display:none" data-id="${
-                        item.id
-                    }">
+                    <button class="delete delete-purchase-request" style="display:none" data-id="${item.id
+                }">
                         <i class="fa fa-close"></i>
                     </button>
                 </div>
@@ -274,13 +270,27 @@ function getProfileDetails(userId) {
             $(".profile-email").text(data.email);
             $(".profile-about").text(data.about);
             $(".profile-joined").text(data.joined);
-            $(".profile-image").attr("src", data.profile_image);
+
+            let profileSrc = 'assets/dashboard/images/noprofile.png'; // default
+
+            if (data.profile_image) {
+                // if the profile_image is already an absolute URL, use it as-is
+                if (data.profile_image.startsWith('http://') || data.profile_image.startsWith('https://')) {
+                    profileSrc = data.profile_image;
+                } else {
+                    // prepend assetUrl only if exists
+                    profileSrc = (window.assetUrl ? window.assetUrl : '') + data.profile_image;
+                }
+            }
+
+            $(".profile-image").attr("src", profileSrc);
         },
         error: function (xhr) {
             console.error("Profile not found");
         },
     });
 }
+
 
 $(document).on("click", "#bank_id", function () {
     const selected = $(this).find(":selected");
@@ -304,9 +314,17 @@ $(document).on("click", ".toggle-password", function () {
 
     if ($targetInput.attr("type") === "password") {
         $targetInput.attr("type", "text");
-        $icon.removeClass("fa-eye").addClass("fa-eye-slash");
+        if ($(this).is("button")) {
+            $(this).text("Hide");
+        } else {
+            $icon.removeClass("fa-eye").addClass("fa-eye-slash");
+        }
     } else {
         $targetInput.attr("type", "password");
-        $icon.removeClass("fa-eye-slash").addClass("fa-eye");
+        if ($(this).is("button")) {
+            $(this).text("Show");
+        } else {
+            $icon.removeClass("fa-eye-slash").addClass("fa-eye");
+        }
     }
 });

@@ -19,6 +19,7 @@ class Product extends Model
         'description',
         'price',
         'discount',
+        'discounted_price',
         'expiry_date',
         'maximum_stock',
         'critical_stock_level'

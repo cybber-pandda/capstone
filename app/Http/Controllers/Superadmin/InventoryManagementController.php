@@ -154,7 +154,7 @@ class InventoryManagementController extends Controller
                 return response()->json([
                     'type' => 'error',
                     'message' => 'Adding this stock would exceed the maximum stock limit (' . $product->maximum_stock . ').'
-                ], 422);
+                ], 400);
             }
         } elseif ($validated['type'] === 'out') {
             // Prevent negative stock
@@ -162,7 +162,7 @@ class InventoryManagementController extends Controller
                 return response()->json([
                     'type' => 'error',
                     'message' => 'Insufficient stock available. Current stock is ' . $currentStock . '.'
-                ], 422);
+                ], 400);
             }
         }
 

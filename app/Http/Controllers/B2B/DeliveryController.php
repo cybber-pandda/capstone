@@ -11,6 +11,10 @@ use App\Models\Order;
 use App\Models\Delivery;
 use App\Models\CompanySetting;
 use App\Models\PurchaseRequest;
+use App\Models\User;
+use App\Models\B2BAddress;
+use App\Models\B2BDetail;
+use App\Models\Bank;
 
 class DeliveryController extends Controller
 {
@@ -45,7 +49,7 @@ class DeliveryController extends Controller
 
                     if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
                         $purchaseRequestId = $matches[1];
-                        $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+                        $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
 
                         if ($purchaseRequest) {
                             $vatRate = $purchaseRequest->vat ?? 0;
@@ -164,7 +168,31 @@ class DeliveryController extends Controller
         ]);
     }
 
-    public function view_invoice($id)
+    // public function view_invoice($id)
+    // {
+    //     $invoiceData = Delivery::with([
+    //         'order.b2bAddress',
+    //         'order.user',
+    //         'order.items.product'
+    //     ])->findOrFail($id);
+
+    //     $companySettings = CompanySetting::first();
+    //     $page = 'Invoice';
+    //     $isPdf = false;
+
+    //     // Attempt to extract PR ID from order number and get PR
+    //     $purchaseRequest = null;
+    //     if ($invoiceData->order?->order_number) {
+    //         if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
+    //             $purchaseRequestId = $matches[1];
+    //             $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
+    //         }
+    //     }
+
+    //     return view('pages.invoice', compact('invoiceData', 'page', 'companySettings', 'isPdf', 'purchaseRequest'));
+    // }
+
+     public function view_invoice($id)
     {
         $invoiceData = Delivery::with([
             'order.b2bAddress',
@@ -172,23 +200,52 @@ class DeliveryController extends Controller
             'order.items.product'
         ])->findOrFail($id);
 
-        $companySettings = CompanySetting::first();
         $page = 'Invoice';
         $isPdf = false;
+        $banks = Bank::get();
+        $b2bReqDetails = null;
+        $b2bAddress = null;
+        $salesOfficer = null;
+        $quotation = null;
 
-        // Attempt to extract PR ID from order number and get PR
-        $purchaseRequest = null;
+        $superadmin = User::where('role', 'superadmin')->first();
+
+        $companySettings = CompanySetting::first();
+
         if ($invoiceData->order?->order_number) {
             if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
                 $purchaseRequestId = $matches[1];
-                $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
+
+                $quotation = PurchaseRequest::with(['customer', 'items.product'])
+                    ->where('customer_id', auth()->id())
+                    ->findOrFail($purchaseRequestId);
+
+                if ($quotation->customer_id) {
+                    $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
+                    $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+                }
+
+                if ($quotation->prepared_by_id) {
+                    $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+                }
             }
         }
 
-        return view('pages.invoice', compact('invoiceData', 'page', 'companySettings', 'isPdf', 'purchaseRequest'));
+        return view('pages.invoice', compact(
+            'invoiceData',
+            'quotation',
+            'page',
+            'companySettings',
+            'isPdf',
+            'banks',
+            'b2bReqDetails',
+            'b2bAddress',
+            'salesOfficer',
+            'superadmin'
+        ));
     }
 
-    public function downloadInvoice($id)
+   public function downloadInvoice($id)
     {
         $invoiceData = Delivery::with([
             'order.b2bAddress',
@@ -196,20 +253,47 @@ class DeliveryController extends Controller
             'order.items.product'
         ])->findOrFail($id);
 
-        $companySettings = CompanySetting::first();
         $page = 'Invoice';
         $isPdf = true;
+        $banks = Bank::get();
+        $b2bReqDetails = null;
+        $b2bAddress = null;
+        $salesOfficer = null;
+        $quotation = null;
+
+        $superadmin = User::where('role', 'superadmin')->first();
+
+        $companySettings = CompanySetting::first();
 
         // Extract PR from order number
         $purchaseRequest = null;
         if ($invoiceData->order?->order_number) {
             if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
                 $purchaseRequestId = $matches[1];
+
+                 $quotation = PurchaseRequest::with(['customer', 'items.product'])
+                    ->where('customer_id', auth()->id())
+                    ->findOrFail($purchaseRequestId);
+
+                if ($quotation->customer_id) {
+                    $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
+                    $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+                }
+
+                if ($quotation->prepared_by_id) {
+                    $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+                }
+
                 $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
             }
         }
 
-        $pdf = Pdf::loadView('pages.invoice', compact('invoiceData', 'page', 'companySettings', 'isPdf', 'purchaseRequest'))
+        $pdf = Pdf::loadView('pages.invoice', compact('invoiceData', 'page', 'companySettings', 'isPdf', 'purchaseRequest', 'quotation',
+            'banks',
+            'b2bReqDetails',
+            'b2bAddress',
+            'salesOfficer',
+            'superadmin'))
             ->setPaper('A4', 'portrait');
 
         return $pdf->download("invoice-{$invoiceData->order?->order_number}.pdf");

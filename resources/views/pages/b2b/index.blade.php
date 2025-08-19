@@ -104,7 +104,7 @@
         let selectedCategory = '';
         let searchQuery = '';
 
-        function fetchProducts(url = "{{ route('welcome') }}") {
+        function fetchProducts(url = "{{ route('home') }}") {
             $.ajax({
                 url: url,
                 type: 'GET',
@@ -142,16 +142,25 @@
             fetchProducts();
         });
 
-        $(document).on('click', '.category-btn', function(e) {
-            e.preventDefault();
+        // $(document).on('click', '.category-btn', function(e) {
+        //     e.preventDefault();
 
+        //     selectedCategory = $(this).data('id');
+
+        //     // Remove .active from all <li>s
+        //     $('.main-nav li').removeClass('active');
+
+        //     // Add .active to the clicked link's parent <li>
+        //     $(this).closest('li').addClass('active');
+
+        //     fetchProducts();
+        // }); 
+
+        $(document).on('click', '.category-btn', function() {
             selectedCategory = $(this).data('id');
 
-            // Remove .active from all <li>s
-            $('.main-nav li').removeClass('active');
-
-            // Add .active to the clicked link's parent <li>
-            $(this).closest('li').addClass('active');
+            $('.category-btn').removeClass('active');
+            $(this).addClass('active');
 
             fetchProducts();
         });

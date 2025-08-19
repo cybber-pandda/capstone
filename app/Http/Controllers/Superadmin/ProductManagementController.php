@@ -22,11 +22,23 @@ class ProductManagementController extends Controller
         $category_select = Category::select('name', 'id')->get();
 
         if ($request->ajax()) {
-           $products = Product::with('inventories', 'category')->select(['id', 'sku', 'name', 'description', 'price', 'discount', 'expiry_date', 'created_at', 'category_id']);
-            
+           $products = Product::with('inventories', 'category')->select(['id', 'sku', 'name', 'description', 'price', 'discount', 'discounted_price', 'maximum_stock', 'critical_stock_level', 'expiry_date', 'created_at', 'category_id']);
+
             return DataTables::of($products)
+                ->addColumn('price', function ($row) {
+                    if ($row->discount > 0) {
+                        return $row->discounted_price;
+                    }
+                    return $row->price;
+                })
                 ->addColumn('current_stock', fn($row) => $row->current_stock)
                 ->addColumn('category', fn($row) => optional($row->category)->name ?? 'N/A')
+                ->addColumn('discount', function ($row) {
+                    if ($row->discount) {
+                        return $row->discount . '%';
+                    }
+                    return '--';
+                })
                 ->addColumn('action', function ($row) {
                     return '
                         <button type="button" class="btn btn-sm btn-info view-details p-2" data-id="' . $row->id . '"><i class="link-icon" data-lucide="eye"></i></button>
@@ -34,6 +46,7 @@ class ProductManagementController extends Controller
                         <button type="button" class="btn btn-sm btn-inverse-danger delete p-2" data-id="' . $row->id . '"><i class="link-icon" data-lucide="trash-2"></i></button>
                     ';
                 })
+                ->rawColumns(['discount', 'price', 'action'])
                 ->make(true);
         }
 
@@ -44,8 +57,8 @@ class ProductManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string',
-            'price' => 'required|numeric',
-            'discount' => 'nullable|numeric',
+            'price' => 'required|numeric|min:0',
+            'discount' => 'nullable|numeric|min:0|max:100',
             'expiry_date' => 'nullable|date',
             'maximum_stock' => 'required|numeric',
             'critical_stock_level' => 'required|numeric',
@@ -55,6 +68,16 @@ class ProductManagementController extends Controller
         ]);
 
         $validated['sku'] = strtoupper(uniqid('SKU-'));
+
+        if (!empty($validated['discount'])) {
+            if ($validated['discount'] > 100) {
+                return response()->json([
+                    'type' => 'error',
+                    'message' => 'Discount cannot exceed 100%.'
+                ], 400);
+            }
+            $validated['discounted_price'] = $validated['price'] - ($validated['price'] * ($validated['discount'] / 100));
+        }
 
         DB::transaction(function () use ($request, $validated) {
             $product = Product::create($validated);
@@ -78,7 +101,6 @@ class ProductManagementController extends Controller
             'message' => 'Product created successfully.'
         ]);
     }
-
     public function show($id)
     {
         $product = Product::with(['productImages', 'inventories'])->findOrFail($id);
@@ -109,10 +131,10 @@ class ProductManagementController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string',
-            'price' => 'required|numeric',
+            'price' => 'required|numeric|min:0',
             'maximum_stock' => 'required|numeric',
             'critical_stock_level' => 'required|numeric',
-            'discount' => 'nullable|numeric',
+            'discount' => 'nullable|numeric|min:0|max:100',
             'expiry_date' => 'nullable|date',
             'category_id' => 'required|numeric',
             'description' => 'nullable|string',
@@ -123,11 +145,17 @@ class ProductManagementController extends Controller
 
         DB::transaction(function () use ($request, $validated, $id) {
             $product = Product::findOrFail($id);
+            
+            $discount = $validated['discount'] ?? 0;
+            $discountedPrice = $discount > 0
+                ? $validated['price'] - ($validated['price'] * ($discount / 100))
+                : $validated['price'];
 
             $product->update([
                 'name' => $validated['name'],
                 'price' => $validated['price'],
                 'discount' => $validated['discount'],
+                'discounted_price' => $discountedPrice,
                 'expiry_date' => $validated['expiry_date'],
                 'maximum_stock' => $validated['maximum_stock'],
                 'critical_stock_level' => $validated['critical_stock_level'],

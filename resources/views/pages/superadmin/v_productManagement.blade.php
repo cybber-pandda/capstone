@@ -19,11 +19,12 @@
             'id' => 'productManagement',
             'thead' => '
             <tr>
-                <th>SKU</th>
                 <th>Name</th>
                 <th>Category</th>
                 <th>Price</th>
                 <th>Discount</th>
+                <th>Max. Stock</th>
+                <th>Crit. Stock(%)</th>
                 <th>Stock</th>
                 <th>Action</th>
             </tr>
