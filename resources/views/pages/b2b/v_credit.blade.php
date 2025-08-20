@@ -309,13 +309,29 @@
                     $('#credit_payment_id').val(id);
                     $('#credit_payment_type').val('straight');
                     $('#credit_amount').text($(this).data('creditamount'));
-                    $('#paid_amount').val(
-                        Math.round(parseFloat($(this).data('creditamount')))
+                     $('#paid_amount').val(
+                       $(this).data('creditamount')
                     );
                     $('#paymentModal').modal('show');
                 }
             });
 
+        });
+
+
+        $("#paid_amount").on("input", function () {
+            let value = $(this).val();
+
+            // Keep only numbers and dots
+            value = value.replace(/[^0-9.]/g, "");
+
+            // Allow only one dot
+            let parts = value.split(".");
+            if (parts.length > 2) {
+                value = parts[0] + "." + parts.slice(1).join(""); 
+            }
+
+            $(this).val(value);
         });
 
         $(document).on('click', '.partial-payment-list', function() {
@@ -435,7 +451,7 @@
                     $('#partialPaymentsModal').modal('hide');
                     $('#credit_amount').text($(this).data('creditamount'));
                     $('#paid_amount').val(
-                        Math.round(parseFloat($(this).data('creditamount')))
+                       $(this).data('creditamount')
                     );
                     $('#paymentModal').modal('show');
                 }

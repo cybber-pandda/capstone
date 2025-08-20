@@ -30,14 +30,14 @@ $(document).ready(function () {
             { data: "bank_name", name: "bank_name", className: "dt-left-int", width: "5%" },
             { data: "paid_amount", name: "paid_amount", className: "dt-left-int", width: "5%" },
             { data: "paid_date", name: "paid_date", className: "dt-left-int", width: "5%" },
-            { data: "proof_payment", name: "proof_payment", width: "5%" },
-            { data: "reference_number", name: "reference_number", className: "dt-left-int", width: "5%" },
+            { data: "proof_payment", name: "proof_payment", width: "2%" },
+            { data: "reference_number", name: "reference_number", className: "dt-left-int", width: "2%" },
             {
                 data: "action",
                 name: "action",
                 orderable: false,
                 searchable: false,
-                width: "20%",
+                width: "30%",
             },
         ],
         drawCallback: function () {

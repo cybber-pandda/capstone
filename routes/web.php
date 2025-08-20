@@ -82,6 +82,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::post('/paylater/approve/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'approvePaylaterPayment'])->name('paylater.approve');
         Route::get('/paylater/partial/all/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'paylaterPartial'])->name('paylater.partial.index');
         Route::post('/paylater/partial-payment/approve/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'approvePartialPaylaterPayment'])->name('paylater.partial.approve');
+        Route::post('/paylater/reject/payment/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'reject_payment'])->name('paylater.reject.payment');
         Route::get('/account-receivable/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable'])->name('account-receivable.index');
         Route::get('/ar-details/{userid}/{prid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_details'])->name('account-receivable-details.index');
         Route::get('/ar-payments/{userid}/{prid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_payments']);

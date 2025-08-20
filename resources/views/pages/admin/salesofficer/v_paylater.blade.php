@@ -36,7 +36,7 @@
                                 <th>Paid Date</th>
                                 <th>Status</th>
                                 <th>Proof Payment</th>
-                                <th>Reference Number</th>
+                                <th>Reference #</th>
                                 <th></th>
                             </tr>
                         '
@@ -67,6 +67,23 @@
 
     @component('components.modal', ['id' => 'viewPartialPaymentModal', 'size' => 'xl', 'scrollable' => true])
     <div id="partialPaymentTable"></div>
+    @endcomponent
+
+    @component('components.modal', ['id' => 'rejectModal', 'size' => 'md', 'scrollable' => true])
+        <form id="rejectForm">
+            @component('components.textarea', [
+                'label' => 'Reason',
+                'name' => 'rejection_reason',
+                'attributes' => ''
+            ]) @endcomponent
+        </form>
+        @slot('footer')
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btn-sm" id="rejectFormbtn">
+            <span class="rejectFormbtn_button_text">Save</span>
+            <span class="rejectFormbtn_load_data d-none">Loading <i class="loader"></i></span>
+        </button>
+        @endslot
     @endcomponent
 
 </div>

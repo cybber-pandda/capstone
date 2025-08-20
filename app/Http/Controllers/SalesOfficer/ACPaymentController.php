@@ -156,8 +156,13 @@ class ACPaymentController extends Controller
                         return is_null($payment->proof_payment) && is_null($payment->reference_number)
                             ? '<span class="badge bg-danger text-white"> <i class="link-icon" data-lucide="clock"></i> Waiting for B2B Payment</span>'
                             : '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
-                            <i class="link-icon" data-lucide="copy-check"></i> Approve Payment
-                        </button>';
+                                    Approve
+                                </button>
+                                <button type="button" class="btn btn-sm btn-inverse-danger reject-payment p-2" data-id="' . $payment->id . '" data-paymenttype="straight" style="font-size:11px">
+                                    Reject
+                                </button>
+                        
+                        ';
                     })
                     ->rawColumns(['bank_name', 'paid_date', 'proof_payment', 'reference_number', 'status', 'action'])
                     ->make(true);
@@ -239,6 +244,31 @@ class ACPaymentController extends Controller
             });
 
         return response()->json($payments);
+    }
+
+    public function reject_payment($id)
+    { 
+        $payment = null;
+        $paymentType = request()->input('paymentType');
+
+        if( $paymentType === 'straight') {
+            $payment = CreditPayment::findOrFail($id);
+        } elseif ($paymentType === 'partial') {
+            $payment = CreditPartialPayment::findOrFail($id);
+        }
+
+        if ($payment->status === 'reject') {
+            return response()->json(['message' => 'This payment is already rejected.'], 400);
+        }
+
+        $payment->status = 'reject';
+        $payment->notes = request()->input('reason');
+        $payment->save();
+
+        PurchaseRequest::where('id', $payment->purchase_request_id)
+        ->update(['status' => 'payment_rejected']);
+
+        return response()->json(['message' => 'Payment has been rejected successfully.']);
     }
 
     public function approvePartialPaylaterPayment($id)

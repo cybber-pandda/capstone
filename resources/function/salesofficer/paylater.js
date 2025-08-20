@@ -211,8 +211,11 @@ $(document).ready(function () {
                             <td>
                                 ${
                                     item.proof_payment && item.reference_number
-                                        ? `<button class="btn btn-sm btn-inverse-dark approve-partial-payment p-1" data-id="${item.id}" style="font-size:11px;">Approve Payment
-                                        </button>`
+                                        ? `<button class="btn btn-sm btn-inverse-dark approve-partial-payment p-1" data-id="${item.id}" style="font-size:11px;">Approve
+                                        </button>
+                                        <button class="btn btn-sm btn-inverse-dark reject-payment p-1" data-id="${item.id}" data-paymenttype="partial" style="font-size:11px;">Reject
+                                        </button>
+                                          `
                                         : `<span class="badge bg-danger">Waiting for B2B Payment</span>`
                                 }
                             </td>
@@ -299,4 +302,91 @@ $(document).ready(function () {
             },
         });
     }
+
+
+    $(document).on("click", ".reject-payment", function (e) {
+        e.preventDefault();
+
+        let id = $(this).data("id");
+        let paymentType = $(this).data("paymenttype");
+
+        if (!id) {
+            toast("error", "Missing payment ID.");
+            return;
+        }
+
+        if( paymentType === 'partial') {
+            $("#viewPartialPaymentModal").modal("hide");
+        }
+
+        Swal.fire({
+            title: "Are you sure?",
+            text: "Do you want to reject this payment?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#000",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, reject it!",
+            cancelButtonText: "Cancel",
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $('.modal-title').text('Reject Payment');
+                $('#rejectModal').modal('show');
+
+                // attach event to Save button
+                $("#rejectFormbtn").off("click").on("click", function () {
+                    let reason = $('#rejectForm textarea[name="rejection_reason"]').val().trim();
+
+                    if (!reason) {
+                        toast("error", "Please enter a reason for rejection.");
+                        return;
+                    }
+
+                    rejectPayment(id, paymentType, reason);
+                });
+            }
+        });
+    });
+
+    function rejectPayment(id, paymentType, reason) {
+        $.ajax({
+            url: `/salesofficer/paylater/reject/payment/${id}`,
+            type: "POST",
+            data: {
+                _token: $('meta[name="csrf-token"]').attr("content"),
+                reason: reason,
+                paymentType: paymentType
+            },
+            beforeSend: function () {
+                 $('#rejectModal').modal('hide');
+            },
+            success: function (response) {
+                $('#rejectModal').modal('hide');
+                Swal.fire({
+                    icon: "success",
+                    title: "Rejected!",
+                    timer: 3000,
+                    showConfirmButton: false,
+                    text: response.message,
+                });
+
+                if (paymentType === 'straight') {
+                    straightTable.ajax.reload(null, false);
+                } else {
+                    partialTable.ajax.reload(null, false);
+                }
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: xhr.responseJSON?.message || "Something went wrong.",
+                });
+            },
+        });
+    }
+
+
 });
