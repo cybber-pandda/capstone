@@ -106,14 +106,14 @@
 
 </head>
 
-<body>
+<body style="background-color:#FC6319;">
     <!-- Navbar-->
     <header class="header">
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container">
                 <!-- Navbar Brand -->
                 <a href="#" class="navbar-brand">
-                    <img src="{{ asset('assets/shop/logo/TantucoCTC_Logo.png') }}" alt="logo" height="100" width="100">
+                    <img src="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}" alt="" width="70">
                 </a>
             </div>
         </nav>
@@ -125,8 +125,8 @@
                 <img src="{{ asset('assets/shop/img/tools.webp') }}" alt="hardware shop illustration" class="img-fluid d-none d-md-block mb-0">
                 <h2>Welcome to <b>Tantuco</b><span class="lead">CTC</span></h2>
                 <p>Access Top-Quality Hardware</p>
-                <p class="font-italic text-muted mb-0">Register to explore top-quality hardware tools, parts, and supplies for all your business and DIY needs.</p>
-                <p class="font-italic text-muted">Brought to you by <strong>TantucoCTC</strong></p>
+                <p class="font-italic text-white mb-0">Register to explore top-quality hardware tools, parts, and supplies for all your business and DIY needs.</p>
+                <p class="font-italic text-white">Brought to you by <strong>TantucoCTC</strong></p>
             </div>
 
 

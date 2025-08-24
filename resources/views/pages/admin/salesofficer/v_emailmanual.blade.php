@@ -22,7 +22,7 @@
                             <th>Customer Phone #</th>
                             <th>Total Items</th>
                             <th>Grand Total</th>
-                            <th>Date Created</th>
+                            <!-- <th>Date Created</th> -->
                             <th>Status</th>
                             <th>Action</th>
                         </tr>

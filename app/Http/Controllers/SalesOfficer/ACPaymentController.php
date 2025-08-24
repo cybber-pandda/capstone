@@ -109,9 +109,6 @@ class ACPaymentController extends Controller
         $payment->approved_by = auth()->id();
         $payment->save();
 
-        PurchaseRequest::where('id', $payment->purchase_request_id)
-        ->update(['status' => 'payment_approved']);
-
         return response()->json(['message' => 'Payment has been approved successfully.']);
     }
 
@@ -213,9 +210,6 @@ class ACPaymentController extends Controller
         $payment->approved_by = auth()->id();
         $payment->save();
 
-        PurchaseRequest::where('id', $payment->purchase_request_id)
-        ->update(['status' => 'payment_approved']);
-
         return response()->json(['message' => 'Payment has been approved successfully.']);
     }
 
@@ -265,9 +259,6 @@ class ACPaymentController extends Controller
         $payment->notes = request()->input('reason');
         $payment->save();
 
-        PurchaseRequest::where('id', $payment->purchase_request_id)
-        ->update(['status' => 'payment_rejected']);
-
         return response()->json(['message' => 'Payment has been rejected successfully.']);
     }
 
@@ -284,27 +275,30 @@ class ACPaymentController extends Controller
         $payment->approved_by = auth()->id();
         $payment->save();
 
-        PurchaseRequest::where('id', $payment->purchase_request_id)
-        ->update(['status' => 'payment_approved']);
-
         return response()->json(['message' => 'Payment has been approved successfully.', 'pp_id' => $payment->id]);
     }
 
     public function account_receivable(Request $request)
     {
-        $today = now()->toDateString();
+        $today = Carbon::today();
 
         // Overall totals
         $totalPendingStraight = CreditPayment::where('status', 'pending')->sum('paid_amount');
         $totalPendingPartial  = CreditPartialPayment::where('status', 'pending')->sum('amount_to_pay');
         $totalPending = $totalPendingStraight + $totalPendingPartial;
 
-        $totalOverDueStraight = CreditPayment::where('status', 'pending')
+        $totalOverDueStraight = CreditPayment::with('purchaseRequest:id,credit_amount')
+            ->where('status', 'overdue')
             ->whereDate('due_date', '<', $today)
-            ->sum('paid_amount');
-        $totalOverDuePartial = CreditPartialPayment::where('status', 'pending')
+            ->get()
+            ->sum(function ($payment) {
+                return $payment->purchaseRequest->credit_amount ?? 0;
+            });
+
+        $totalOverDuePartial = CreditPartialPayment::where('status', 'overdue')
             ->whereDate('due_date', '<', $today)
             ->sum('amount_to_pay');
+
         $totalOverDue = $totalOverDueStraight + $totalOverDuePartial;
 
         $totalBalance = $totalPending + $totalOverDue;
@@ -315,9 +309,8 @@ class ACPaymentController extends Controller
             ->map(function ($customer) use ($today) {
 
                 $pendingStraight = $customer->purchaseRequests
-                    ->pluck('creditPayment')
-                    ->filter(fn($payment) => $payment && $payment->status === 'pending')
-                    ->sum('paid_amount');
+                    ->filter(fn($pr) => $pr->creditPayment && $pr->creditPayment->status === 'pending')
+                    ->sum('credit_amount');
 
                 $pendingPartial = $customer->purchaseRequests
                     ->flatMap(fn($pr) => $pr->creditPartialPayments)
@@ -325,28 +318,24 @@ class ACPaymentController extends Controller
                     ->sum('amount_to_pay');
 
                 $overdueStraight = $customer->purchaseRequests
-                    ->pluck('creditPayment')
-                    ->filter(
-                        fn($payment) =>
-                        $payment &&
-                            $payment->status === 'pending' &&
-                            $payment->due_date < $today
+                    ->filter(fn($pr) => 
+                        $pr->creditPayment &&
+                        $pr->creditPayment->status === 'overdue' &&
+                        $pr->creditPayment->due_date < $today
                     )
-                    ->sum('paid_amount');
+                    ->sum('credit_amount');
 
                 $overduePartial = $customer->purchaseRequests
                     ->flatMap(fn($pr) => $pr->creditPartialPayments)
-                    ->filter(
-                        fn($payment) =>
-                        $payment->status === 'pending' &&
-                            $payment->due_date < $today
+                    ->filter(fn($payment) =>
+                        $payment->status === 'overdue' &&
+                        $payment->due_date < $today
                     )
                     ->sum('amount_to_pay');
 
                 $pending = $pendingStraight + $pendingPartial;
                 $overdue = $overdueStraight + $overduePartial;
                 $balance = $pending + $overdue;
-
                 $firstPrId = $customer->purchaseRequests->first()?->id;
 
                 return [
@@ -380,71 +369,106 @@ class ACPaymentController extends Controller
         ]);
     }
 
-    public function account_receivable_details($userid, $prid)
+    public function account_receivable_pr($userid, Request $request)
     {
-        $today = now()->toDateString();
-
-        $customer = User::where('id', $userid)
-            ->with(['purchaseRequests.creditPayment', 'purchaseRequests.creditPartialPayments'])
-            ->first();
+        $type = $request->query('type', 'straight'); // default = straight
+        $customer = User::find($userid);
 
         if (!$customer) {
-            return response()->json(['error' => 'Customer not found'], 404);
+            return response()->json(['prLists' => []]);
         }
 
-        // $prid = 2;
+        $prType = $type === 'straight' ? 'Straight Payment' : 'Partial Payment';
 
-        $purchaseRequests = $prid
-            ? $customer->purchaseRequests->where('id', $prid)
-            : $customer->purchaseRequests;
+        $purchaseRequests = $customer->purchaseRequests()
+            ->where('customer_id', $userid)
+            ->where('credit_payment_type', $prType)
+            ->get();
 
-        $pendingStraight = $purchaseRequests
-            ->pluck('creditPayment')
-            ->filter(fn($payment) => $payment && $payment->status === 'pending')
-            ->sum('paid_amount');
-
-        $pendingPartial = $purchaseRequests
-            ->flatMap(fn($pr) => $pr->creditPartialPayments)
-            ->filter(fn($payment) => $payment->status === 'pending')
-            ->sum('amount_to_pay');
-
-        $overdueStraight = $purchaseRequests
-            ->pluck('creditPayment')
-            ->filter(
-                fn($payment) =>
-                $payment &&
-                    $payment->status === 'pending' &&
-                    $payment->due_date < $today
-            )
-            ->sum('paid_amount');
-
-        $overduePartial = $purchaseRequests
-            ->flatMap(fn($pr) => $pr->creditPartialPayments)
-            ->filter(
-                fn($payment) =>
-                $payment->status === 'pending' &&
-                    $payment->due_date < $today
-            )
-            ->sum('amount_to_pay');
-
-        $pending = $pendingStraight + $pendingPartial;
-        $overdue = $overdueStraight + $overduePartial;
-        $balance = $pending + $overdue;
-
-        $firstPrId = $purchaseRequests->first()?->id;
-
-        $customerAddress = B2BAddress::where('user_id', $userid)->where('status', 'active')->first();
-        $customerRequirement = B2BDetail::where('user_id', $userid)->where('status', 'approved')->first();
-        
-        $creditPaymentType = null;
-
-        if ($prid) {
-            $pr = $purchaseRequests->firstWhere('id', $prid);
-            $creditPaymentType = $pr ? $pr->credit_payment_type : null;
-        } else {
-            $pr = $purchaseRequests->first();
-            $creditPaymentType = $pr ? $pr->credit_payment_type : null;
+        if ($purchaseRequests->isEmpty()) {
+            return response()->json(['prLists' => []]);
         }
+
+        $prLists = $purchaseRequests->map(function ($pr) {
+            return [
+                'pr_id' => $pr->id,
+                'invoice_number' => 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT),
+                'credit_amount' => number_format($pr->credit_amount ?? 0),
+                'status' => $pr->status ? str_replace('_', ' ', $pr->status) : '',
+                'created_at' => $pr->created_at ? $pr->created_at->format('d F Y') : null,
+            ];
+        });
+
+        return response()->json(['prLists' => $prLists]);
+    }
+
+    public function account_receivable_details($prid)
+    {
+        $today = Carbon::today();
+
+        $purchaseRequest = PurchaseRequest::with(['customer', 'creditPayment', 'creditPartialPayments'])
+            ->where('id', $prid)
+            ->first();
+
+        if (!$purchaseRequest) {
+            return response()->json(['error' => 'PR not found'], 404);
+        }
+
+        $pendingStraight = 0;
+        $overdueStraight = 0;
+        $pendingPartial = 0;
+        $overduePartial = 0;
+
+        // Straight Payment
+        if ($purchaseRequest->creditPayment) {
+            if ($purchaseRequest->creditPayment->status === 'pending') {
+                $pendingStraight = $purchaseRequest->credit_amount;
+            }
+
+            if (
+                $purchaseRequest->creditPayment->status === 'overdue' &&
+                $purchaseRequest->creditPayment->due_date < $today
+            ) {
+                $overdueStraight = $purchaseRequest->credit_amount;
+            }
+        }
+
+        // Partial Payments
+        if ($purchaseRequest->creditPartialPayments->count()) {
+            $pendingPartial = $purchaseRequest->creditPartialPayments
+                ->where('status', 'pending')
+                ->sum('amount_to_pay');
+
+            $overduePartial = $purchaseRequest->creditPartialPayments
+                ->where('status', 'overdue')
+                ->where('due_date', '<', $today)
+                ->sum('amount_to_pay');
+        }
+
+        // Assign based on payment type
+        $pending = 0;
+        $overdue = 0;
+        $balance = 0;
+
+        if ($purchaseRequest->credit_payment_type === 'Straight Payment') {
+            $pending = $pendingStraight;
+            $overdue = $overdueStraight;
+            $balance = $pending + $overdue;
+        } elseif ($purchaseRequest->credit_payment_type === 'Partial Payment') {
+            $pending = $pendingPartial;
+            $overdue = $overduePartial;
+            $balance = $pending + $overdue;
+        }
+
+        $customer = $purchaseRequest->customer;
+
+        $customerAddress = B2BAddress::where('user_id', $customer->id)
+            ->where('status', 'active')
+            ->first();
+
+        $customerRequirement = B2BDetail::where('user_id', $customer->id)
+            ->where('status', 'approved')
+            ->first();
 
         return response()->json([
             'customer' => [
@@ -455,24 +479,19 @@ class ACPaymentController extends Controller
                 'pending' => number_format($pending, 2),
                 'overdue' => number_format($overdue, 2),
                 'balance' => number_format($balance, 2),
-                'pr_id' => $firstPrId,
-                'credit_payment_type' => $creditPaymentType,
+                'pr_id' => $purchaseRequest->id,
+                'credit_payment_type' => $purchaseRequest->credit_payment_type,
             ],
             'customerAddress' => $customerAddress,
             'customerRequirements' => $customerRequirement
         ]);
     }
 
-    public function account_receivable_payments($userid, $prid, Request $request)
+    public function account_receivable_payments($prid, Request $request)
     {
         $type = $request->query('type', 'straight');
-        $customer = User::find($userid);
-
-        if (!$customer) {
-            return response()->json(['payments' => []]);
-        }
-
-        $purchaseRequest = $customer->purchaseRequests()->where('id', $prid)->first();
+        
+        $purchaseRequest = PurchaseRequest::with(['customer'])->where('id', $prid)->first();
 
         if (!$purchaseRequest) {
             return response()->json(['payments' => []]);

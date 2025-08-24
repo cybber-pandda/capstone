@@ -34,9 +34,9 @@
             'thead' => '
             <tr>
                 <th>Customer Name</th>
-                <th>Pending Amount</th>
-                <th>Overdue Amount</th>
-                <th>Total Balance</th>
+                <th>Total Straight & Partial<br>Pending Amount</th>
+                <th>Total Straight & Partial<br>Overdue Amount</th>
+                <th>Total Straight & Partial<br>Balance Amount</th>
                 <th></th>
             </tr>
             '
@@ -46,6 +46,10 @@
             @endcomponent
         </div>
     </div>
+
+    @component('components.modal', ['id' => 'viewPRDebtModal', 'size' => 'lg', 'scrollable' => true])
+    <div id="customerPRDebtDetails"></div>
+    @endcomponent
 
     @component('components.modal', ['id' => 'viewDebtModal', 'size' => 'lg', 'scrollable' => true])
     <div id="customerDebtDetails"></div>
@@ -123,26 +127,157 @@
             e.preventDefault();
 
             let userid = $(this).data("userid");
-            let prid = $(this).data("prid");
+            let prid   = $(this).data("prid");
+
+            $(".modal-title").text("Customer Purchase Request Payment");
+
+            let html = `
+                <div class="mb-3 d-flex flex-column">
+                    <label class="form-label fw-bold text-uppercase mb-3">Choose Payment Type</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="creditPaymentType" id="straightPayment" value="Straight Payment" checked>
+                            <label class="form-check-label" for="straightPayment">Straight Payment</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="creditPaymentType" id="partialPayment" value="Partial Payment">
+                            <label class="form-check-label" for="partialPayment">Partial Payment</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border border-dark my-3">
+
+                <div id="straightPaymentBox" class="d-none">
+                    <h5 class="text-uppercase">Straight Payment List</h5>
+
+                    <table class="table table-striped table-sm mt-3 mb-3" id="straightPRTable">
+                        <thead>
+                            <tr>
+                                <th>Invoice No.</th>
+                                <th>Credit Amount</th>
+                                <th>Status</th>
+                                <th>Date Created</th>
+                                <th></th> 
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div id="partialPaymentBox" class="d-none">
+                    <h5 class="text-uppercase">Partial Payment List</h5>
+
+                    <table class="table table-striped table-sm mt-3 mb-3" id="partialPRTable">
+                        <thead>
+                            <tr>
+                                <th>Invoice No.</th>
+                                <th>Credit Amount</th>
+                                <th>Status</th>
+                                <th>Date Created</th>
+                                <th></th> 
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            `;
+
+            $("#customerPRDebtDetails").html(html);
+            $('#viewPRDebtModal').modal('show');
+
+            // define toggle AFTER content is injected
+            function togglePaymentTables() {
+                let selected = $('input[name="creditPaymentType"]:checked').val();
+                if (selected === "Straight Payment") {
+                    $("#straightPaymentBox").removeClass("d-none");
+                    $("#partialPaymentBox").addClass("d-none");
+                    loadPRTable(userid, 'straight');
+                } else {
+                    $("#partialPaymentBox").removeClass("d-none");
+                    $("#straightPaymentBox").addClass("d-none");
+                    loadPRTable(userid, 'partial');
+                }
+            }
+
+            // run once initially
+            togglePaymentTables();
+
+            // bind change handler
+            $('input[name="creditPaymentType"]').on("change", togglePaymentTables);
+        
+        });
+
+        function loadPRTable(userid, type) {
+
+            $.get(`/salesofficer/ar-pr-table/${userid}?type=${type}`, function(res) {
+                let tbody;
+               
+
+                if (type === 'straight') {
+                   tbody = $('#straightPRTable tbody');
+                   tbody.empty();
+                } else if (type === 'partial') {
+                   tbody = $('#partialPRTable tbody');
+                   tbody.empty();
+                }
+
+                if (res.prLists.length === 0) {
+                    tbody.append(`<tr><td colspan="5" class="text-center">No payments found</td></tr>`);
+                    return;
+                }
+
+                res.prLists.forEach(pr => {
+                    let invoiceTd = `<td>${pr.invoice_number}</td>`;
+                    let creditAmountTd = `<td>₱ ${pr.credit_amount}</td>`;
+                    let dateCreated = pr.created_at;
+                    let status = pr.status.charAt(0).toUpperCase() + pr.status.slice(1);
+
+                    let rowHtml = `
+                        <tr>
+                            ${invoiceTd}
+                            ${creditAmountTd}
+                            <td><span class="badge bg-info text-white">${status}</span></td>
+                            <td>${dateCreated}</td>
+                            <td>
+                                <button class="btn btn-sm btn-inverse-dark show-pr-payment" 
+                                data-id="${pr.pr_id}" style="font-size:11px;">Show Payment
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.append(rowHtml);
+                });
+            });
+        }
+
+        $(document).on("click", ".show-pr-payment", function(e) {
+            e.preventDefault();
+
+            $('#viewPRDebtModal').modal('hide');
+
+            let prid = $(this).data("id");
+            let paymentType;
 
             $(".modal-title").text("Customer Account Receivable Details");
 
-            // Save userid and prid to the modal (or globally) for tab clicks
-            $("#viewDebtModal").data("userid", userid);
-            $("#viewDebtModal").data("prid", prid);
-
-            $.get(`/salesofficer/ar-details/${userid}/${prid}`, function(res) {
+            $.get(`/salesofficer/ar-details/${prid}`, function(res) {
                 let customer = res.customer;
+                paymentType = customer.credit_payment_type === 'Straight Payment' ? 'straight' : 'partial';
+
+                let businessName = res.customerRequirements ? res.customerRequirements.business_name : 'No business name';
+                let tinNumber = res.customerRequirements ? res.customerRequirements.tin_number : 'No tin number';
+                let address = res.customerAddress ? res.customerAddress.full_address : 'No address';
+
 
                 let html = `
-                    <h3>${customer.credit_payment_type}</h3><br>
                     <div class="d-flex justify-content-between p-2">
                         <div class="d-flex flex-column">
                             <span><b class="text-uppercase">Name:</b> ${customer.customer_name}</span>
                             <span><b class="text-uppercase">Email Address:</b> ${customer.customer_email}</span>
-                            <span><b class="text-uppercase">Business Name:</b> ${res.customerRequirements.business_name}</span>
-                            <span><b class="text-uppercase">TIN Number:</b> ${res.customerRequirements.tin_number}</span>
-                            <span><b class="text-uppercase">Address:</b> ${res.customerAddress.full_address}</span>
+                            <span><b class="text-uppercase">Business Name:</b> ${businessName}</span>
+                            <span><b class="text-uppercase">TIN Number:</b> ${tinNumber}</span>
+                            <span><b class="text-uppercase">Address:</b> ${address}</span>
                         </div>
                         <div class="d-flex flex-column">
                             <span><b class="text-uppercase">Credit limit:</b> ₱ ${customer.customer_creditlimit}</span>
@@ -152,18 +287,9 @@
                         </div>
                     </div>
 
-                    <ul class="nav nav-tabs mt-3" id="paymentTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" data-type="straight" type="button">Straight Credit Payment</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" data-type="partial" type="button">Partial Credit Payment</button>
-                        </li>
-                    </ul>
-
                     <table class="table table-striped table-sm mt-3 mb-3" id="paymentDetailsTable">
                         <thead>
-                            <tr id="paymentTableHeader">
+                            <tr>
                                 <th>Invoice No.</th>
                                 <th>Due Date</th>
                                 <th>Paid Amount</th>
@@ -178,12 +304,12 @@
                 $("#customerDebtDetails").html(html);
                 $('#viewDebtModal').modal('show');
 
-                loadPayments(userid, prid, 'straight');
+                loadPayments(prid, paymentType);
             });
         });
 
-        function loadPayments(userid, prid, type) {
-            $.get(`/salesofficer/ar-payments/${userid}/${prid}?type=${type}`, function(res) {
+        function loadPayments(prid, type) {
+            $.get(`/salesofficer/ar-payments/${prid}?type=${type}`, function(res) {
                 let tbody = $('#paymentDetailsTable tbody');
                 tbody.empty();
 
@@ -224,18 +350,11 @@
             });
         }
 
-        $(document).on('click', '#paymentTabs button', function() {
-            let type = $(this).data('type');
-            let userid = $("#viewDebtModal").data('userid');
-            let prid = $("#viewDebtModal").data('prid');
-
-            $('#paymentTabs button').removeClass('active');
-            $(this).addClass('active');
-
-            loadPayments(userid, prid, type);
+        $('#viewDebtModal').on('hidden.bs.modal', function () {
+            if (!$('#viewPRDebtModal').hasClass('show')) {
+                $('#viewPRDebtModal').modal('show');
+            }
         });
-
-
 
     });
 </script>

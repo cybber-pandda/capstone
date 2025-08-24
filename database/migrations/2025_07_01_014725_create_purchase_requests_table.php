@@ -22,7 +22,6 @@ class CreatePurchaseRequestsTable extends Migration
                 'pending',           // default, customer just submitted
                 'quotation_sent',    // assistant sales officer has sent quotation
                 'po_submitted',      // customer submitted purchase order
-                'payment_approved', // process payment before creating SO 
                 'so_created',        // sales officer generated a sales order
                 'delivery_in_progress', // delivery driver assigned
                 'delivered',         // delivery completed

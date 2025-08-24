@@ -21,7 +21,7 @@ class DeliveryRiderController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $deliveryRiders = User::select(['id', 'name', 'profile', 'username', 'email', 'created_at'])->where('role', 'deliveryrider/admin');
+            $deliveryRiders = User::select(['id', 'name', 'profile', 'username', 'email', 'created_at'])->where('role', 'deliveryrider');
 
             return DataTables::of($deliveryRiders)
                 ->addColumn('profile', function ($row) {

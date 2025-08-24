@@ -1,5 +1,5 @@
 <!-- partial:partials/_navbar.html -->
-<nav class="navbar">
+<nav class="navbar" style="background-color:#FC6319;">
     <div class="navbar-content">
 
         <div class="logo-mini-wrapper">

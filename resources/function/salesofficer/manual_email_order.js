@@ -29,7 +29,7 @@ $(document).ready(function () {
             { data: "phone_number", name: "phone_number",   className: "dt-left-int", responsivePriority: 1, width: "10%" },
             { data: "total_items", name: "total_items",   className: "dt-left-int", responsivePriority: 1, width: "5%" },
             { data: "grand_total", name: "grand_total", width: "5%" },
-            { data: "created_at", name: "created_at",   className: "dt-left-int", responsivePriority: 1, width: "15%" },
+            // { data: "created_at", name: "created_at",   className: "dt-left-int", responsivePriority: 1, width: "15%" },
             { data: "status", name: "status", width: "10%" },
             {
                 data: "action",

@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
+use App\Exports\SalesSummaryExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\Notification;
 use App\Models\B2BAddress;
@@ -132,7 +134,7 @@ class PurchaseRequestController extends Controller
                 'message' => 'Only pending requests can be rejected.'
             ]);
         }
-        
+
         $purchaseRequest->prepared_by_id = $userid;
         $prefix = $request->type ? $request->type . ': ' : '';
         $purchaseRequest->pr_remarks .= $prefix . $request->rejection_reason;
@@ -153,5 +155,18 @@ class PurchaseRequestController extends Controller
             'message' => 'Quotation rejected successfully!',
             'prId' => $purchaseRequest->id,
         ]);
+    }
+
+    public function export(Request $request)
+    {
+        $request->validate([
+            'start_date' => 'required|date',
+            'end_date'   => 'required|date|after_or_equal:start_date',
+        ]);
+
+        $startDate = $request->start_date;
+        $endDate = $request->end_date;
+
+        return Excel::download(new SalesSummaryExport($startDate, $endDate), 'sales_summary.xlsx');
     }
 }

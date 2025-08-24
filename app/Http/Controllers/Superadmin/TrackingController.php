@@ -63,7 +63,7 @@ class TrackingController extends Controller
                 ->addColumn('action', function ($pr) {
                     return '
                         <button type="button" class="btn btn-sm btn-inverse-primary view-pr p-2" data-id="' . $pr->id . '" title="View Purchase Request">
-                            <i class="link-icon" data-lucide="eye"></i> View PR
+                            <i class="link-icon" data-lucide="eye"></i> View PO
                         </button>
                         <button type="button" class="btn btn-sm btn-inverse-success process-so p-2" data-id="' . $pr->id . '" title="Create Sales Order">
                             <i class="link-icon" data-lucide="plus-square"></i> Create SO

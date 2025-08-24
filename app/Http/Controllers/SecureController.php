@@ -47,6 +47,7 @@ class SecureController extends Controller
             'salesofficer_sentquotations' => resource_path('function/salesofficer/send_quotation.js'),
             'salesofficer_submittedorder' => resource_path('function/salesofficer/submitted_order.js'),
             'salesofficer_manualemail' => resource_path('function/salesofficer/manual_email_order.js'),
+            'salesofficer_return_refund' => resource_path('function/salesofficer/return_refund.js'),
            
         ];
 

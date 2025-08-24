@@ -20,10 +20,41 @@
                 <span class="input-group-text input-group-addon bg-transparent border-primary" data-toggle><i data-lucide="calendar" class="text-primary"></i></span>
                 <input type="text" class="form-control bg-transparent border-primary" placeholder="Select date" data-input>
             </div> -->
-            <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
+            @if(Auth::user()->role === 'salesofficer')
+            <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0" 
+                    data-bs-toggle="modal" data-bs-target="#salesSummaryModal">
                 <i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i>
                 Summary List of Sales
             </button>
+            @endif
+
+            <!-- Modal -->
+            <div class="modal fade" id="salesSummaryModal" tabindex="-1" aria-labelledby="salesSummaryLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <form action="{{ route('salesofficer.sales-summary.export') }}" method="GET">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="salesSummaryLabel">Generate Sales Summary</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="start_date" class="form-label">Start Date</label>
+                                    <input type="date" name="start_date" id="start_date" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="end_date" class="form-label">End Date</label>
+                                    <input type="date" name="end_date" id="end_date" class="form-control" required>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-primary">Generate Excel</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
             <!-- <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
                 <i class="btn-icon-prepend" data-lucide="download-cloud"></i>
                 Download Report

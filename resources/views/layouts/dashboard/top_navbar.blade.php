@@ -1,11 +1,11 @@
 <!-- partial:partials/_navbar.html -->
 <div class="horizontal-menu">
-    <nav class="navbar top-navbar">
+    <nav class="navbar top-navbar" style="background-color:#FC6319;">
         <div class="container">
             <div class="navbar-content">
 
                 <a href="#" class="navbar-brand d-none d-lg-flex">
-                    Tantuco<span>CTC</span>
+                    Tantuco<span class="text-white">CTC</span>
                 </a>
 
                 <!-- Logo-mini for small screen devices (mobile/tablet) -->
@@ -167,6 +167,13 @@
                             <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">B2B Submitted PO</a></li>
                         </ul>
                     </div>
+                </li>
+
+                <li class="nav-item {{ Route::is('salesofficer.return-refund.index') ? 'active' : '' }}">
+                    <a class="nav-link" href="{{ route('salesofficer.return-refund.index') }}">
+                        <i class="link-icon" data-lucide="panel-bottom-close"></i>
+                        <span class="menu-title">Return & Refund</span>
+                    </a>
                 </li>
 
                 <!-- <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}">

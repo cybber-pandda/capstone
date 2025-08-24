@@ -256,7 +256,15 @@ class CreditController extends Controller
             'reference_number' => $request->reference_number,
         ]);
 
-        User::where('id', $user->id)->increment('credit_limit', $request->paid_amount);
+        $user = User::find($user->id);
+        $newLimit = $user->credit_limit + $request->paid_amount;
+
+        if ($newLimit > 300000) {
+            $newLimit = 300000;
+        }
+
+        $user->credit_limit = $newLimit;
+        $user->save();
 
         return response()->json([
             'message' => 'Payment submitted successfully',

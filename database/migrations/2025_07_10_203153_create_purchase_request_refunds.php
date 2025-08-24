@@ -22,7 +22,9 @@ class CreatePurchaseRequestRefunds extends Migration
             $table->string('method')->nullable(); // e.g., 'bank transfer', 'GCash'
             $table->string('reference')->nullable(); // transaction reference #
             $table->string('proof')->nullable(); // uploaded refund receipt
+            $table->text('admin_response')->nullable();
             $table->unsignedBigInteger('processed_by')->nullable(); // admin ID
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
 
             $table->foreign('processed_by')->references('id')->on('users')->onDelete('set null');

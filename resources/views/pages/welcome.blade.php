@@ -66,7 +66,12 @@
                     <!-- Product Info -->
                     <div class="col-md-6">
                         <p><strong>Category:</strong> <span id="modal-category" class="text-muted"></span></p>
-                        <p class="h4 text-danger" style="margin-top: 15px;">₱<span id="modal-price">0.00</span></p>
+                        <p class="h4" style="margin-top: 15px;" id="modal-price">₱0.00</p>
+
+                        <!-- Ratings -->
+                        <div id="modal-rating" style="margin-bottom: 15px;">
+                            <!-- Stars & avg rating will be inserted here -->
+                        </div>
 
                         <p><strong>Description:</strong></p>
                         <p id="modal-description" class="text-justify"></p>
@@ -75,7 +80,13 @@
                         <div id="modal-inventory" style="margin-top: 20px;margin-bottom: 15px;">
                             <ul id="inventory-list" class="list-unstyled"></ul>
                         </div>
+
+                        <!-- Reviews -->
+                        <div id="modal-reviews" style="margin-top: 20px;">
+                            <!-- Reviews will be inserted here -->
+                        </div>
                     </div>
+
                 </div>
             </div>
 
@@ -141,9 +152,43 @@
                     // Basic Info
                     $('#modal-title').text(product.name);
                     $('#modal-name').text(product.name);
-                    $('#modal-price').text(parseFloat(product.price).toFixed(2));
                     $('#modal-description').text(product.description);
                     $('#modal-category').text(product.category ? product.category.name : 'Uncategorized');
+
+                    // Price + Discount
+                    if (product.discount > 0 && product.discounted_price) {
+                        $('#modal-price').html(
+                            `<span class="text-muted" style="text-decoration:line-through;">₱${parseFloat(product.price).toFixed(2)}</span> 
+                            <span class="text-danger">₱${parseFloat(product.discounted_price).toFixed(2)}</span>
+                            <small class="text-success">(-${product.discount}%)</small>`
+                        );
+                    } else {
+                        $('#modal-price').html(`₱${parseFloat(product.price).toFixed(2)}`);
+                    }
+
+                    // Average Rating
+                    var stars = '';
+                    for (var i = 1; i <= 5; i++) {
+                        stars += `<span class="fa fa-star${i <= response.average_rating ? '' : '-empty'}"></span>`;
+                    }
+                    $('#modal-rating').html(`${stars} <small>(${response.average_rating} / 5 from ${response.total_ratings} reviews)</small>`);
+
+                    // Reviews
+                    var reviewsContainer = $('#modal-reviews');
+                    reviewsContainer.empty();
+                    if (product.ratings.length > 0) {
+                        product.ratings.forEach(function (review) {
+                            reviewsContainer.append(`
+                                <div class="review-box" style="border-bottom:1px solid #eee; padding:8px 0;">
+                                    <strong>${review.user.name}</strong><br>
+                                    <span class="text-warning">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</span>
+                                    <p>${review.review ? review.review : ''}</p>
+                                </div>
+                            `);
+                        });
+                    } else {
+                        reviewsContainer.html('<p class="text-muted">No reviews yet.</p>');
+                    }
 
                     // Show main image if available
                     const mainImage = product.product_images.find(img => img.is_main == 1);
@@ -157,41 +202,27 @@
                     // Render thumbnails
                     const thumbnailsContainer = $('#image-thumbnails');
                     thumbnailsContainer.empty();
-
                     product.product_images.forEach(img => {
                         const thumbPath = '/' + img.image_path;
-                        const thumbnail = $(`
-                            <img src="${thumbPath}" class="img-thumbnail m-1" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;">
-                        `);
-                        
-                        // When thumbnail clicked, update the main image
+                        const thumbnail = $(`<img src="${thumbPath}" class="img-thumbnail m-1" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;">`);
                         thumbnail.on('click', function () {
                             $('#modal-image').attr('src', thumbPath);
                         });
-
                         thumbnailsContainer.append(thumbnail);
                     });
 
-
-                    // Inventory - Compute net quantity (in - out)
-                    let totalIn = 0;
-                    let totalOut = 0;
-
+                    // Inventory
+                    let totalIn = 0, totalOut = 0;
                     if (product.inventories && product.inventories.length > 0) {
                         product.inventories.forEach(function (inv) {
-                            if (inv.type === 'in') {
-                                totalIn += parseInt(inv.quantity);
-                            } else if (inv.type === 'out') {
-                                totalOut += parseInt(inv.quantity);
-                            }
+                            if (inv.type === 'in') totalIn += parseInt(inv.quantity);
+                            else if (inv.type === 'out') totalOut += parseInt(inv.quantity);
                         });
-
                         const netStock = totalIn - totalOut;
                         $('#inventory-list').html(`<li><strong>Available Stock:</strong> ${netStock}</li>`);
                     } else {
                         $('#inventory-list').html('<li>No inventory info</li>');
                     }
-
 
                     // Show modal
                     $('#productModal').modal('show');

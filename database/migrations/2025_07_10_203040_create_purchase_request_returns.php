@@ -20,9 +20,12 @@ class CreatePurchaseRequestReturns extends Migration
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
             $table->text('reason')->nullable();
             $table->string('photo')->nullable(); // optional proof of defect
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->text('admin_response')->nullable(); // admin notes
+            $table->unsignedBigInteger('processed_by')->nullable();
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
             $table->timestamps();
+
+            $table->foreign('processed_by')->references('id')->on('users')->onDelete('set null');
         });
     }
 

@@ -17,7 +17,9 @@ class PurchaseRequestRefund extends Model
         'method',
         'reference',
         'proof',
+        'admin_response',
         'processed_by',
+        'status',
     ];
 
     public function purchaseRequest()

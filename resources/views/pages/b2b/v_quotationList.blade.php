@@ -191,16 +191,16 @@ $(document).ready(function () {
     if (trackId) {
         window.history.replaceState({}, document.title, window.location.pathname);
 
-        Swal.fire({
-            title: 'Processing...',
-            html: 'Waiting for Sales Officer to process your order.<br><small>This may take a few moments...</small>',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            showConfirmButton: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+        // Swal.fire({
+        //     title: 'Processing...',
+        //     html: 'Waiting for Sales Officer to process your order.<br><small>This may take a few moments...</small>',
+        //     allowOutsideClick: false,
+        //     allowEscapeKey: false,
+        //     showConfirmButton: false,
+        //     didOpen: () => {
+        //         Swal.showLoading();
+        //     }
+        // });
 
         const interval = setInterval(() => {
             $.ajax({

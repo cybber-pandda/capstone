@@ -15,6 +15,7 @@ use App\Models\User;
 use App\Models\B2BAddress;
 use App\Models\B2BDetail;
 use App\Models\Bank;
+use App\Models\ProductRating;
 
 class DeliveryController extends Controller
 {
@@ -91,7 +92,7 @@ class DeliveryController extends Controller
 
                     if (!$rating) return '';
 
-                    return 'Rating: '.str_repeat('<i class="fa fa-star text-warning"></i>', $rating) .
+                    return 'Rating: ' . str_repeat('<i class="fa fa-star text-warning"></i>', $rating) .
                         str_repeat('<i class="fa fa-star-o text-muted"></i>', 5 - $rating);
                 })
                 ->addColumn('action', function ($order) {
@@ -110,11 +111,11 @@ class DeliveryController extends Controller
 
                     if ($status === 'delivered' && $order->delivery->proof_delivery) {
                         $proofBtn = '<button class="btn btn-sm btn-info view-proof-btn" 
-                                        data-proof="' . asset($order->delivery->proof_delivery) . '" style="margin-right:5px;">
+                                        data-proof="' . asset($order->delivery->proof_delivery) . '" style="margin-right:5px;font-size:10.5px;">
                                         View Proof
                                     </button>';
 
-                        $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;">
+                        $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;font-size:10.5px;">
                                         Generate Invoice
                                        </a>';
 
@@ -123,18 +124,16 @@ class DeliveryController extends Controller
                                             Rated
                                         </button>';
                         } else {
-                             $ratingBtn = '<a href="' . route('b2b.delivery.rider.rate', $order->delivery->id) . '" class="btn btn-warning btn-sm">
+                            $ratingBtn = '<a href="' . route('b2b.delivery.rider.rate', $order->delivery->id) . '" class="btn btn-warning btn-sm" style="font-size:10.5px;">
                                                 Rate Rider
                                             </a>  
                                             
-                                            <a href="' . route('b2b.delivery.rider.rate', $order->delivery->id) . '" class="btn btn-success btn-sm">
+                                            <a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" class="btn btn-success btn-sm" style="font-size:10.5px;">
                                                 Rate Product
                                             </a>
                                             
                                             ';
                         }
-
-                       
                     }
 
                     return $trackBtn . $proofBtn . $invoiceBtn . $ratingBtn;
@@ -192,7 +191,7 @@ class DeliveryController extends Controller
     //     return view('pages.invoice', compact('invoiceData', 'page', 'companySettings', 'isPdf', 'purchaseRequest'));
     // }
 
-     public function view_invoice($id)
+    public function view_invoice($id)
     {
         $invoiceData = Delivery::with([
             'order.b2bAddress',
@@ -245,7 +244,7 @@ class DeliveryController extends Controller
         ));
     }
 
-   public function downloadInvoice($id)
+    public function downloadInvoice($id)
     {
         $invoiceData = Delivery::with([
             'order.b2bAddress',
@@ -271,7 +270,7 @@ class DeliveryController extends Controller
             if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
                 $purchaseRequestId = $matches[1];
 
-                 $quotation = PurchaseRequest::with(['customer', 'items.product'])
+                $quotation = PurchaseRequest::with(['customer', 'items.product'])
                     ->where('customer_id', auth()->id())
                     ->findOrFail($purchaseRequestId);
 
@@ -288,12 +287,19 @@ class DeliveryController extends Controller
             }
         }
 
-        $pdf = Pdf::loadView('pages.invoice', compact('invoiceData', 'page', 'companySettings', 'isPdf', 'purchaseRequest', 'quotation',
+        $pdf = Pdf::loadView('pages.invoice', compact(
+            'invoiceData',
+            'page',
+            'companySettings',
+            'isPdf',
+            'purchaseRequest',
+            'quotation',
             'banks',
             'b2bReqDetails',
             'b2bAddress',
             'salesOfficer',
-            'superadmin'))
+            'superadmin'
+        ))
             ->setPaper('A4', 'portrait');
 
         return $pdf->download("invoice-{$invoiceData->order?->order_number}.pdf");
@@ -334,5 +340,38 @@ class DeliveryController extends Controller
         ]);
 
         return redirect()->route('b2b.delivery.index')->with('success', 'Thank you for your feedback!');
+    }
+
+    public function rate_product_page($orderNumber)
+    {   
+        
+        $order = null;
+
+        if (preg_match('/REF (\d+)-/', $orderNumber, $matches)) {
+            $purchaseRequestId = $matches[1];
+            $order = PurchaseRequest::with('items.product')->where('id', $purchaseRequestId)->first();
+        }
+
+        return view('pages.b2b.v_productrating', [
+            'order' => $order,
+            'page' => 'Rate Product',
+        ]);
+    }
+
+    public function submit_product_rating(Request $request, $productId)
+    {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'feedback' => 'nullable|string|max:1000',
+        ]);
+
+        ProductRating::create([
+            'user_id' => auth()->id(),
+            'product_id' => $productId,
+            'rating' => $request->rating,
+            'review' => $request->feedback,
+        ]);
+
+        return redirect()->back()->with('success', 'Thanks for rating this product!');
     }
 }

@@ -44,8 +44,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
      
-     <!-- Select2 CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
     <style>
         /* Left-align content */
@@ -140,6 +141,7 @@
                 overflow-x: hidden;
             }
         }
+
     </style>
 </head>
 
@@ -198,8 +200,6 @@
 
 
     <script src="{{ asset('assets/dashboard/vendors/jquery/jquery.min.js') }}"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 
     <script src="{{ asset('assets/dashboard/vendors/core/core.js') }}"></script>
     <script src="{{ asset('assets/dashboard/vendors/flatpickr/flatpickr.min.js') }}"></script>

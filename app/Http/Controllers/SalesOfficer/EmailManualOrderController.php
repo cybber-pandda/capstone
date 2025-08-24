@@ -22,16 +22,16 @@ class EmailManualOrderController extends Controller
 
             return DataTables::of($query)
                 ->addColumn('customer_name', function ($pr) {
-                    return $pr->customer_name;
+                    return $pr->customer_name ?? '--';
                 })
                 ->addColumn('customer_type', function ($pr) {
                     return is_null($pr->customer_email) ? 'Walk-In' : 'Manual Order';
                 })
                 ->addColumn('customer_address', function ($pr) {
-                    return $pr->customer_address;
+                    return $pr->customer_address ?? '--';
                 })
                  ->addColumn('phone_number', function ($pr) {
-                    return $pr->customer_phone_number;
+                    return $pr->customer_phone_number ?? '--';
                 })
                 ->addColumn('total_items', function ($pr) {
                     $products = json_decode($pr->purchase_request, true) ?? [];

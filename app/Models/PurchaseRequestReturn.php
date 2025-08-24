@@ -15,8 +15,9 @@ class PurchaseRequestReturn extends Model
         'product_id',
         'reason',
         'photo',
-        'status',
         'admin_response',
+        'processed_by',
+        'status',
     ];
 
     public function purchaseRequest()

@@ -500,7 +500,7 @@ textarea.input {
 #header {
   padding-top: 15px;
   padding-bottom: 15px;
-  background-color: #15161D;
+  background-color: #FC6319;
 }
 
 .header-logo {
@@ -2108,7 +2108,7 @@ textarea.input {
 }
 
 #bottom-footer {
-  background: #1E1F29;
+  background: #FC6319;
 }
 
 .footer {
@@ -2142,8 +2142,9 @@ textarea.input {
 }
 
 .copyright {
-  margin-top: 30px;
+  margin-top: 10px;
   display: block;
+  color: black;
   font-size: 12px;
 }
 

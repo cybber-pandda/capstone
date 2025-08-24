@@ -18,6 +18,16 @@ class PurchaseRequest extends Model
         return $this->belongsTo(User::class, 'customer_id');
     }
 
+    public function address()
+    {
+        return $this->hasOne(B2BAddress::class, 'user_id', 'customer_id');
+    }
+
+    public function detail()
+    {
+        return $this->hasOne(B2BDetail::class, 'user_id', 'customer_id');
+    }
+
     public function preparedBy()
     {
         return $this->belongsTo(User::class, 'prepared_by_id');

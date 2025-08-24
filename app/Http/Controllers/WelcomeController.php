@@ -48,11 +48,35 @@ class WelcomeController extends Controller
 
     public function product_details($id)
     {
-        $product = Product::with('inventories', 'category', 'productImages')->select(['id', 'sku', 'name', 'description', 'price', 'expiry_date', 'created_at', 'category_id'])->findOrFail($id);
+        $product = Product::with([
+            'inventories',
+            'category',
+            'productImages',
+            'ratings.user:id,name' // Only fetch id and name for efficiency
+        ])
+        ->select([
+            'id',
+            'sku',
+            'name',
+            'description',
+            'price',
+            'discount',
+            'discounted_price',
+            'expiry_date',
+            'created_at',
+            'category_id'
+        ])
+        ->findOrFail($id);
+
+        // Calculate average rating and total number of ratings
+        $averageRating = $product->ratings->avg('rating'); 
+        $totalRatings  = $product->ratings->count();
 
         return response()->json([
             'success' => true,
             'product' => $product,
+            'average_rating' => $averageRating ? round($averageRating, 1) : 0,
+            'total_ratings'  => $totalRatings,
         ]);
     }
 

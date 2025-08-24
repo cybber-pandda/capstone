@@ -73,6 +73,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/purchase-requests/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'show']);
         Route::put('/purchase-requests/s-q/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'updateSendQuotation']);
         Route::put('/purchase-requests/r-q/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'updateRejectQuotation']);
+        Route::get('/sales-summary/export', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'export'])->name('sales-summary.export');
         Route::get('/send-quotations/all', [App\Http\Controllers\SalesOfficer\QuotationsController::class, 'index'])->name('send-quotations.index');
         Route::get('/submitted-order/all', [App\Http\Controllers\SalesOfficer\OrderController::class, 'index'])->name('submitted-order.index');
         Route::get('/paynow/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'paynow'])->name('paynow.index');
@@ -84,11 +85,20 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::post('/paylater/partial-payment/approve/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'approvePartialPaylaterPayment'])->name('paylater.partial.approve');
         Route::post('/paylater/reject/payment/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'reject_payment'])->name('paylater.reject.payment');
         Route::get('/account-receivable/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable'])->name('account-receivable.index');
-        Route::get('/ar-details/{userid}/{prid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_details'])->name('account-receivable-details.index');
-        Route::get('/ar-payments/{userid}/{prid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_payments']);
+        Route::get('/ar-pr-table/{userid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_pr']);
+        Route::get('/ar-details/{userid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_details'])->name('account-receivable-details.index');
+        Route::get('/ar-payments/{prid}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'account_receivable_payments']);
         Route::get('/email-manual-order', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'index'])->name('email.manual.order');
         Route::post('/submit-email-manual-order', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'submit_manual_order'])->name('submit.email-manual.order');
         Route::post('/manual-email-order/approve', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'approve'])->name('manualemailorder.approve');
+        Route::get('/return-refund/all', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'index'])->name('return-refund.index');
+        Route::get('/return-refund/data', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'data'])->name('return-refund.data');
+        Route::get('/return-details/{return}', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'returnDetails'])->name('return-refund.return-details');
+        Route::get('/refund-details/{refund}', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'refundDetails'])->name('return-refund.refund-details');
+        Route::post('/return/{return}/approve', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'approveReturn'])->name('return.approve');
+        Route::post('/return/{return}/reject', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'rejectReturn'])->name('return.reject');
+        Route::post('/refund/{refund}/approve', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'approveRefund'])->name('refund.approve');
+        Route::post('/refund/{refund}/reject', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'rejectRefund'])->name('refund.reject');
     });
 
     /* Delivery */
@@ -141,6 +151,9 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/delivery/invoice/download/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'downloadInvoice'])->name('delivery.invoice.download');
         Route::get('/delivery/rider/rate/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'rate_page'])->name('delivery.rider.rate');
         Route::post('/delivery/rider/rate/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'save_rating'])->name('delivery.rider.rate.submit');
+
+        Route::get('/delivery/product/rate/{order_number}', [App\Http\Controllers\B2B\DeliveryController::class, 'rate_product_page'])->name('delivery.product.rate');
+        Route::post('/delivery/product/rate/{product}', [App\Http\Controllers\B2B\DeliveryController::class, 'submit_product_rating'])->name('delivery.product.rate.submit');
 
         Route::get('/purchase', [App\Http\Controllers\B2B\PurchaseController::class, 'index'])->name('purchase.index');
         Route::post('/purchase/return', [App\Http\Controllers\B2B\PurchaseController::class, 'requestReturn']);

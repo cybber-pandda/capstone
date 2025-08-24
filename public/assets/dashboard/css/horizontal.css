@@ -23779,7 +23779,7 @@ div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm:focus {
 .select2-container--default .select2-selection--single .select2-selection__rendered {
     color: var(--bs-body-color);
     line-height: 1.5;
-    padding: .469rem .8rem
+    /* padding: .469rem .8rem */
 }
 
 .select2-container--default .select2-selection--single .select2-selection__arrow {

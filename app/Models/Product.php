@@ -27,7 +27,7 @@ class Product extends Model
 
     public function category()
     {
-        return $this->belongsTo(Category::class, 'category_id')->withTrashed(); 
+        return $this->belongsTo(Category::class, 'category_id')->withTrashed();
     }
 
     public function productImages()
@@ -43,6 +43,11 @@ class Product extends Model
     public function deliveries()
     {
         return $this->hasMany(Delivery::class);
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(ProductRating::class);
     }
 
     public function getStockInAttribute()

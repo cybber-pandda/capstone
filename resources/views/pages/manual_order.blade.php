@@ -269,7 +269,7 @@ $(document).ready(function() {
                 </select>
             </td>
             <td>
-                <select class="form-control product" name="products[${index}][product_id]" disabled>
+                <select class="form-control product select2" name="products[${index}][product_id]" disabled>
                     <option value="">-- Select Product --</option>
                 </select>
             </td>
@@ -298,9 +298,18 @@ $(document).ready(function() {
         $("#grandTotal").val(grandTotal.toFixed(2));
     }
 
+    function initSelect2() {
+        $(".select2").select2({
+            width: "100%",
+            placeholder: "-- Select Product --",
+            allowClear: true
+        });
+    }
+
     // Add initial row on page load
     $("#productTable tbody").append(newRow(rowIndex));
     rowIndex++;
+    initSelect2();
 
     if (typeof lucide !== "undefined") {
         lucide.createIcons();
@@ -310,6 +319,7 @@ $(document).ready(function() {
     $("#addRow").click(function() {
         $("#productTable tbody").append(newRow(rowIndex));
         rowIndex++;
+        initSelect2();
         if (typeof lucide !== "undefined") {
             lucide.createIcons();
         }
