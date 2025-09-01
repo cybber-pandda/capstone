@@ -68,6 +68,7 @@ $(document).ready(function () {
     });
 
     $(document).on("click", ".review-pr", function () {
+        // const id = $(this).data("transaction-uuid");
         const id = $(this).data("id");
         if (!id) return;
         showB2BPR(id);

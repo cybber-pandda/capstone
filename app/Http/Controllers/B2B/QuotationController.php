@@ -46,8 +46,12 @@ class QuotationController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                    $vatRate = $pr->vat ?? 0; // VAT percentage
+                    $subtotal = $pr->items->sum(function ($item) {
+                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                        return $item->quantity * ($price ?? 0);
+                    });
+                    
+                    $vatRate = $pr->vat ?? 0;
                     $vatAmount = $subtotal * ($vatRate / 100);
                     $deliveryFee = $pr->delivery_fee ?? 0;
                     $total = $subtotal + $vatAmount + $deliveryFee;
@@ -124,7 +128,7 @@ class QuotationController extends Controller
 
         if ($quotation->customer_id) {
             $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
-            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->where('status', 'active')->first();
         }
 
         if ($quotation->prepared_by_id) {
@@ -149,7 +153,7 @@ class QuotationController extends Controller
 
         if ($quotation->customer_id) {
             $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
-            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->where('status', 'active')->first();
         }
 
         if ($quotation->prepared_by_id) {

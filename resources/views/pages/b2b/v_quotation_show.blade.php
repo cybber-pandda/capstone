@@ -58,12 +58,15 @@
                         </thead>
                         <tbody>
                             @foreach ($quotation->items as $item)
+                            @php
+                            $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                            @endphp
                             <tr>
                                 <td>{{ $item->product->sku }}</td>
                                 <td>{{ $item->product->name }}</td>
                                 <td class="text-center">{{ $item->quantity }}</td>
-                                <td class="text-right">₱{{ number_format($item->product->price, 2) }}</td>
-                                <td class="text-right">₱{{ number_format($item->quantity * $item->product->price, 2) }}</td>
+                                <td class="text-right">₱{{ number_format($price, 2) }}</td>
+                                <td class="text-right">₱{{ number_format($item->quantity * $price, 2) }}</td>
                             </tr>
                             @endforeach
                         </tbody>

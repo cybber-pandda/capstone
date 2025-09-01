@@ -11,31 +11,38 @@
             <ul class="header-links pull-right">
                 @auth
                 <li class="dropdown user-dropdown">
-                    <a href="{{ route('chat.index') }}">
-                        <i class="fa fa-message"></i>
-                    </a>
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                        <i class="fa fa-user"></i> Hi, {{ Auth::user()->username }} <span class="caret"></span>
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a href="{{ route('b2b.profile.index') }}"><i class="fa-regular fa-address-card"></i> Profile</a></li>
-                        <li><a href="{{ route('b2b.address.index') }}"> <i class="fa-solid fa-map-location-dot"></i> My Address</a></li>
-                        <li><a href="{{ route('b2b.purchase.index') }}"> <i class="fa-solid fa-bag-shopping"></i> My Purchase</a></li>
-                        <li><a href="{{ route('b2b.purchase.order') }}"> <i class="fa-solid fa-basket-shopping"></i> My Purchase Order</a></li>
-                        <li><a href="{{ route('b2b.purchase.credit') }}"> <i class="fa-solid fa-credit-card"></i> My Credit</a></li>
-                        <li><a href="{{ route('b2b.purchase.rr') }}"><i class="fa-solid fa-right-left"></i> Return/Refund Items</a></li>
-                        <li><a href="{{ route('notification.index') }}"><i class="fa-solid fa-bell"></i> Notification</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li>
-                            <a href="{{ route('logout') }}"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    <div style="display: flex;justify-content:space-between">
+                        <div>
+                            <a href="{{ route('chat.index') }}">
+                                <i class="fa fa-message"></i>
                             </a>
-                            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                @csrf
-                            </form>
-                        </li>
-                    </ul>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                                <i class="fa fa-user"></i> Hi, {{ Auth::user()->username }} <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a href="{{ route('b2b.profile.index') }}"><i class="fa-regular fa-address-card"></i> Profile</a></li>
+                                <li><a href="{{ route('b2b.address.index') }}"> <i class="fa-solid fa-map-location-dot"></i> My Address</a></li>
+                                <li><a href="{{ route('b2b.purchase.index') }}"> <i class="fa-solid fa-bag-shopping"></i> My Purchase</a></li>
+                                <li><a href="{{ route('b2b.purchase.order') }}"> <i class="fa-solid fa-basket-shopping"></i> My Purchase Order</a></li>
+                                <li><a href="{{ route('b2b.purchase.credit') }}"> <i class="fa-solid fa-credit-card"></i> My Credit</a></li>
+                                <li><a href="{{ route('b2b.purchase.rr') }}"><i class="fa-solid fa-right-left"></i> Return/Refund Items</a></li>
+                                <li><a href="{{ route('notification.index') }}"><i class="fa-solid fa-bell"></i> Notification</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li>
+                                    <a href="{{ route('logout') }}"
+                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                                    </a>
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                        @csrf
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <a id="showLimitForMobile">Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}</a>
+                        </div>
+                    </div>
                 </li>
                 @else
                 <li><a href="{{ route('login') }}"><i class="fa fa-sign-in"></i> Sign-In</a></li>
@@ -51,7 +58,7 @@
         <!-- container -->
         <div class="container">
             <!-- row -->
-            <div class="row">
+            <div class="row" id="hideHeaderFormobile">
                 <!-- LOGO -->
                 <div class="col-md-4">
                     <div class="header-logo">
@@ -150,6 +157,28 @@
                 </div>
                 @endauth
                 <!-- /ACCOUNT -->
+            </div>
+            <!-- row -->
+
+            <!-- row -->
+            <div class="row" id="showHeaderFormobile">
+
+                <!-- SEARCH BAR -->
+                <div class="col-md-4">
+                    <div class="header-search  {{ Route::is('welcome') ||  Route::is('home') ? '' : 'd-none' }}">
+                        <form>
+                            <!-- <select class="input-select">
+                                <option value="0">All Categories</option>
+                                <option value="1">Category 01</option>
+                                <option value="1">Category 02</option>
+                            </select> -->
+                            <input class="input" placeholder="Search here" id="search_value">
+                            <button class="search-btn" id="search-btn">Search</button>
+                        </form>
+                    </div>
+                </div>
+                <!-- /SEARCH BAR -->
+
             </div>
             <!-- row -->
         </div>

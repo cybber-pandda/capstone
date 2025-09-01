@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 
 use App\Models\PurchaseRequest;
+use App\Models\PurchaseRequestItem;
 use App\Models\Category;
 use App\Models\CreditPayment;
 use App\Models\CreditPartialPayment;
@@ -173,33 +174,41 @@ class AppServiceProvider extends ServiceProvider
                     ->whereNull('status')
                     ->count();
 
-                $purchaseRequest = PurchaseRequest::where('customer_id', $user->id)
+                $pendingRequests = PurchaseRequest::where('customer_id', $user->id)
                     ->whereNull('status')
-                    ->first();
+                    ->get();
 
                 $sentQuotationCount = PurchaseRequest::where('customer_id', $user->id)
                     ->where('status', 'quotation_sent')
                     ->count();
 
-                if ($purchaseRequest) {
-                    $items = $purchaseRequest->items()->with('product.productImages')->get();
+                if ($pendingRequests->isNotEmpty()) {
+                    // Get items from ALL pending purchase requests
+                    $items = PurchaseRequestItem::whereIn('purchase_request_id', $pendingRequests->pluck('id'))
+                        ->with('product.productImages')
+                        ->get();
 
-                    $mapped = $items->map(function ($item) {
+                    // First take only 5 items, THEN map them
+                    $displayItems = $items->take(5)->map(function ($item) {
                         $product = $item->product;
+                        $price = $product->discount > 0 ? $product->discounted_price : $product->price;
                         return [
                             'id' => $item->id,
                             'product_name' => $product->name,
                             'product_image' => asset(optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png'),
                             'quantity' => $item->quantity,
-                            'price' => $product->price,
-                            'subtotal' => $item->quantity * $product->price,
+                            'price' => $price,
+                            'subtotal' => $item->quantity * $price,
                         ];
                     });
 
                     $cartJson = json_encode([
-                        'items' => $mapped->take(5),
+                        'items' => $displayItems,
                         'total_quantity' => $items->sum('quantity'),
-                        'subtotal' => $items->sum(fn($i) => $i->quantity * $i->product->price),
+                        'subtotal' => $items->sum(function ($item) {
+                            $price = $item->product->discount > 0 ? $item->product->discounted_price : $item->product->price;
+                            return $item->quantity * $price;
+                        }),
                     ]);
                 }
 

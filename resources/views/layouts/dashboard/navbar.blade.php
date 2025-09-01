@@ -3,8 +3,8 @@
     <div class="navbar-content">
 
         <div class="logo-mini-wrapper">
-            <img src="{{ asset('assets/dashboard/images/logo-mini-light') }}" class="logo-mini logo-mini-light" alt="logo">
-            <img src="{{ asset('assets/dashboard/images/logo-mini-dark') }}" class="logo-mini logo-mini-dark" alt="logo">
+            <img src="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}" class="logo-mini logo-mini-light" alt="logo">
+            <img src="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}" class="logo-mini logo-mini-dark" alt="logo">
         </div>
 
         <form class="search-form">

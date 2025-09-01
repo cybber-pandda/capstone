@@ -95,7 +95,7 @@ class HomeController extends Controller
         if ($role === 'b2b') {
 
             $products = Product::with('category', 'productImages')
-                ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'created_at', 'expiry_date']);
+                ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'discount', 'discounted_price', 'created_at', 'expiry_date']);
 
             if ($request->filled('search')) {
                 $products->where('name', 'like', '%' . $request->search . '%');

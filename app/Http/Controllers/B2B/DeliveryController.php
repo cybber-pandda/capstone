@@ -221,7 +221,7 @@ class DeliveryController extends Controller
 
                 if ($quotation->customer_id) {
                     $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
-                    $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+                    $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->where('status', 'active')->first();
                 }
 
                 if ($quotation->prepared_by_id) {
@@ -276,7 +276,7 @@ class DeliveryController extends Controller
 
                 if ($quotation->customer_id) {
                     $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
-                    $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->first();
+                    $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->where('status', 'active')->first();
                 }
 
                 if ($quotation->prepared_by_id) {

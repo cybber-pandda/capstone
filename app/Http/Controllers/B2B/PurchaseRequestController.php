@@ -5,6 +5,8 @@ namespace App\Http\Controllers\B2B;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 use App\Models\Product;
 use App\Models\PurchaseRequest;
@@ -14,7 +16,13 @@ use App\Models\B2BAddress;
 use App\Models\User;
 
 class PurchaseRequestController extends Controller
-{
+{   
+
+    private function generateTransactionUid()
+    {
+        $timestamp = now()->format('YmdHis');
+        return 'PR_' . $timestamp . '_' . Str::uuid()->toString();
+    }
 
     // public function index(Request $request)
     // {
@@ -89,9 +97,9 @@ class PurchaseRequestController extends Controller
         // Check if there is already a pending purchase request
         $pendingRequest = PurchaseRequest::where('customer_id', $userId)
             ->where('status', 'pending')
-            ->first();
+            ->get();
 
-        if ($pendingRequest) {
+       if ($pendingRequest->isNotEmpty()) {
             return response()->json([
                 'message' => 'You already have a pending purchase request. Please wait until it is processed before creating a new one.'
             ], 400);
@@ -104,12 +112,13 @@ class PurchaseRequestController extends Controller
         ]);
 
         $product = Product::findOrFail($request->product_id);
+        $price = $this->calculateProductPrice($product);
 
         // Add the product item
         $purchaseRequest->items()->create([
             'product_id' => $request->product_id,
             'quantity'   => $request->quantity,
-            'subtotal'   => $request->quantity * $product->price
+            'subtotal'   => $request->quantity * $price
         ]);
 
         // Notify sales officers
@@ -127,12 +136,13 @@ class PurchaseRequestController extends Controller
 
         $mapped = $items->map(function ($item) {
             $product = $item->product;
+            $price = $this->calculateProductPrice($product);
             return [
                 'id'            => $item->id,
                 'product_name'  => $product->name,
                 'product_image' => asset(optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png'),
                 'quantity'      => $item->quantity,
-                'price'         => $product->price,
+                'price'         => $price,
                 'subtotal'      => $item->subtotal,
             ];
         });
@@ -161,29 +171,52 @@ class PurchaseRequestController extends Controller
             ], 403);
         }
 
+        $price = $this->calculateProductPrice($item->product);
+
         $item->quantity = $request->quantity;
-        $item->subtotal = $item->quantity * $item->product->price;
+        $item->subtotal = $item->quantity * $price;
         $item->save();
 
         return response()->json(['message' => 'Quantity updated.']);
     }
 
-    public function submitItem(Request $request, $id)
+    public function submitItem(Request $request)
     {
-        $purchaseRequest = PurchaseRequest::where('id', $id)
-            ->where('status', null)
-            ->firstOrFail();
+        $user = Auth::user();
 
-        $purchaseRequest->status = 'pending';
-        $purchaseRequest->b2b_delivery_date = $request->expected_delivery_date ?? null;
-        $purchaseRequest->save();
+        // Validate the request
+        $request->validate([
+            'prids' => 'required|array',
+            'prids.*' => 'integer|exists:purchase_requests,id',
+            'expected_delivery_date' => 'nullable|date'
+        ]);
+
+        // Get the purchase requests to check ownership
+        $purchaseRequests = PurchaseRequest::where('customer_id', $user->id)
+            ->whereIn('id', $request->prids)
+            ->whereNull('status')
+            ->get();
+
+        if ($purchaseRequests->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No valid purchase requests found to submit.'
+            ], 404);
+        }
+
+        // Update all purchase requests
+        $updatedCount = PurchaseRequest::whereIn('id', $purchaseRequests->pluck('id'))
+            ->update([
+                'transaction_uuid' => $this->generateTransactionUid(),
+                'status' => 'pending',
+                'b2b_delivery_date' => $request->expected_delivery_date
+            ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Your quotation is being processed. Please wait for approval.',
+            'message' => 'Your purchase requests are being processed. Please wait for approval.',
             'data' => [
-                'new_status' => $purchaseRequest->status,
-                'submitted_at' => $purchaseRequest->submitted_at
+                'updated_count' => $updatedCount
             ]
         ]);
     }
@@ -220,5 +253,12 @@ class PurchaseRequestController extends Controller
             'message' => 'Item removed from purchase request.',
             'purchase_request_deleted' => false
         ]);
+    }
+
+    private function calculateProductPrice(Product $product)
+    {
+        return ($product->discount && $product->discount > 0 && $product->discounted_price)
+            ? $product->discounted_price
+            : $product->price;
     }
 }

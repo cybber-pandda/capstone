@@ -32,7 +32,8 @@ class GoogleLoginController extends Controller
 
         // If the user does not exist, create a new user
         $user = User::create([
-            'username' => $googleUser->name,
+            'name' => $googleUser->name,
+            'username' => strtolower(explode(' ', trim($googleUser->name))[0]),
             'email' => $googleUser->email,
             'email_verified_at' => Carbon::now(),
             'password' => Hash::make(rand(100000, 999999)),

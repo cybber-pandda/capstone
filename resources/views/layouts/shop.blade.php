@@ -17,7 +17,7 @@
 
     <!-- Bootstrap -->
     <link type="text/css" rel="stylesheet" href="{{ asset('assets/shop/css/bootstrap.min.css') }}" />
-    
+
 
     <!-- Slick -->
     <link type="text/css" rel="stylesheet" href="{{ asset('assets/shop/css/slick.css') }}" />
@@ -53,20 +53,22 @@
             body {
                 height: 100%;
                 margin: 0;
-                overflow: hidden;
-                /* Prevent body scroll */
+                /* Remove this: overflow: hidden; */
+                overflow-x: hidden;
+                /* only hide horizontal scroll */
+            }
+
+            .section-scrollable {
+                height: auto;
+                /* allow full height */
+                overflow-y: visible;
+                /* let pagination show */
+                padding-bottom: 80px;
+                /* add space for fixed footer */
             }
 
             .address-map-view {
                 display: none !important;
-            }
-
-            .section-scrollable {
-                height: calc(100vh - 300px);
-                /* Adjust based on footer height */
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-                /* Smooth scroll on iOS */
             }
 
             footer {
@@ -76,7 +78,177 @@
                 width: 100%;
                 z-index: 100;
             }
+
+            .col-sm-6 {
+                flex: 0 0 50% !important;
+                max-width: 50% !important;
+            }
+
+            /* Fix scattered product cards */
+            .row [class*="col-"] {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .product {
+                display: flex;
+                flex-direction: column;
+                width: 100%;
+                height: 100%;
+            }
+
+            .product-body {
+                flex-grow: 1;
+                /* stretch evenly */
+            }
+
+            #hideHeaderFormobile, #hideFooterFormobile, #hideLimitForMobile, #hidePaginateMobile {
+                display: none !important;
+            }
+
+            #showForMobile {
+                display: block !important;
+            }
+
+            .section, #showForMobile {
+                padding-top: 0px !important;
+                padding-bottom: 0px !important;
+            }
+
+            #showHeaderFormobile {
+                display: block !important;
+            }
+
+             #header, #showHeaderFormobile {
+                padding-top: 0px !important;
+                padding-bottom: 0px !important;
+            }
+
+            .section-title{
+                display: none;
+            }
+
+            #showPaginateMobile{
+                display: block !important;
+            }
+
+            #showLimitForMobile{
+              display: block !important;
+            }
+
         }
+
+        #showForMobile {
+            display: none;
+        }
+
+        #showHeaderFormobile {
+            display: none;
+        }
+
+        #showPaginateMobile{
+           display: none;
+        }
+
+        #showLimitForMobile{
+            display: none;
+        }
+
+        /* Make pagination responsive on mobile */
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            /* allow wrapping if too many links */
+        }
+
+        .pagination>li {
+            display: inline-block;
+            margin: 2px;
+        }
+
+        .pagination>li>a,
+        .pagination>li>span {
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+
+
+        /* Make product cards equal height */
+        .product-list {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .product-list .col-xs-6,
+        .product-list .col-sm-6,
+        .product-list .col-md-3 {
+            display: flex;
+        }
+
+        .product {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 100%;
+        }
+
+        /* Fix image box height */
+        .product-img-wrapper {
+            width: 100%;
+            height: 120px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-img-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+        }
+
+        /* Keep text tidy */
+        .product-body {
+            flex-grow: 1;
+            font-size: 12px;
+        }
+
+        .product-name {
+            min-height: 32px;
+            /* reserve space for 2 lines of text */
+            overflow: hidden;
+        }
+
+        /* Pagination Wrapper */
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        /* Force pagination inline */
+        .pagination {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 5px;
+            gap: 5px;
+            /* space between buttons */
+        }
+
+        /* Hide scrollbar but allow scroll */
+        .pagination::-webkit-scrollbar {
+            display: none;
+        }
+
+       
 
         .table-responsive {
             padding: 20px !important;
@@ -87,8 +259,6 @@
                 display: none !important;
             }
         }
-        
-
     </style>
 </head>
 
@@ -108,11 +278,11 @@
     $showPendingRequirements = false;
 
     if (Auth::user()->role === 'b2b') {
-        if (is_null($b2bDetails) || ($b2bDetails->status === 'rejected')) {
-        $showB2BModal = true;
-        } elseif ($b2bDetails->status == null) {
-        $showPendingRequirements = true;
-        }
+    if (is_null($b2bDetails) || ($b2bDetails->status === 'rejected')) {
+    $showB2BModal = true;
+    } elseif ($b2bDetails->status == null) {
+    $showPendingRequirements = true;
+    }
     }
 
     @endphp
@@ -137,13 +307,13 @@
 
                         <div style="margin-bottom:10px;">
                             <label for="certificate_registration" class="form-label">Certificate Registration:</label>
-                            <input type="file" class="form-control" name="certificate_registration" id="certificate_registration"  accept="application/pdf">
+                            <input type="file" class="form-control" name="certificate_registration" id="certificate_registration" accept="application/pdf">
                             <div class="invalid-feedback certificate_registration_error text-danger"></div>
                         </div>
 
                         <div style="margin-bottom:10px;">
                             <label for="business_permit" class="form-label">Business Permit:</label>
-                            <input type="file" class="form-control" name="business_permit" id="business_permit"  accept="application/pdf">
+                            <input type="file" class="form-control" name="business_permit" id="business_permit" accept="application/pdf">
                             <div class="invalid-feedback business_permit_error text-danger"></div>
                         </div>
 
@@ -165,13 +335,13 @@
                             <div class="invalid-feedback contact_number_error text-danger"></div>
                         </div>
 
-                         <div style="margin-bottom:10px;">
+                        <div style="margin-bottom:10px;">
                             <label for="contact_person" class="form-label">Contact Person:</label>
                             <input type="text" class="form-control" name="contact_person" id="contact_person">
                             <div class="invalid-feedback contact_person_error text-danger"></div>
                         </div>
 
-                         <div style="margin-bottom:10px;">
+                        <div style="margin-bottom:10px;">
                             <label for="contact_person_number" class="form-label">Contact Person Phone #:</label>
                             <input type="text" class="form-control" name="contact_person_number" id="contact_person_number">
                             <div class="invalid-feedback contact_person_number_error text-danger"></div>
@@ -245,13 +415,13 @@
             }
         });
 
-        window.purchaseRequestCart = {!! $cartJson !!};
+        window.purchaseRequestCart = {!!$cartJson!!};
 
         $(document).ready(function() {
             updateCartDropdown();
         });
     </script>
- 
+
     @if($showB2BModal)
     <script>
         $(document).ready(function() {

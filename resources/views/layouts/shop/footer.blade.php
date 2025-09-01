@@ -5,7 +5,17 @@
         <!-- container -->
         <div class="container-fluid">
 
-         <div style="overflow:hidden;max-width:100%;width:100%;height:300px;"><div id="embedded-map-display" style="height:100%; width:100%;max-width:100%;"><iframe style="height:100%;width:100%;border:0;" frameborder="0" src="https://www.google.com/maps/embed/v1/place?q=National+Highway,+Barangay+Balubal,+Sariaya,+4322,+Quezon+Province,+Philippines&key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8"></iframe></div><a class="google-map-html" href="https://www.bootstrapskins.com/themes" id="auth-map-data">premium bootstrap themes</a><style>#embedded-map-display img{max-width:none!important;background:none!important;font-size: inherit;font-weight:inherit;}</style></div>
+            <div style="overflow:hidden;max-width:100%;width:100%;height:300px;">
+                <div id="embedded-map-display" style="height:100%; width:100%;max-width:100%;"><iframe style="height:100%;width:100%;border:0;" frameborder="0" src="https://www.google.com/maps/embed/v1/place?q=National+Highway,+Barangay+Balubal,+Sariaya,+4322,+Quezon+Province,+Philippines&key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8"></iframe></div><a class="google-map-html" href="https://www.bootstrapskins.com/themes" id="auth-map-data">premium bootstrap themes</a>
+                <style>
+                    #embedded-map-display img {
+                        max-width: none !important;
+                        background: none !important;
+                        font-size: inherit;
+                        font-weight: inherit;
+                    }
+                </style>
+            </div>
             <!-- row -->
             <!-- <div class="row">
                 <div class="col-md-3 col-xs-6">
@@ -69,7 +79,7 @@
 
     <!-- bottom footer -->
     <div id="bottom-footer" class="section">
-        <div class="container">
+        <div class="container" id="hideFooterFormobile">
             <!-- row -->
             <div class="row">
                 <div class="col-md-12 text-center">
@@ -93,6 +103,82 @@
             <!-- /row -->
         </div>
         <!-- /container -->
+
+        <div class="container" id="showForMobile">
+            <div class="row">
+                @auth
+                <div class="col-md-4 clearfix">
+                    <div class="header-ctn">
+
+                        <div>
+                            <a href="{{ route('home') }}">
+                                <i class="fa-solid fa-home"></i>
+                                <span>Home</span>
+                                <!-- <div class="qty">2</div> -->
+                            </a>
+                        </div>
+
+                        <div>
+                            <a href="{{ route('b2b.delivery.index') }}">
+                                <i class="fa-solid fa-truck"></i>
+                                <span>Delivery</span>
+                                <!-- <div class="qty">2</div> -->
+                            </a>
+                        </div>
+
+                        <div>
+                            <a href="{{ route('b2b.quotations.review') }}">
+                                <i class="fa-solid fa-receipt"></i>
+                                <span>Quotation</span>
+                                @if( $sentQuotationCount > 0 )
+                                <div class="qty">{{ $sentQuotationCount }}</div>
+                                @endif
+                            </a>
+                        </div>
+
+                        <div class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                                <i class="fa-solid fa-box"></i>
+                                <span>PR</span>
+                                @if($pendingRequestCount > 0)
+                                <div class="qty" id="purchase-request-count">{{ $pendingRequestCount }}</div>
+                                @else
+                                <div class="qty d-none" id="purchase-request-count">0</div>
+                                @endif
+                            </a>
+                            <div class="cart-dropdown">
+                                <div class="cart-list" id="cart-list">
+                                    <!-- Product widgets will be injected here -->
+                                </div>
+
+                                <div class="cart-summary">
+                                    <small id="cart-total-quantity">0 Item(s) selected</small>
+                                    <h5 id="cart-subtotal">GRAND TOTAL: $0.00</h5>
+                                </div>
+
+                                <div class="cart-btns p-1 {{ Route::is('b2b.purchase-requests.index') ? 'd-none' : '' }}">
+                                    <a href="{{ route('b2b.purchase-requests.index') }}" style="font-size:12px;width:100%">View All</a>
+                                </div>
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- Menu Toogle -->
+                        <div class="menu-toggle">
+                            <a href="#">
+                                <i class="fa fa-bars"></i>
+                                <span>Menu</span>
+                            </a>
+                        </div>
+                        <!-- /Menu Toogle -->
+                    </div>
+                </div>
+                @endauth
+            </div>
+        </div>
+
     </div>
     <!-- /bottom footer -->
 </footer>

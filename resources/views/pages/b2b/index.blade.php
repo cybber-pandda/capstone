@@ -32,7 +32,7 @@
 <div class="section section-scrollable">
     <div class="container">
         <div class="section-title">
-            <h5 class="title">Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}</h5>
+            <h5 class="title" id="hideLimitForMobile">Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}</h5>
             <div class="section-nav" style="display: none;">
                 <ul class="section-tab-nav tab-nav">
                     <li class="active"><a href="#" class="category-btn" data-id="">All</a></li>
@@ -299,22 +299,27 @@
                     toast('success', response.message);
                     $quantityInput.val('');
 
-                    window.purchaseRequestCart = {
-                        items: response.items,
-                        total_quantity: response.total_quantity,
-                        subtotal: response.subtotal
-                    };
+                    
+                    setTimeout(function(){
+                       location.reload();
+                    }, 3000)
 
-                    updateCartDropdown();
+                    // window.purchaseRequestCart = {
+                    //     items: response.items,
+                    //     total_quantity: response.total_quantity,
+                    //     subtotal: response.subtotal
+                    // };
 
-                    const count = response.pending_count;
-                    const $counter = $('#purchase-request-count');
+                    // updateCartDropdown();
 
-                    if (count > 0) {
-                        $counter.text(count).removeClass('d-none');
-                    } else {
-                        $counter.text('0').addClass('d-none');
-                    }
+                    // const count = response.response.total_quantity;
+                    // const $counter = $('#purchase-request-count');
+
+                    // if (count > 0) {
+                    //     $counter.text(count).removeClass('d-none');
+                    // } else {
+                    //     $counter.text('0').addClass('d-none');
+                    // }
                 },
                 error: function(xhr) {
                     if (xhr.status === 422) {

@@ -10,8 +10,8 @@
         <!-- Tabs -->
         <ul class="nav nav-tabs" role="tablist">
             <li class="active"><a href="#processingTab" role="tab" data-toggle="tab">Processing</a></li>
-            <li><a href="#rejectedTab" role="tab" data-toggle="tab">Rejected Quotation</a></li>
-            <li><a href="#cancelledTab" role="tab" data-toggle="tab">Cancelled Quotation</a></li>
+            <li><a href="#rejectedTab" role="tab" data-toggle="tab">Rejected</a></li>
+            <li><a href="#cancelledTab" role="tab" data-toggle="tab">Cancelled</a></li>
         </ul>
 
         <!-- Tab content -->
