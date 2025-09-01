@@ -17,6 +17,7 @@ use App\Models\PurchaseRequest;
 use App\Models\Inventory;
 use App\Models\B2BDetail;
 use App\Models\B2BAddress;
+use App\Models\PaidPayment;
 
 class DeliveryController extends Controller
 {
@@ -65,8 +66,33 @@ class DeliveryController extends Controller
                 ->addColumn('customer_name', fn($pr) => optional($pr->user)->name ?? 'N/A')
                 ->addColumn('total_items', fn($pr) => $pr->items->sum('quantity'))
                 ->addColumn('grand_total', function ($pr) {
-                    $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                    return '₱' . number_format($total, 2);
+                    // $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    // return '₱' . number_format($total, 2);
+
+                    $subtotal = $pr->items->sum(function ($item) {
+                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                        return $item->quantity * ($price ?? 0);
+                    });
+
+                    // Default values
+                    $vatRate = 0;
+                    $deliveryFee = 0;
+
+                    if (preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
+                        $purchaseRequestId = $matches[1];
+                        $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
+
+                        if ($purchaseRequest) {
+                            $vatRate = $purchaseRequest->vat ?? 0;
+                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                        }
+                    }
+
+                    $vat = $subtotal * ($vatRate / 100);
+                    $grandTotal = $subtotal + $vat + $deliveryFee;
+
+                    return '₱' . number_format($grandTotal, 2);
+
                 })
                 ->editColumn('created_at', fn($pr) => $pr->created_at->format('Y-m-d H:i:s'))
                 ->addColumn('action', function ($pr) {
@@ -200,10 +226,12 @@ class DeliveryController extends Controller
                                                 <i class="link-icon" data-lucide="check-circle"></i> Mark as Delivered
                                             </button>';
 
-                        $cancelBtn = '<button type="button" class="btn btn-sm btn-inverse-danger cancel-delivery-btn"
-                                        data-id="' . $order->delivery->id . '">
-                                        <i class="link-icon" data-lucide="x"></i> Cancel
-                                    </button>';
+                        // $cancelBtn = '<button type="button" class="btn btn-sm btn-inverse-danger cancel-delivery-btn"
+                        //                 data-id="' . $order->delivery->id . '">
+                        //                 <i class="link-icon" data-lucide="x"></i> Cancel
+                        //             </button>';
+
+                        $cancelBtn = '';
 
                         return $trackBtn . $markDeliveredBtn . $cancelBtn;
                     }
@@ -408,6 +436,7 @@ class DeliveryController extends Controller
         $b2bReqDetails = null;
         $b2bAddress = null;
         $salesOfficer = null;
+        $paidPR = null;
 
         $superadmin = User::where('role', 'superadmin')->first();
 
@@ -423,6 +452,10 @@ class DeliveryController extends Controller
             $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
         }
 
-        return view('pages.admin.deliveryrider.v_sales_invoice', compact('quotation', 'page', 'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin'));
+        if ($quotation->payment_method == 'pay_now') {
+            $paidPR = PaidPayment::where('purchase_request_id', $quotation->id)->first();
+        }
+
+        return view('pages.admin.deliveryrider.v_sales_invoice', compact('quotation', 'page', 'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin', 'paidPR'));
     }
 }

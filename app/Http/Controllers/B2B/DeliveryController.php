@@ -16,6 +16,7 @@ use App\Models\B2BAddress;
 use App\Models\B2BDetail;
 use App\Models\Bank;
 use App\Models\ProductRating;
+use App\Models\PaidPayment;
 
 class DeliveryController extends Controller
 {
@@ -41,7 +42,8 @@ class DeliveryController extends Controller
                 ->addColumn('total_items', fn($order) => $order->items->sum('quantity') ?? 0)
                 ->addColumn('grand_total', function ($order) {
                     $subtotal = $order->items->sum(function ($item) {
-                        return $item->quantity * ($item->product->price ?? 0);
+                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                        return $item->quantity * ($price ?? 0);
                     });
 
                     // Default values
@@ -90,7 +92,8 @@ class DeliveryController extends Controller
                 ->addColumn('rating', function ($order) {
                     $rating = $order->delivery->rating->rating ?? null;
 
-                    if (!$rating) return '';
+                    if (!$rating)
+                        return '';
 
                     return 'Rating: ' . str_repeat('<i class="fa fa-star text-warning"></i>', $rating) .
                         str_repeat('<i class="fa fa-star-o text-muted"></i>', 5 - $rating);
@@ -105,6 +108,11 @@ class DeliveryController extends Controller
                     </a>';
                     }
 
+                    $hasRiderRating = !empty($order->delivery->rating);
+                    $hasProductRating = ProductRating::where('user_id', auth()->id())
+                        ->whereIn('product_id', $order->items->pluck('product_id'))
+                        ->exists();
+
                     $proofBtn = '';
                     $invoiceBtn = '';
                     $ratingBtn = '';
@@ -112,14 +120,14 @@ class DeliveryController extends Controller
                     if ($status === 'delivered' && $order->delivery->proof_delivery) {
                         $proofBtn = '<button class="btn btn-sm btn-info view-proof-btn" 
                                         data-proof="' . asset($order->delivery->proof_delivery) . '" style="margin-right:5px;font-size:10.5px;">
-                                        View Proof
+                                        Proof
                                     </button>';
 
                         $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;font-size:10.5px;">
-                                        Generate Invoice
+                                        Invoice
                                        </a>';
 
-                        if ($order->delivery->rating) {
+                        if ($hasRiderRating && $hasProductRating) {
                             $ratingBtn = '<button class="btn btn-sm btn-secondary" disabled style="margin-right:5px;background:gray;opacity:0.6;color:black;">
                                             Rated
                                         </button>';
@@ -206,6 +214,7 @@ class DeliveryController extends Controller
         $b2bAddress = null;
         $salesOfficer = null;
         $quotation = null;
+        $paidPR = null;
 
         $superadmin = User::where('role', 'superadmin')->first();
 
@@ -227,8 +236,14 @@ class DeliveryController extends Controller
                 if ($quotation->prepared_by_id) {
                     $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
                 }
+
+                if ($quotation->payment_method == 'pay_now') {
+                    $paidPR = PaidPayment::where('purchase_request_id', $quotation->id)->first();
+                }
             }
         }
+
+        
 
         return view('pages.invoice', compact(
             'invoiceData',
@@ -240,7 +255,8 @@ class DeliveryController extends Controller
             'b2bReqDetails',
             'b2bAddress',
             'salesOfficer',
-            'superadmin'
+            'superadmin',
+            'paidPR'
         ));
     }
 
@@ -343,8 +359,8 @@ class DeliveryController extends Controller
     }
 
     public function rate_product_page($orderNumber)
-    {   
-        
+    {
+
         $order = null;
 
         if (preg_match('/REF (\d+)-/', $orderNumber, $matches)) {
@@ -358,6 +374,23 @@ class DeliveryController extends Controller
         ]);
     }
 
+    // public function submit_product_rating(Request $request, $productId)
+    // {
+    //     $request->validate([
+    //         'rating' => 'required|integer|min:1|max:5',
+    //         'feedback' => 'nullable|string|max:1000',
+    //     ]);
+
+    //     ProductRating::create([
+    //         'user_id' => auth()->id(),
+    //         'product_id' => $productId,
+    //         'rating' => $request->rating,
+    //         'review' => $request->feedback,
+    //     ]);
+
+    //     return redirect()->back()->with('success', 'Thanks for rating this product!');
+    // }
+
     public function submit_product_rating(Request $request, $productId)
     {
         $request->validate([
@@ -365,13 +398,18 @@ class DeliveryController extends Controller
             'feedback' => 'nullable|string|max:1000',
         ]);
 
-        ProductRating::create([
-            'user_id' => auth()->id(),
-            'product_id' => $productId,
-            'rating' => $request->rating,
-            'review' => $request->feedback,
-        ]);
+        ProductRating::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'product_id' => $productId,
+            ],
+            [
+                'rating' => $request->rating,
+                'review' => $request->feedback,
+            ]
+        );
 
         return redirect()->back()->with('success', 'Thanks for rating this product!');
     }
+
 }

@@ -23,7 +23,13 @@
                     <h4 style="margin-bottom: 0px;"><strong>Purchase Order</strong></h4>
                     <span><b>No:</b> {{ $quotation->id ?? 'No PO provided' }}-{{ date('Ymd', strtotime($quotation->created_at)) }}</span>
                     <span><b>Date Issued:</b> {{ $quotation->date_issued ?? 'No date issued provided' }}</span>
-                    <span><b>Valid for 7 days</b></span>
+                    <span><strong>Disclaimer:</strong>
+                            <i>
+                                This document is system-generated and provided for internal/business reference only. 
+                                It is not BIR-accredited and shall not be considered as an official receipt or invoice 
+                                for tax or accounting purposes.
+                            </i>
+                    </span>
                 </div>
 
 

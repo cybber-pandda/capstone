@@ -70,7 +70,12 @@
         <p>
             <strong>No:</strong> {{ $quotation->id ?? 'N/A' }}-{{ date('Ymd', strtotime($quotation->created_at)) }}<br>
             <strong>Date Issued:</strong> {{ $quotation->date_issued ?? now()->toDateString() }}<br>
-            <strong>Valid for 7 days</strong>
+            <strong>Disclaimer:</strong>
+            <i>
+                This document is system-generated and provided for internal/business reference only. 
+                It is not BIR-accredited and shall not be considered as an official receipt or invoice 
+                for tax or accounting purposes.
+            </i>
         </p>
     </div>
 

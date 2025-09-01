@@ -21,7 +21,13 @@
                     <h4 class="mb-1"><strong>Sales Invoice</strong></h4>
                     <div><b>No:</b> {{ $quotation->id ?? 'No PO provided' }}-{{ date('Ymd', strtotime($quotation->created_at)) }}</div>
                     <div><b>Date Issued:</b> {{ $quotation->date_issued ?? 'No date issued provided' }}</div>
-                    <div><b>Valid for 7 days</b></div>
+                    <div><strong>Disclaimer:</strong>
+                        <i>
+                            This document is system-generated and provided for internal/business reference only. 
+                            It is not BIR-accredited and shall not be considered as an official receipt or invoice 
+                            for tax or accounting purposes.
+                        </i>
+                    </div>
                 </div>
 
                 <div class="mb-3">
@@ -71,7 +77,7 @@
                         $delivery_fee = $quotation->delivery_fee ?? 0;
                         $total = $subtotal + $vat + $delivery_fee;
                         $vatableSales = $subtotal;
-                        $amountPaid = 0.00;
+                        $amountPaid = !empty($paidPR->paid_amount) ? $paidPR->paid_amount : 0.00;
 
                         $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
                         $b2bDate = $quotation->b2b_delivery_date;
@@ -107,10 +113,17 @@
                             <td colspan="4" class="text-end">Delivery Fee:</td>
                             <td class="text-end">₱{{ number_format($delivery_fee, 2) }}</td>
                         </tr>
+                        @if($quotation->payment_method == 'pay_now' &&  $quotation->cod_flg == 1)
                         <tr>
-                            <td colspan="4" class="text-end">Amount Paid:</td>
-                            <td class="text-end">₱{{ number_format($amountPaid, 2) }}</td>
+                            <td colspan="4" class="text-right"><span>Amount Type:</span></td>
+                            <td class="text-right">Cash on Delivery</td>
                         </tr>
+                        @elseif($quotation->payment_method == 'pay_now' &&  $quotation->cod_flg == 0)
+                        <tr>
+                            <td colspan="4" class="text-right"><span>Amount Paid:</span></td>
+                            <td class="text-right">{{ number_format($amountPaid, 2) }}</td>
+                        </tr>
+                        @endif
                         <tr class="fw-bold">
                             <td colspan="4" class="text-end fs-5">Grand Total:</td>
                             <td class="text-end fs-5">₱{{ number_format($total, 2) }}</td>

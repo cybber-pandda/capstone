@@ -214,7 +214,9 @@ $(document).ready(function () {
                             title: 'Your Order is on the Way!',
                             text: 'You can now track your delivery.',
                             confirmButtonText: 'Track Delivery',
-                            showCancelButton: true,
+                            timer: 3000,
+                            showCancelButton: false,
+                            showConfirmButton: false,
                             cancelButtonText: 'Close'
                         }).then(result => {
                             if (result.isConfirmed) {

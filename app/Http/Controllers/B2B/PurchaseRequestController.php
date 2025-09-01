@@ -85,74 +85,143 @@ class PurchaseRequestController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    // public function store(Request $request)
+    // {
+    //     $request->validate([
+    //         'product_id' => 'required|exists:products,id',
+    //         'quantity'   => 'required|integer|min:1'
+    //     ]);
+
+    //     $userId = auth()->id();
+
+    //     // Check if there is already a pending purchase request
+    //     $pendingRequest = PurchaseRequest::where('customer_id', $userId)
+    //         ->where('status', 'pending')
+    //         ->get();
+
+    //    if ($pendingRequest->isNotEmpty()) {
+    //         return response()->json([
+    //             'message' => 'You already have a pending purchase request. Please wait until it is processed before creating a new one.'
+    //         ], 400);
+    //     }
+
+    //     // Create a new purchase request
+    //     $purchaseRequest = PurchaseRequest::create([
+    //         'customer_id' => $userId,
+    //         'status' => null
+    //     ]);
+
+    //     $product = Product::findOrFail($request->product_id);
+    //     $price = $this->calculateProductPrice($product);
+
+    //     // Add the product item
+    //     $purchaseRequest->items()->create([
+    //         'product_id' => $request->product_id,
+    //         'quantity'   => $request->quantity,
+    //         'subtotal'   => $request->quantity * $price
+    //     ]);
+
+    //     // Notify sales officers
+    //     $salesOfficers = User::where('role', 'salesofficer')->get();
+    //     foreach ($salesOfficers as $officer) {
+    //         Notification::create([
+    //             'user_id' => $officer->id,
+    //             'type'    => 'purchase_request',
+    //             'message' => 'A new purchase request has been submitted by ' . auth()->user()->name .
+    //                 '. <br><a href="' . route('salesofficer.purchase-requests.index') . '">Visit</a>',
+    //         ]);
+    //     }
+
+    //     $items = $purchaseRequest->items()->with('product.productImages')->get();
+
+    //     $mapped = $items->map(function ($item) {
+    //         $product = $item->product;
+    //         $price = $this->calculateProductPrice($product);
+    //         return [
+    //             'id'            => $item->id,
+    //             'product_name'  => $product->name,
+    //             'product_image' => asset(optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png'),
+    //             'quantity'      => $item->quantity,
+    //             'price'         => $price,
+    //             'subtotal'      => $item->subtotal,
+    //         ];
+    //     });
+
+    //     return response()->json([
+    //         'message'        => 'Purchase request created successfully.',
+    //         'items'          => $mapped->take(5),
+    //         'total_quantity' => $items->sum('quantity'),
+    //         'subtotal'       => $items->sum('subtotal'),
+    //         'pending_count'  => $items->sum('quantity')
+    //     ]);
+    // }
+
+    
+     public function store(Request $request)
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity'   => 'required|integer|min:1'
+            'quantity' => 'required|integer|min:1'
         ]);
 
         $userId = auth()->id();
 
-        // Check if there is already a pending purchase request
-        $pendingRequest = PurchaseRequest::where('customer_id', $userId)
-            ->where('status', 'pending')
-            ->get();
-
-       if ($pendingRequest->isNotEmpty()) {
-            return response()->json([
-                'message' => 'You already have a pending purchase request. Please wait until it is processed before creating a new one.'
-            ], 400);
-        }
-
-        // Create a new purchase request
-        $purchaseRequest = PurchaseRequest::create([
+        $purchaseRequest = PurchaseRequest::firstOrCreate([
             'customer_id' => $userId,
             'status' => null
         ]);
 
         $product = Product::findOrFail($request->product_id);
-        $price = $this->calculateProductPrice($product);
 
-        // Add the product item
-        $purchaseRequest->items()->create([
-            'product_id' => $request->product_id,
-            'quantity'   => $request->quantity,
-            'subtotal'   => $request->quantity * $price
-        ]);
+        $item = $purchaseRequest->items()->where('product_id', $request->product_id)->first();
 
-        // Notify sales officers
-        $salesOfficers = User::where('role', 'salesofficer')->get();
+        if ($item) {
+            $item->quantity += $request->quantity;
+            $item->subtotal = $item->quantity * $product->price;
+            $item->save();
+        } else {
+            $purchaseRequest->items()->create([
+                'product_id' => $request->product_id,
+                'quantity' => $request->quantity,
+                'subtotal' => $request->quantity * $product->price
+            ]);
+        }
+
+        $salesOfficers = User::where('role', 'salesofficer')->get(); 
         foreach ($salesOfficers as $officer) {
             Notification::create([
                 'user_id' => $officer->id,
-                'type'    => 'purchase_request',
-                'message' => 'A new purchase request has been submitted by ' . auth()->user()->name .
-                    '. <br><a href="' . route('salesofficer.purchase-requests.index') . '">Visit</a>',
+                'type' => 'purchase_request',
+                'message' => 'A new purchase request has been updated by ' . auth()->user()->name . '. <br><a href="' . route('salesofficer.purchase-requests.index') . '">Visit</a>',
             ]);
         }
+
+        // Notification::create([
+        //     'user_id' => $userId,
+        //     'type' => 'purchase request',
+        //     'message' => 'You have updated your purchase request for product ID: ' . $request->product_id . '. <br><a href="' . route('salesofficer.purchase-requests.index') . '">Visit Link</a>',
+        // ]);
 
         $items = $purchaseRequest->items()->with('product.productImages')->get();
 
         $mapped = $items->map(function ($item) {
             $product = $item->product;
-            $price = $this->calculateProductPrice($product);
             return [
-                'id'            => $item->id,
-                'product_name'  => $product->name,
+                'id' => $item->id,
+                'product_name' => $product->name,
                 'product_image' => asset(optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png'),
-                'quantity'      => $item->quantity,
-                'price'         => $price,
-                'subtotal'      => $item->subtotal,
+                'quantity' => $item->quantity,
+                'price' => $product->price,
+                'subtotal' => $item->subtotal,
             ];
         });
 
         return response()->json([
-            'message'        => 'Purchase request created successfully.',
-            'items'          => $mapped->take(5),
+            'message' => 'Purchase request updated successfully.',
+            'items' => $mapped->take(5),
             'total_quantity' => $items->sum('quantity'),
-            'subtotal'       => $items->sum('subtotal'),
-            'pending_count'  => $items->sum('quantity')
+            'subtotal' => $items->sum('subtotal'),
+            'pending_count' => $items->sum('quantity')
         ]);
     }
 
@@ -207,7 +276,7 @@ class PurchaseRequestController extends Controller
         // Update all purchase requests
         $updatedCount = PurchaseRequest::whereIn('id', $purchaseRequests->pluck('id'))
             ->update([
-                'transaction_uuid' => $this->generateTransactionUid(),
+                // 'transaction_uuid' => $this->generateTransactionUid(),
                 'status' => 'pending',
                 'b2b_delivery_date' => $request->expected_delivery_date
             ]);

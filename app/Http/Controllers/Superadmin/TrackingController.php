@@ -82,24 +82,31 @@ class TrackingController extends Controller
 
     public function show($id)
     {
-        $pr = PurchaseRequest::with(['items.product.productImages'])->findOrFail($id);
+        $quotation = PurchaseRequest::with(['items.product.productImages'])->findOrFail($id);
 
+        $page = 'Purchase Order';
+        $pageCategory = 'Tracking';
         $b2bReq = null;
         $b2bAddress = null;
+        $salesOfficer = null;
 
-        if ($pr->customer_id) {
-            $b2bReq = B2BDetail::where('user_id', $pr->customer_id)
+        $superadmin = User::where('role', 'superadmin')->first();
+
+        if ($quotation->customer_id) {
+            $b2bReq = B2BDetail::where('user_id', $quotation->customer_id)
                 ->where('status', 'approved')
                 ->first();
 
-            $b2bAddress = B2BAddress::where('user_id', $pr->customer_id)
+            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)
                 ->where('status', 'active')
                 ->first();
         }
 
-        $html = view('components.pr-items', compact('pr', 'b2bReq', 'b2bAddress'))->render();
+        if ($quotation->prepared_by_id) {
+            $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+        }
 
-        return response()->json(['html' => $html]);
+        return view('pages.superadmin.v_purchase_order_show', compact('quotation', 'b2bReq', 'b2bAddress', 'salesOfficer', 'superadmin', 'page', 'pageCategory'));
     }
 
     public function processSO($id)

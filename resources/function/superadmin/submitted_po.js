@@ -69,18 +69,26 @@ $(document).ready(function () {
         },
     });
 
+    // $(document).on("click", ".view-pr", function () {
+    //     const id = $(this).data("id");
+    //     if (!id) return;
+
+    //     $.get("/purchase-requests/" + id, function (response) {
+    //         $(".modal-title").text("Purchase Items");
+    //         $("#prDetails").html(response.html);
+    //         $("#sendQuotationBtn").addClass("d-none");
+    //         $("#viewPRModal").modal("show");
+    //     }).fail(function () {
+    //         toast("error", "Failed to fetch purchase request details.");
+    //     });
+    // });
+
     $(document).on("click", ".view-pr", function () {
         const id = $(this).data("id");
         if (!id) return;
 
-        $.get("/purchase-requests/" + id, function (response) {
-            $(".modal-title").text("Purchase Items");
-            $("#prDetails").html(response.html);
-            $("#sendQuotationBtn").addClass("d-none");
-            $("#viewPRModal").modal("show");
-        }).fail(function () {
-            toast("error", "Failed to fetch purchase request details.");
-        });
+        // Redirect to PR details page
+        window.location.href = "/purchase-requests/" + id;
     });
 
     $(document).on("click", ".process-so", function (e) {
