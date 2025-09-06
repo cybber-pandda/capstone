@@ -27,7 +27,8 @@ class CreateDeliveriesTable extends Migration
             $table->timestamp('delivery_date')->nullable();
             $table->string('proof_delivery')->nullable();
             $table->text('delivery_remarks')->nullable();
-
+            $table->integer('sales_invoice_flg')->default(0);
+            
             $table->decimal('delivery_latitude', 10, 7)->default('13.9655000'); // default store lat
             $table->decimal('delivery_longitude', 10, 7)->default('121.5348000'); // default store lng
 

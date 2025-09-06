@@ -27,6 +27,7 @@
                 Summary List of Sales
             </button>
             <a href="{{ route('summary.sales') }}"  class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0"><i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i> Summary List of Sales</a>
+            <a href="{{ route('summary.sales.manualorder') }}"  class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0"><i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i> Manual Order (SLS)</a>
             @endif
 
             <!-- Modal -->
@@ -105,7 +106,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Pay Now</h6>
+                                <h6 class="card-title mb-0">Total Cash Sales</h6>
                             </div>
                             <h3 class="mb-2 mt-2">{{ number_format($totalpaynow,2) }}</h3>
 
@@ -118,7 +119,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Pay Later</h6>
+                                <h6 class="card-title mb-0">Total Credit Sales</h6>
                             </div>
                             <h3 class="mb-2 mt-2">{{ number_format($totalpaylater,2) }}</h3>
                         </div>
@@ -137,7 +138,7 @@
                 <div class="card-body">
                     @if(Auth::user()->role === 'deliveryrider')
                     <div class="d-flex justify-content-between align-items-baseline mb-2">
-                        <h6 class="card-title mb-0">My Assign Deliveries</h6>
+                        <h6 class="card-title mb-3">My Assign Deliveries</h6>
                     </div>
                     @include('components.delivery-list', ['deliveries' => $deliveries])
                     @else

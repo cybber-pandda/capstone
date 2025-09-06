@@ -1,6 +1,6 @@
 @if(!empty($deliveries) && $deliveries->count() > 0)
-<div class="table-responsive">
-    <table class="table table-hover mb-0">
+<!-- <div class="table-responsive"> -->
+    <table class="table-2">
         <thead>
             <tr>
                 <th>Order #</th>
@@ -56,7 +56,7 @@
                 <td>{{ $delivery->items->sum('quantity') }}</td>
                 <td>₱{{ number_format($grandTotal, 2) }}</td>
                 <td>
-                    <ul class="mb-0">
+                    <ul class="mb-0 delivery-list">
                         @foreach($delivery->items as $item)
                         <li>{{ $item->product->name ?? 'Unknown Product' }} x{{ $item->quantity }}</li>
                         @endforeach
@@ -74,7 +74,7 @@
             @endforeach
         </tbody>
     </table>
-</div>
+<!-- </div> -->
 @else
 <div class="text-center mb-3">No deliveries assigned to you.</div>
 @endif

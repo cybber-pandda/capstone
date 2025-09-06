@@ -15,7 +15,7 @@
             </div>
         </div>
 
-        @component('components.table', [
+        <!-- @component('components.table', [
         'id' => 'purchaseRequestTable',
         'thead' => '
         <tr>
@@ -29,7 +29,25 @@
             <th></th>
         </tr>'
         ])
-        @endcomponent
+        @endcomponent -->
+
+        <table id="purchaseRequestTable" class="table-2">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>SKU</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Subtotal</th>
+                    <th>Date</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
 
     </div>
 </div>
@@ -121,8 +139,9 @@
             scrollCollapse: true,
             scrollX: true,
             scrollY: 600,
+            paging: false,
             autoWidth: false,
-            responsive: true,
+            responsive: false,
             ajax: {
                 url: "/b2b/purchase"
             },

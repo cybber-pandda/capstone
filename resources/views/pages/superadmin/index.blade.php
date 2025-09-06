@@ -20,7 +20,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Pay Now</h6>
+                                <h6 class="card-title mb-0">Total Cash Sales</h6>
                             </div>
                             <h3 class="mb-2 mt-2">{{ number_format($totalpaynow,2) }}</h3>
 
@@ -33,7 +33,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Pay Later</h6>
+                                <h6 class="card-title mb-0">Total Credit Sales</h6>
                             </div>
                             <h3 class="mb-2 mt-2">{{ number_format($totalpaylater,2) }}</h3>
                         </div>

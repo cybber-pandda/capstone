@@ -19,6 +19,7 @@ class Delivery extends Model
         'delivery_date',
         'proof_delivery',
         'delivery_remarks',
+        'sales_invoice_flg',
         'delivery_latitude',
         'delivery_longtitude',
     ];

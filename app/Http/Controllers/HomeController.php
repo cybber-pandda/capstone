@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use App\Exports\SalesSummaryExport;
+use App\Exports\SalesSummaryManualExport;
 use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\Product;
@@ -17,6 +18,7 @@ use App\Models\PurchaseRequest;
 use App\Models\PaidPayment;
 use App\Models\CreditPayment;
 use App\Models\CreditPartialPayment;
+use App\Models\ManualEmailOrder;
 
 class HomeController extends Controller
 {
@@ -469,5 +471,133 @@ class HomeController extends Controller
     public function export($date_from, $date_to)
     {
         return Excel::download(new SalesSummaryExport($date_from, $date_to), 'sales_summary.xlsx');
+    }
+
+    public function summary_sales_manualorder()
+    {
+        $page = 'Summary List of Sales Manual Order';
+
+        // Get all manual email orders
+        $purchaseRequestsManual = ManualEmailOrder::all();
+
+        $subtotal = 0;
+        $vatAmount = 0;
+        $deliveryFee = 0;
+        $total = 0;
+
+        foreach ($purchaseRequestsManual as $pr) {
+            $items = json_decode($pr->purchase_request, true) ?? [];
+
+            // Compute subtotal for this PR
+            $prSubtotal = 0;
+            foreach ($items as $item) {
+                $qty = (int) ($item['qty'] ?? 0);
+                $price = (float) ($item['price'] ?? 0);
+                $prSubtotal += $qty * $price;
+            }
+
+            // VAT = 12% of subtotal
+            $prVat = $prSubtotal * 0.12;
+
+            // Delivery Fee = fixed 200
+            $prDelivery = 200;
+
+            // Grand total for this PR
+            $prTotal = $prSubtotal + $prVat + $prDelivery;
+
+            // Accumulate
+            $subtotal += $prSubtotal;
+            $vatAmount += $prVat;
+            $deliveryFee += $prDelivery;
+            $total += $prTotal;
+        }
+
+        // VAT exclusive = subtotal + delivery fee (before VAT)
+        $vatExclusive = $subtotal + $deliveryFee;
+
+        return view('pages.summary_sales_manual', compact(
+            'page',
+            'purchaseRequestsManual',
+            'subtotal',
+            'vatAmount',
+            'vatExclusive',
+            'deliveryFee',
+            'total'
+        ));
+    }
+
+    public function summary_sales_manualorder_api($date_from, $date_to)
+    {
+        $query = ManualEmailOrder::whereBetween('order_date', [$date_from, $date_to])->get();
+
+        return DataTables::of($query)
+            ->addColumn('created_at', function ($pr) {
+                return Carbon::parse($pr->created_at)->format('F d, Y h:i A');
+            })
+            ->addColumn('invoice_no', function ($pr) {
+                return 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
+            })
+            ->addColumn('customer', function ($pr) {
+                return $pr->customer_name ?? '-';
+            })
+            ->addColumn('customer_type', function ($pr) {
+                return $pr->customer_type ?? '-';
+            })
+            ->addColumn('email', function ($pr) {
+                return $pr->customer_email ?? '-';
+            })
+            ->addColumn('address', function ($pr) {
+                return $pr->customer_address ?? '-';
+            })
+            ->addColumn('phone', function ($pr) {
+                return $pr->customer_phone_number ?? '-';
+            })
+            ->addColumn('order_date', function ($pr) {
+                return $pr->order_date ?? '-';
+            })
+            ->addColumn('total_items', function ($pr) {
+                $items = json_decode($pr->purchase_request, true) ?? [];
+                return collect($items)->sum(fn($item) => (int) ($item['qty'] ?? 0));
+            })
+            ->addColumn('avg_price', function ($pr) {
+                $items = json_decode($pr->purchase_request, true) ?? [];
+                if (count($items) === 0) return '0.00';
+                $avg = collect($items)->avg(fn($item) => (float) ($item['price'] ?? 0));
+                return number_format($avg, 2);
+            })
+            ->addColumn('subtotal', function ($pr) {
+                $items = json_decode($pr->purchase_request, true) ?? [];
+                $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
+                return number_format($subtotal, 2);
+            })
+            ->addColumn('vat_amount', function ($pr) {
+                $items = json_decode($pr->purchase_request, true) ?? [];
+                $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
+                $deliveryFee = 200;
+                $vatAmount = ($subtotal + $deliveryFee) * 0.12; // include delivery fee
+                return number_format($vatAmount, 2);
+            })
+            ->addColumn('vat_exclusive', function ($pr) {
+                $items = json_decode($pr->purchase_request, true) ?? [];
+                $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
+                $deliveryFee = 200;
+                $vatExclusive = $subtotal + $deliveryFee;
+                return number_format($vatExclusive, 2);
+            })
+            ->addColumn('grand_total', function ($pr) {
+                $items = json_decode($pr->purchase_request, true) ?? [];
+                $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
+                $deliveryFee = 200;
+                $vatAmount = ($subtotal + $deliveryFee) * 0.12;
+                $grandTotal = $subtotal + $deliveryFee + $vatAmount;
+                return number_format($grandTotal, 2);
+            })
+
+            ->make(true);
+    }
+
+    public function export_manualorder($date_from, $date_to)
+    {
+        return Excel::download(new SalesSummaryManualExport($date_from, $date_to), 'sales_summary.xlsx');
     }
 }

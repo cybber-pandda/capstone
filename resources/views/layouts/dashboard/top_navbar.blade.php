@@ -165,6 +165,7 @@
                             <li class="nav-item {{ Route::is('salesofficer.sent-quotations.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.send-quotations.index') }}">Sent Quotations</a></li>
                             <li class="category-heading text-dark fw-bolder">Purchase Order</li>
                             <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">B2B Submitted PO</a></li>
+                            <li class="nav-item {{ Route::is('salesofficer.sales.invoice') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.sales.invoice') }}">B2B Sales Invoice</a></li>
                         </ul>
                     </div>
                 </li>

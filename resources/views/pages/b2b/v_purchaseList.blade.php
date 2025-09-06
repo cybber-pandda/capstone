@@ -38,7 +38,7 @@
             </div>
         </div>
 
-        <table class="table table-bordered table-hover">
+        <table class="table-2">
             <thead>
                 <tr>
                     <th>Image</th>

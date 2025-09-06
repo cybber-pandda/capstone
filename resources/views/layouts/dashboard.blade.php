@@ -9,7 +9,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $page }} | {{ config('app.name', 'Laravel') }}</title>
-    
+
     <link rel="icon" type="image/png" href="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}">
 
     <!-- color-modes:js -->
@@ -43,12 +43,12 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
-     
+
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    
+
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
-    
+
     <style>
         /* Left-align content */
         td.dt-left-int,
@@ -143,6 +143,90 @@
             }
         }
 
+        .table-2 {
+            border: 1px solid #ccc;
+            border-collapse: collapse;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .table-2 caption {
+            font-size: 1.5em;
+            margin: .5em 0 .75em;
+        }
+
+        .table-2 tr {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: .35em;
+        }
+
+        .table-2 th,
+        .table-2 td {
+            padding: .625em;
+            /* text-align: center; */
+        }
+
+        .table-2 th {
+            font-size: .85em;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        @media screen and (max-width: 600px) {
+            .table-2 {
+                border: 0;
+            }
+
+            .table-2 caption {
+                font-size: 1.3em;
+            }
+
+            .table-2 thead {
+                border: none;
+                clip: rect(0 0 0 0);
+                height: 1px;
+                margin: -1px;
+                overflow: hidden;
+                padding: 0;
+                position: absolute;
+                width: 1px;
+            }
+
+            .table-2 tr {
+                border-bottom: 3px solid #ddd;
+                display: block;
+                margin-bottom: .625em;
+            }
+
+            .table-2 td {
+                border-bottom: 1px solid #ddd;
+                display: block;
+                font-size: .8em;
+                text-align: right;
+            }
+
+            .table-2 td::before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+
+            .table-2 td:last-child {
+                border-bottom: 0;
+            }
+
+            @media (max-width: 767px) {
+                ul.delivery-list {
+                    list-style: none;
+                    padding-left: 0;
+                    margin-left: 0;
+                }
+            }
+        }
     </style>
 </head>
 
@@ -185,12 +269,12 @@
                 <div class="modal-body">
                     <ul>
                         @foreach($criticalProducts as $product)
-                            <li>
-                                <strong>{{ $product['name'] }}</strong>  
-                                (Stock: {{ $product['current_stock'] }} / {{ $product['maximum_stock'] }})  
-                                <br>
-                                ⚠ Critical level: {{ $product['critical_stock_level'] }} ({{ $product['critical_percent'] }})
-                            </li>
+                        <li>
+                            <strong>{{ $product['name'] }}</strong>
+                            (Stock: {{ $product['current_stock'] }} / {{ $product['maximum_stock'] }})
+                            <br>
+                            ⚠ Critical level: {{ $product['critical_stock_level'] }} ({{ $product['critical_percent'] }})
+                        </li>
                         @endforeach
                     </ul>
                 </div>
@@ -238,11 +322,11 @@
     </script>
 
     @if($showCriticalStockModal)
-        <script>
-            $(function() {
-                $('#criticalStockModal').modal('show');
-            });
-        </script>
+    <script>
+        $(function() {
+            $('#criticalStockModal').modal('show');
+        });
+    </script>
     @endif
 
     <script>

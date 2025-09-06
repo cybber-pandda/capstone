@@ -93,7 +93,7 @@ class DeliveryController extends Controller
                     $rating = $order->delivery->rating->rating ?? null;
 
                     if (!$rating)
-                        return '';
+                        return '<i>No rating yet.</i>';
 
                     return 'Rating: ' . str_repeat('<i class="fa fa-star text-warning"></i>', $rating) .
                         str_repeat('<i class="fa fa-star-o text-muted"></i>', 5 - $rating);
@@ -115,7 +115,14 @@ class DeliveryController extends Controller
 
                     $proofBtn = '';
                     $invoiceBtn = '';
+                    $deliveryReceiptBtn = ''; 
                     $ratingBtn = '';
+
+                    if ($order->delivery->sales_invoice_flg == 1) {
+                        $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;font-size:10.5px;">
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                                       </a>';
+                    }
 
                     if ($status === 'delivered' && $order->delivery->proof_delivery) {
                         $proofBtn = '<button class="btn btn-sm btn-info view-proof-btn" 
@@ -123,8 +130,8 @@ class DeliveryController extends Controller
                                         <i class="fa fa-file-image" aria-hidden="true"></i>
                                     </button>';
 
-                        $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;font-size:10.5px;">
-                                        <i class="fa fa-file-text" aria-hidden="true"></i>
+                        $deliveryReceiptBtn = '<a href="' . route('b2b.delivery.receipt', $order->delivery->id) . '" class="btn btn-sm btn-danger" style="margin-right:5px;font-size:10.5px;">
+                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
                                        </a>';
 
                         if ($hasRiderRating && $hasProductRating) {
@@ -144,7 +151,7 @@ class DeliveryController extends Controller
                         }
                     }
 
-                    return $trackBtn . $proofBtn . $invoiceBtn . $ratingBtn;
+                    return $trackBtn . $proofBtn . $invoiceBtn . $deliveryReceiptBtn . $ratingBtn;
                 })
 
                 ->rawColumns(['status', 'action', 'rating'])
@@ -243,9 +250,70 @@ class DeliveryController extends Controller
             }
         }
 
-        
+
 
         return view('pages.invoice', compact(
+            'invoiceData',
+            'quotation',
+            'page',
+            'companySettings',
+            'isPdf',
+            'banks',
+            'b2bReqDetails',
+            'b2bAddress',
+            'salesOfficer',
+            'superadmin',
+            'paidPR'
+        ));
+    }
+
+    public function view_receipt($id)
+    {
+        $invoiceData = Delivery::with([
+            'order.b2bAddress',
+            'order.user',
+            'order.items.product'
+        ])->findOrFail($id);
+
+        $page = 'Invoice';
+        $isPdf = false;
+        $banks = Bank::get();
+        $b2bReqDetails = null;
+        $b2bAddress = null;
+        $salesOfficer = null;
+        $quotation = null;
+        $paidPR = null;
+
+        $superadmin = User::where('role', 'superadmin')->first();
+
+        $companySettings = CompanySetting::first();
+
+        if ($invoiceData->order?->order_number) {
+            if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
+                $purchaseRequestId = $matches[1];
+
+                $quotation = PurchaseRequest::with(['customer', 'items.product'])
+                    ->where('customer_id', auth()->id())
+                    ->findOrFail($purchaseRequestId);
+
+                if ($quotation->customer_id) {
+                    $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();
+                    $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)->where('status', 'active')->first();
+                }
+
+                if ($quotation->prepared_by_id) {
+                    $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+                }
+
+                if ($quotation->payment_method == 'pay_now') {
+                    $paidPR = PaidPayment::where('purchase_request_id', $quotation->id)->first();
+                }
+            }
+        }
+
+
+
+        return view('pages.receipt', compact(
             'invoiceData',
             'quotation',
             'page',
@@ -411,5 +479,4 @@ class DeliveryController extends Controller
 
         return redirect()->back()->with('success', 'Thanks for rating this product!');
     }
-
 }

@@ -91,6 +91,13 @@
                 </a>
             </li>
 
+            <li class="nav-item {{ Route::is('expired.product.report') ? 'active' : '' }}">
+                <a href="{{ route('expired.product.report') }}" class="nav-link">
+                    <i class="link-icon" data-lucide="chart-column-stacked"></i>
+                    <span class="link-title">Expired Prodcuts Report</span>
+                </a>
+            </li>
+
             <li class="nav-item nav-category">Tracking</li>
 
              <li class="nav-item {{ Route::is('tracking.b2b.requirement') ? 'active' : '' }}">

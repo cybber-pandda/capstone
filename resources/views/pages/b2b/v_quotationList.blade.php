@@ -18,50 +18,95 @@
         <div class="tab-content" style="margin-top: 20px;">
             <!-- Processing Tab -->
             <div class="tab-pane active" id="processingTab">
-                @component('components.table', [
-                    'id' => 'processingTable',
-                    'thead' => '
-                    <tr>
-                        <th>ID</th>
-                        <th>Total Items</th>
-                        <th>Grand Total</th>
-                        <th>Date Created</th>
-                        <th></th>
-                    </tr>'
+                <!-- @component('components.table', [
+                'id' => 'processingTable',
+                'thead' => '
+                <tr>
+                    <th>ID</th>
+                    <th>Total Items</th>
+                    <th>Grand Total</th>
+                    <th>Date Created</th>
+                    <th></th>
+                </tr>'
                 ])
-                @endcomponent
+                @endcomponent -->
+
+                <table id="processingTable" class="table-2">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Total Items</th>
+                            <th>Grand Total</th>
+                            <th>Date Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
             </div>
 
             <!-- Rejected Tab -->
             <div class="tab-pane" id="rejectedTab">
-                @component('components.table', [
-                    'id' => 'rejectedTable',
-                    'thead' => '
-                    <tr>
-                        <th>ID</th>
-                        <th>Total Items</th>
-                        <th>Grand Total</th>
-                        <th>Date Created</th>
-                        <th></th>
-                    </tr>'
+                <!-- @component('components.table', [
+                'id' => 'rejectedTable',
+                'thead' => '
+                <tr>
+                    <th>ID</th>
+                    <th>Total Items</th>
+                    <th>Grand Total</th>
+                    <th>Date Created</th>
+                    <th></th>
+                </tr>'
                 ])
-                @endcomponent
+                @endcomponent -->
+
+                <table id="rejectedTable" class="table-2">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Total Items</th>
+                            <th>Grand Total</th>
+                            <th>Date Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
             </div>
 
             <!-- Cancelled Tab -->
             <div class="tab-pane" id="cancelledTab">
-                @component('components.table', [
-                    'id' => 'cancelledTable',
-                    'thead' => '
-                    <tr>
-                        <th>ID</th>
-                        <th>Total Items</th>
-                        <th>Grand Total</th>
-                        <th>Date Created</th>
-                        <th></th>
-                    </tr>'
+                <!-- @component('components.table', [
+                'id' => 'cancelledTable',
+                'thead' => '
+                <tr>
+                    <th>ID</th>
+                    <th>Total Items</th>
+                    <th>Grand Total</th>
+                    <th>Date Created</th>
+                    <th></th>
+                </tr>'
                 ])
-                @endcomponent
+                @endcomponent -->
+
+                <table id="cancelledTable" class="table-2">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Total Items</th>
+                            <th>Grand Total</th>
+                            <th>Date Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+
             </div>
         </div>
     </div>
@@ -97,143 +142,164 @@
 
 @push('scripts')
 <script>
-$(document).ready(function () {
-    const checkAddress = '<?php echo $hasAddress ? 'true' : 'false'; ?>';
+    $(document).ready(function() {
+        const checkAddress = '<?php echo $hasAddress ? 'true' : 'false'; ?>';
 
-    if (checkAddress === 'false') {
-        Swal.fire({
-            title: 'No Address Found',
-            text: 'Please add a shipping address before proceeding.',
-            icon: 'warning',
-            confirmButtonText: 'Add Address',
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = '/b2b/address';
-            }
-        });
-    }
-
-    const commonOptions = {
-        processing: true,
-        serverSide: true,
-        fixedHeader: true,
-        scrollCollapse: true,
-        scrollX: true,
-        scrollY: 600,
-        autoWidth: false,
-        responsive: true,
-        columns: [
-            { data: 'id', name: 'id' },
-            { data: 'total_items', name: 'total_items' },
-            { data: 'grand_total', name: 'grand_total' },
-            { data: 'created_at', name: 'created_at' },
-            {
-                data: 'action',
-                name: 'action',
-                width: "20%",
-                orderable: false,
-                searchable: false
-            }
-        ],
-        drawCallback: function () {
-            if (typeof lucide !== "undefined") {
-                lucide.createIcons();
-            }
-        }
-    };
-
-    // Processing Table
-    $('#processingTable').DataTable($.extend({}, commonOptions, {
-        ajax: {
-            url: "/b2b/quotations/review",
-            data: { type: 'processing' }
-        }
-    }));
-
-    // Rejected Table
-    $('#rejectedTable').DataTable($.extend({}, commonOptions, {
-        ajax: {
-            url: "/b2b/quotations/review",
-            data: { type: 'rejected' }
-        }
-    }));
-
-    // Cancelled Table
-    $('#cancelledTable').DataTable($.extend({}, commonOptions, {
-        ajax: {
-            url: "/b2b/quotations/review",
-            data: { type: 'cancelled' }
-        }
-    }));
-
-    // Tab memory using hash
-    if (location.hash) {
-        window.scrollTo(0, 0);
-        setTimeout(() => window.scrollTo(0, 0), 1); 
-    }
-
-    $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-        const target = $(e.target).attr('href');
-        history.replaceState(null, null, target);
-
-        // Adjust DataTables
-        $.fn.dataTable
-            .tables({ visible: true, api: true })
-            .columns.adjust();
-    });
-
-    // Handle order tracking (if track_id is in URL)
-    const params = new URLSearchParams(window.location.search);
-    const trackId = params.get('track_id');
-    if (trackId) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-
-        // Swal.fire({
-        //     title: 'Processing...',
-        //     html: 'Waiting for Sales Officer to process your order.<br><small>This may take a few moments...</small>',
-        //     allowOutsideClick: false,
-        //     allowEscapeKey: false,
-        //     showConfirmButton: false,
-        //     didOpen: () => {
-        //         Swal.showLoading();
-        //     }
-        // });
-
-        const interval = setInterval(() => {
-            $.ajax({
-                url: `/b2b/quotations/status/${trackId}`,
-                method: 'GET',
-                success: function (res) {
-                    if (res.status === 'so_created' || res.status === 'delivery_in_progress') {
-                        clearInterval(interval);
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Your Order is on the Way!',
-                            text: 'You can now track your delivery.',
-                            confirmButtonText: 'Track Delivery',
-                            timer: 3000,
-                            showCancelButton: false,
-                            showConfirmButton: false,
-                            cancelButtonText: 'Close'
-                        }).then(result => {
-                            if (result.isConfirmed) {
-                                window.location.href = `/b2b/delivery/track/${trackId}`;
-                            } else {
-                                location.reload();
-                            }
-                        });
-                    }
-                },
-                error: function () {
-                    clearInterval(interval);
-                    Swal.fire('Error', 'Failed to check order status.', 'error');
+        if (checkAddress === 'false') {
+            Swal.fire({
+                title: 'No Address Found',
+                text: 'Please add a shipping address before proceeding.',
+                icon: 'warning',
+                confirmButtonText: 'Add Address',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/b2b/address';
                 }
             });
-        }, 3000);
-    }
-});
+        }
+
+        const commonOptions = {
+            processing: true,
+            serverSide: true,
+            fixedHeader: true,
+            scrollCollapse: true,
+            scrollX: true,
+            scrollY: 600,
+            paging: false,
+            autoWidth: false,
+            responsive: false,
+            columns: [{
+                    data: 'id',
+                    name: 'id'
+                },
+                {
+                    data: 'total_items',
+                    name: 'total_items'
+                },
+                {
+                    data: 'grand_total',
+                    name: 'grand_total'
+                },
+                {
+                    data: 'created_at',
+                    name: 'created_at'
+                },
+                {
+                    data: 'action',
+                    name: 'action',
+                    width: "20%",
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+            drawCallback: function() {
+                if (typeof lucide !== "undefined") {
+                    lucide.createIcons();
+                }
+            }
+        };
+
+        // Processing Table
+        $('#processingTable').DataTable($.extend({}, commonOptions, {
+            ajax: {
+                url: "/b2b/quotations/review",
+                data: {
+                    type: 'processing'
+                }
+            }
+        }));
+
+        // Rejected Table
+        $('#rejectedTable').DataTable($.extend({}, commonOptions, {
+            ajax: {
+                url: "/b2b/quotations/review",
+                data: {
+                    type: 'rejected'
+                }
+            }
+        }));
+
+        // Cancelled Table
+        $('#cancelledTable').DataTable($.extend({}, commonOptions, {
+            ajax: {
+                url: "/b2b/quotations/review",
+                data: {
+                    type: 'cancelled'
+                }
+            }
+        }));
+
+        // Tab memory using hash
+        if (location.hash) {
+            window.scrollTo(0, 0);
+            setTimeout(() => window.scrollTo(0, 0), 1);
+        }
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+            const target = $(e.target).attr('href');
+            history.replaceState(null, null, target);
+
+            // Adjust DataTables
+            $.fn.dataTable
+                .tables({
+                    visible: true,
+                    api: true
+                })
+                .columns.adjust();
+        });
+
+        // Handle order tracking (if track_id is in URL)
+        const params = new URLSearchParams(window.location.search);
+        const trackId = params.get('track_id');
+        if (trackId) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            // Swal.fire({
+            //     title: 'Processing...',
+            //     html: 'Waiting for Sales Officer to process your order.<br><small>This may take a few moments...</small>',
+            //     allowOutsideClick: false,
+            //     allowEscapeKey: false,
+            //     showConfirmButton: false,
+            //     didOpen: () => {
+            //         Swal.showLoading();
+            //     }
+            // });
+
+            const interval = setInterval(() => {
+                $.ajax({
+                    url: `/b2b/quotations/status/${trackId}`,
+                    method: 'GET',
+                    success: function(res) {
+                        if (res.status === 'so_created' || res.status === 'delivery_in_progress') {
+                            clearInterval(interval);
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Your Order is on the Way!',
+                                text: 'You can now track your delivery.',
+                                confirmButtonText: 'Track Delivery',
+                                timer: 3000,
+                                showCancelButton: false,
+                                showConfirmButton: false,
+                                cancelButtonText: 'Close'
+                            }).then(result => {
+                                if (result.isConfirmed) {
+                                    window.location.href = `/b2b/delivery/track/${trackId}`;
+                                } else {
+                                    location.reload();
+                                }
+                            });
+                        }
+                    },
+                    error: function() {
+                        clearInterval(interval);
+                        Swal.fire('Error', 'Failed to check order status.', 'error');
+                    }
+                });
+            }, 3000);
+        }
+    });
 </script>
 @endpush

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Delivery;
 use App\Models\Product;
+
 class ReportController extends Controller
 {
 
@@ -108,6 +109,42 @@ class ReportController extends Controller
 
         return view('pages.superadmin.v_inventoryReport', [
             'page' => 'Inventory Report',
+            'pageCategory' => 'Reports',
+        ]);
+    }
+
+    public function expiredProductReport(Request $request)
+    {
+        if ($request->ajax()) {
+            $today = now()->toDateString();
+
+            $products = Product::with('inventories')
+                ->whereNotNull('expiry_date')   // ensure expiry_date exists
+                ->where('expiry_date', '<', $today) // only expired
+                ->get();
+
+            $data = $products->map(function ($product) {
+                // Stock calculation
+                $stockIn = $product->inventories->where('type', 'in')->sum('quantity');
+                $stockOut = $product->inventories->where('type', 'out')->sum('quantity');
+                $currentStock = $stockIn - $stockOut;
+
+                return [
+                    'sku'            => $product->sku,
+                    'name'           => $product->name,
+                    'expiry_date'    => $product->expiry_date,
+                    'price'          => number_format($product->price, 2),
+                    'stockIn'        => $stockIn,
+                    'stockOut'       => $stockOut,
+                    'current_stock'  => max($currentStock, 0), // avoid negative
+                ];
+            });
+
+            return datatables()->of($data)->make(true);
+        }
+
+        return view('pages.superadmin.v_expiredProductReport', [
+            'page' => 'Expired Product Report',
             'pageCategory' => 'Reports',
         ]);
     }

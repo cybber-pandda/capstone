@@ -54,6 +54,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::get('user-report', [App\Http\Controllers\Superadmin\ReportController::class, 'userReport'])->name('user.report');
     Route::get('delivery-report', [App\Http\Controllers\Superadmin\ReportController::class, 'deliveryReport'])->name('delivery.report');
     Route::get('inventory-report', [App\Http\Controllers\Superadmin\ReportController::class, 'inventoryReport'])->name('inventory.report');
+    Route::get('expired-product-report', [App\Http\Controllers\Superadmin\ReportController::class, 'expiredProductReport'])->name('expired.product.report');
 
     // Tracking
     Route::get('submitted_po', [App\Http\Controllers\Superadmin\TrackingController::class, 'submittedPO'])->name('tracking.submitted-po');
@@ -75,6 +76,9 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::put('/purchase-requests/r-q/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'updateRejectQuotation']);
         Route::get('/send-quotations/all', [App\Http\Controllers\SalesOfficer\QuotationsController::class, 'index'])->name('send-quotations.index');
         Route::get('/submitted-order/all', [App\Http\Controllers\SalesOfficer\OrderController::class, 'index'])->name('submitted-order.index');
+        Route::get('/sales-invoice/all', [App\Http\Controllers\SalesOfficer\OrderController::class, 'sales_invoice'])->name('sales.invoice');
+        Route::get('/sales-invoice/{id}', [App\Http\Controllers\SalesOfficer\OrderController::class, 'show_sales_invoice'])->name('sales.invoice.show');
+        Route::post('/submit-sales-invoice', [App\Http\Controllers\SalesOfficer\OrderController::class, 'submit_sales_invoice'])->name('sales.invoice.submit');
         Route::get('/paynow/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'paynow'])->name('paynow.index');
         Route::post('/paynow/manual', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'manualPayment'])->name('paynow.manual');
         Route::post('/paynow/approve/{id}', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'approvePayment'])->name('paynow.approve');
@@ -147,6 +151,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/delivery', [App\Http\Controllers\B2B\DeliveryController::class, 'index'])->name('delivery.index');
         Route::get('/delivery/track/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'track_delivery'])->name('delivery.track.index');
         Route::get('/delivery/invoice/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'view_invoice'])->name('delivery.invoice');
+        Route::get('/delivery/receipt/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'view_receipt'])->name('delivery.receipt');
         Route::get('/delivery/invoice/download/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'downloadInvoice'])->name('delivery.invoice.download');
         Route::get('/delivery/rider/rate/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'rate_page'])->name('delivery.rider.rate');
         Route::post('/delivery/rider/rate/{id}', [App\Http\Controllers\B2B\DeliveryController::class, 'save_rating'])->name('delivery.rider.rate.submit');
@@ -196,4 +201,8 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::get('summary-sales', [App\Http\Controllers\HomeController::class, 'summary_sales'])->name('summary.sales');
     Route::get('/summary-sales-api/{date_from}/{date_to}', [App\Http\Controllers\HomeController::class, 'summary_sales_api'])->name('summary.sales.api');
     Route::get('/download/summary-sales/export/{date_from}/{date_to}', [App\Http\Controllers\HomeController::class, 'export'])->name('sales-summary.export');
+
+    Route::get('summary-sales-manualorder', [App\Http\Controllers\HomeController::class, 'summary_sales_manualorder'])->name('summary.sales.manualorder');
+    Route::get('/summary-sales-manualorder-api/{date_from}/{date_to}', [App\Http\Controllers\HomeController::class, 'summary_sales_manualorder_api'])->name('summary.sales.manualorder.api');
+    Route::get('/download/summary-sales-manualorder/export/{date_from}/{date_to}', [App\Http\Controllers\HomeController::class, 'export_manualorder'])->name('sales-summary.manualorder.export');
 });

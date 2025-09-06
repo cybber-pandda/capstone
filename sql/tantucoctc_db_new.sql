@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.2
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: dockerdatabase:3306
--- Generation Time: Aug 04, 2025 at 09:28 AM
--- Server version: 10.5.29-MariaDB-ubu2004
--- PHP Version: 8.2.27
+-- Host: 127.0.0.1
+-- Generation Time: Sep 06, 2025 at 03:58 PM
+-- Server version: 10.4.32-MariaDB
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -54,17 +54,15 @@ CREATE TABLE `b2b_details` (
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `certificate_registration` varchar(255) NOT NULL,
   `business_permit` varchar(255) NOT NULL,
+  `business_name` varchar(100) DEFAULT NULL,
+  `tin_number` varchar(20) DEFAULT NULL,
+  `contact_number` varchar(20) DEFAULT NULL,
+  `contact_person` varchar(100) DEFAULT NULL,
+  `contact_person_number` varchar(20) NOT NULL,
   `status` enum('approved','rejected') DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `b2b_details`
---
-
-INSERT INTO `b2b_details` (`id`, `user_id`, `certificate_registration`, `business_permit`, `status`, `created_at`, `updated_at`) VALUES
-(1, 4, 'assets/upload/requirements/certificate_4_1754285069.pdf', 'assets/upload/requirements/permit_4_1754285069.pdf', 'approved', '2025-08-04 13:24:29', '2025-08-04 13:27:51');
 
 -- --------------------------------------------------------
 
@@ -132,7 +130,10 @@ CREATE TABLE `company_settings` (
   `company_logo` varchar(255) DEFAULT NULL,
   `company_email` varchar(255) DEFAULT NULL,
   `company_phone` text DEFAULT NULL,
+  `company_tel` varchar(30) DEFAULT NULL,
+  `company_telefax` varchar(30) DEFAULT NULL,
   `company_address` varchar(255) DEFAULT NULL,
+  `company_vat_reg` varchar(50) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -141,8 +142,32 @@ CREATE TABLE `company_settings` (
 -- Dumping data for table `company_settings`
 --
 
-INSERT INTO `company_settings` (`id`, `company_logo`, `company_email`, `company_phone`, `company_address`, `created_at`, `updated_at`) VALUES
-(1, 'assets/upload/1752061775_TantucoCTC_Logo.png', 'tantucoconstruction@gmail.com', '(042)525-8888', 'Barangay Balubal, Sariaya, 4322, Quezon Province', NULL, '2025-07-09 11:49:35');
+INSERT INTO `company_settings` (`id`, `company_logo`, `company_email`, `company_phone`, `company_tel`, `company_telefax`, `company_address`, `company_vat_reg`, `created_at`, `updated_at`) VALUES
+(1, 'assets/upload/1752061775_TantucoCTC_Logo.png', 'tantucoconstruction@gmail.com', '(042)525-8888', '(042) 525-8888 / 717-02551', '(042) 525-8188', 'Barangay Balubal, Sariaya, 4322, Quezon Province', '005-345-069-000', NULL, '2025-07-09 11:49:35');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `credit_partial_payments`
+--
+
+CREATE TABLE `credit_partial_payments` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `purchase_request_id` bigint(20) UNSIGNED NOT NULL,
+  `bank_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `paid_amount` decimal(10,2) NOT NULL,
+  `due_date` date NOT NULL,
+  `amount_to_pay` decimal(10,2) DEFAULT NULL,
+  `paid_date` date DEFAULT NULL,
+  `status` enum('pending','unpaid','paid','overdue','reject') NOT NULL DEFAULT 'pending',
+  `proof_payment` varchar(255) DEFAULT NULL,
+  `reference_number` varchar(255) DEFAULT NULL,
+  `approved_at` date DEFAULT NULL,
+  `approved_by` int(11) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -154,12 +179,14 @@ CREATE TABLE `credit_payments` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `purchase_request_id` bigint(20) UNSIGNED NOT NULL,
   `bank_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `credit_amount` decimal(10,2) NOT NULL,
   `paid_amount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `due_date` date NOT NULL,
   `paid_date` date DEFAULT NULL,
-  `status` enum('unpaid','partially_paid','paid','overdue') NOT NULL DEFAULT 'unpaid',
+  `status` enum('pending','unpaid','paid','overdue','reject') NOT NULL DEFAULT 'pending',
   `proof_payment` varchar(255) DEFAULT NULL,
+  `reference_number` varchar(255) DEFAULT NULL,
+  `approved_at` date DEFAULT NULL,
+  `approved_by` int(11) DEFAULT NULL,
   `notes` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -181,6 +208,7 @@ CREATE TABLE `deliveries` (
   `delivery_date` timestamp NULL DEFAULT NULL,
   `proof_delivery` varchar(255) DEFAULT NULL,
   `delivery_remarks` text DEFAULT NULL,
+  `sales_invoice_flg` int(11) NOT NULL DEFAULT 0,
   `delivery_latitude` decimal(10,7) NOT NULL DEFAULT 13.9655000,
   `delivery_longitude` decimal(10,7) NOT NULL DEFAULT 121.5348000,
   `created_at` timestamp NULL DEFAULT NULL,
@@ -256,12 +284,48 @@ CREATE TABLE `inventories` (
 --
 
 INSERT INTO `inventories` (`id`, `product_id`, `type`, `quantity`, `reason`, `created_at`, `updated_at`) VALUES
-(4, 1, 'out', 20, 'sold', '2025-07-10 19:26:11', '2025-07-10 19:26:11'),
-(5, 2, 'out', 100, 'sold', '2025-07-10 19:26:11', '2025-07-10 19:26:11'),
-(6, 3, 'out', 100, 'sold', '2025-07-10 19:26:11', '2025-07-10 19:26:11'),
-(7, 1, 'in', 1000, 'restock', '2025-07-11 20:52:43', '2025-07-11 20:52:43'),
-(8, 2, 'in', 100, 'restock', '2025-07-11 20:52:57', '2025-07-11 20:52:57'),
-(9, 3, 'in', 900, 'restock', '2025-07-11 20:53:20', '2025-07-11 20:53:20');
+(1, 1, 'in', 1000, 'restock', '2025-08-19 11:06:08', '2025-08-19 11:06:08'),
+(2, 2, 'in', 600, 'restock', '2025-08-19 11:06:36', '2025-08-19 11:06:36'),
+(3, 4, 'in', 300, 'restock', '2025-08-19 11:07:08', '2025-08-19 11:07:08'),
+(4, 3, 'in', 500, 'restock', '2025-08-19 11:07:42', '2025-08-19 11:07:42'),
+(5, 5, 'in', 500, 'restock', '2025-08-19 11:08:21', '2025-08-19 11:08:21'),
+(6, 6, 'in', 300, 'restock', '2025-08-19 11:09:20', '2025-08-19 11:09:20'),
+(7, 7, 'in', 100, 'restock', '2025-08-19 11:11:31', '2025-08-19 11:11:31'),
+(8, 10, 'in', 300, 'restock', '2025-08-19 11:11:58', '2025-08-19 11:11:58'),
+(9, 8, 'in', 200, 'restock', '2025-08-19 11:12:24', '2025-08-19 11:12:24'),
+(10, 9, 'in', 300, 'restock', '2025-08-19 11:12:39', '2025-08-19 11:12:39'),
+(11, 12, 'in', 200, 'restock', '2025-08-19 11:12:55', '2025-08-19 11:12:55'),
+(12, 1, 'out', 4, 'sold', '2025-09-06 03:42:34', '2025-09-06 03:42:34'),
+(13, 1, 'out', 4, 'sold', '2025-09-06 03:46:04', '2025-09-06 03:46:04');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `manual_email_order`
+--
+
+CREATE TABLE `manual_email_order` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `customer_name` varchar(255) DEFAULT NULL,
+  `customer_type` varchar(20) DEFAULT NULL,
+  `customer_email` varchar(255) NOT NULL,
+  `customer_address` varchar(255) DEFAULT NULL,
+  `customer_phone_number` varchar(255) DEFAULT NULL,
+  `order_date` date DEFAULT NULL,
+  `purchase_request` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`purchase_request`)),
+  `remarks` text DEFAULT NULL,
+  `status` enum('pending','waiting','approve','rejected') NOT NULL DEFAULT 'pending',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `manual_email_order`
+--
+
+INSERT INTO `manual_email_order` (`id`, `customer_name`, `customer_type`, `customer_email`, `customer_address`, `customer_phone_number`, `order_date`, `purchase_request`, `remarks`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Charry Bancud', 'Manual Order', 'bancudzo3@gmail.com', 'Bancud St.', '09558431011', '2025-09-06', '[{\"category_id\":\"1\",\"product_id\":\"1\",\"qty\":\"4\",\"price\":\"260.00\"}]', 'sgsgssgs', 'approve', '2025-09-06 03:34:50', '2025-09-06 03:46:04'),
+(2, 'Renzo Cabrera Bancud', 'Walk-In', 'bancudzo3@gmail.com', 'Bancud St. Atulayan Norte', '09453813158', '2025-09-06', '[{\"category_id\":\"2\",\"product_id\":\"3\",\"qty\":\"3\",\"price\":\"175.00\"}]', 'Test', 'approve', '2025-09-06 03:40:59', '2025-09-06 03:40:59');
 
 -- --------------------------------------------------------
 
@@ -319,10 +383,14 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (21, '2025_07_06_170246_create_user_logs_table', 1),
 (22, '2025_07_06_231655_create_messages_table', 1),
 (23, '2025_07_08_073237_create_notifications_table', 1),
-(26, '2025_07_10_203040_create_purchase_request_returns', 2),
-(27, '2025_07_10_203153_create_purchase_request_refunds', 2),
 (28, '2025_07_11_024508_create_delivery_ratings_table', 3),
-(30, '2025_07_12_141102_create_credit_payments_table', 4);
+(31, '2025_07_12_141102_create_credit_payments_table', 4),
+(32, '2025_08_08_212910_create_paid_payments_table', 4),
+(33, '2025_08_08_212934_credit_partial_payments_table', 4),
+(34, '2025_08_10_081210_create_manual_email_order_table', 5),
+(35, '2025_08_23_194117_create_product_ratings_table', 6),
+(36, '2025_07_10_203040_create_purchase_request_returns', 7),
+(37, '2025_07_10_203153_create_purchase_request_refunds', 8);
 
 -- --------------------------------------------------------
 
@@ -345,21 +413,41 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `user_id`, `type`, `message`, `read_at`, `created_at`, `updated_at`) VALUES
-(1, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:18:01', '2025-08-04 16:18:01'),
-(2, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:19:22', '2025-08-04 16:19:22'),
-(3, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:21:15', '2025-08-04 16:21:15'),
-(4, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:22:09', '2025-08-04 16:22:09'),
-(5, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:24:35', '2025-08-04 16:24:35'),
-(6, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:27:26', '2025-08-04 16:27:26'),
-(7, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:27:30', '2025-08-04 16:27:30'),
-(8, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:31:15', '2025-08-04 16:31:15'),
-(9, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:31:19', '2025-08-04 16:31:19'),
-(10, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:31:45', '2025-08-04 16:31:45'),
-(11, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:31:48', '2025-08-04 16:31:48'),
-(12, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:57:08', '2025-08-04 16:57:08'),
-(13, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 16:57:11', '2025-08-04 16:57:11'),
-(14, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 17:04:34', '2025-08-04 17:04:34'),
-(15, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://localhost:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-04 17:04:37', '2025-08-04 17:04:37');
+(1, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 13:17:13', '2025-08-31 13:17:13'),
+(2, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 13:29:38', '2025-08-31 13:29:38'),
+(3, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 13:29:50', '2025-08-31 13:29:50'),
+(4, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 14:15:15', '2025-08-31 14:15:15'),
+(5, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 14:16:53', '2025-08-31 14:16:53'),
+(6, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 14:39:11', '2025-08-31 14:39:11'),
+(7, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 14:39:38', '2025-08-31 14:39:38'),
+(8, 4, 'quotation_sent', 'A quotation has been sent for your purchase request #1. <br><a href=\"http://127.0.0.1:8000/b2b/purchase-requests\">Visit Link</a>', NULL, '2025-08-31 14:44:48', '2025-08-31 14:44:48'),
+(9, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 14:54:35', '2025-08-31 14:54:35'),
+(10, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 15:10:32', '2025-08-31 15:10:32'),
+(11, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 15:13:49', '2025-08-31 15:13:49'),
+(12, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 15:13:55', '2025-08-31 15:13:55'),
+(13, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 15:20:41', '2025-08-31 15:20:41'),
+(14, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 15:21:49', '2025-08-31 15:21:49'),
+(15, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 15:23:21', '2025-08-31 15:23:21'),
+(16, 3, 'purchase_request', 'A new purchase request has been submitted by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-08-31 15:23:49', '2025-08-31 15:23:49'),
+(17, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-04 14:18:52', '2025-09-04 14:18:52'),
+(18, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-04 14:18:56', '2025-09-04 14:18:56'),
+(19, 1, 'purchase_request', 'A PO (ID: 1) was submitted by John B2B with (Pay Now). <a href=\"http://127.0.0.1:8000/home?1\" class=\'d-none\'>Visit Link</a>', '2025-09-06 08:34:03', '2025-09-04 14:21:11', '2025-09-06 08:34:03'),
+(20, 4, 'order', 'Your submitted PO has been processed. A sales order #REF 1-68B9A39A7521B was created. <br><a href=\"http://127.0.0.1:8000/b2b/quotations/review?1\">Visit Link</a>', NULL, '2025-09-04 14:35:06', '2025-09-04 14:35:06'),
+(21, 2, 'assignment', 'You have been assigned to deliver order #REF 1-68B9A39A7521B. <br><a href=\"http://127.0.0.1:8000/home\">Visit Link</a>', NULL, '2025-09-04 14:40:31', '2025-09-04 14:40:31'),
+(22, 4, 'delivery', 'Your order #REF 1-68B9A39A7521B is now assigned for delivery. <br><a href=\"http://127.0.0.1:8000/b2b/delivery\">Visit Link</a>', NULL, '2025-09-04 14:40:31', '2025-09-04 14:40:31'),
+(23, 4, 'delivery', 'Your order #REF 1-68B9A39A7521B is now on the way. <br><a href=\"http://127.0.0.1:8000/b2b/delivery/track/1\">Visit Link</a>', NULL, '2025-09-04 14:40:59', '2025-09-04 14:40:59'),
+(24, 4, 'delivery', 'Your order #REF 1-68B9A39A7521B is now on the way. <br><a href=\"http://127.0.0.1:8000/b2b/delivery/track/1\">Visit Link</a>', NULL, '2025-09-04 14:44:54', '2025-09-04 14:44:54'),
+(25, 3, 'purchase_request', 'A new purchase request has been updated by John B2B Two. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-04 14:56:20', '2025-09-04 14:56:20'),
+(26, 3, 'purchase_request', 'A new purchase request has been updated by John B2B Two. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-04 14:56:22', '2025-09-04 14:56:22'),
+(27, 1, 'purchase_request', 'A PO (ID: 2) was submitted by Ben Tulfo with (Pay Now). <a href=\"http://127.0.0.1:8000/home?2\" class=\'d-none\'>Visit Link</a>', '2025-09-06 08:34:03', '2025-09-04 14:58:11', '2025-09-06 08:34:03'),
+(28, 8, 'order', 'Your submitted PO has been processed. A sales order #REF 2-68B9A92F98022 was created. <br><a href=\"http://127.0.0.1:8000/b2b/quotations/review?2\">Visit Link</a>', NULL, '2025-09-04 14:58:55', '2025-09-04 14:58:55'),
+(29, 2, 'assignment', 'You have been assigned to deliver order #REF 2-68B9A92F98022. <br><a href=\"http://127.0.0.1:8000/home\">Visit Link</a>', NULL, '2025-09-04 14:59:10', '2025-09-04 14:59:10'),
+(30, 8, 'delivery', 'Your order #REF 2-68B9A92F98022 is now assigned for delivery. <br><a href=\"http://127.0.0.1:8000/b2b/delivery\">Visit Link</a>', NULL, '2025-09-04 14:59:11', '2025-09-04 14:59:11'),
+(31, 3, 'purchase_request', 'A new purchase request has been updated by Ben Tulfo. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-04 15:37:15', '2025-09-04 15:37:15'),
+(32, 3, 'purchase_request', 'A new purchase request has been updated by Ben Tulfo. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-04 15:37:17', '2025-09-04 15:37:17'),
+(33, 1, 'purchase_request', 'PO #4 submitted by Ben Tulfo with (Pay Later) - Total: ₱0.00', '2025-09-06 08:34:03', '2025-09-04 15:40:31', '2025-09-06 08:34:03'),
+(34, 1, 'purchase_request', 'PO #4 submitted by Ben Tulfo with (Pay Later) - Total: ₱0.00', '2025-09-06 08:34:03', '2025-09-04 15:47:54', '2025-09-06 08:34:03'),
+(35, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-06 12:54:18', '2025-09-06 12:54:18');
 
 -- --------------------------------------------------------
 
@@ -391,6 +479,28 @@ CREATE TABLE `order_items` (
   `quantity` int(10) UNSIGNED NOT NULL DEFAULT 1,
   `price` decimal(10,2) NOT NULL,
   `subtotal` decimal(10,2) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `paid_payments`
+--
+
+CREATE TABLE `paid_payments` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `purchase_request_id` bigint(20) UNSIGNED NOT NULL,
+  `bank_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `paid_amount` decimal(10,2) NOT NULL,
+  `paid_date` date DEFAULT NULL,
+  `status` enum('pending','paid') NOT NULL DEFAULT 'pending',
+  `proof_payment` varchar(255) DEFAULT NULL,
+  `reference_number` varchar(255) DEFAULT NULL,
+  `approved_at` date DEFAULT NULL,
+  `approved_by` int(11) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -445,7 +555,11 @@ CREATE TABLE `products` (
   `sku` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `price` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `discount` int(5) NOT NULL DEFAULT 0,
+  `discounted_price` decimal(10,2) NOT NULL DEFAULT 0.00,
   `expiry_date` date DEFAULT NULL,
+  `maximum_stock` int(11) DEFAULT 0,
+  `critical_stock_level` int(11) DEFAULT 0,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL
@@ -455,19 +569,19 @@ CREATE TABLE `products` (
 -- Dumping data for table `products`
 --
 
-INSERT INTO `products` (`id`, `category_id`, `name`, `sku`, `description`, `price`, `expiry_date`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 1, 'Cement (40kg bag)', 'SKU-685BCEE4C5E58', 'Portland type 1 cement ideal for general construction use', 260.00, NULL, '2025-06-24 18:26:44', '2025-06-24 18:26:44', NULL),
-(2, 1, 'Concrete Hollow Block 6”', 'SKU-685BCF19EE185', 'Standard 6-inch hollow block for wall partitions', 18.00, NULL, '2025-06-24 18:27:37', '2025-06-24 18:27:37', NULL),
-(3, 2, '10mm Rebar (Steel Bar)', 'SKU-685BCF7725412', '10mm diameter steel reinforcement bar for slabs and columns', 175.00, NULL, '2025-06-24 18:29:11', '2025-06-24 18:29:11', NULL),
-(4, 3, 'Plywood (1/4” x 4’ x 8’)', 'SKU-685BCF9C6B631', 'Commercial plywood used for temporary walls and ceiling work', 495.00, NULL, '2025-06-24 18:29:48', '2025-06-24 18:29:48', NULL),
-(5, 4, 'GL Sheet (Corrugated, 8ft)', 'SKU-685BCFCA3C81A', 'Galvanized iron sheet for roofing and siding', 320.00, NULL, '2025-06-24 18:30:34', '2025-06-24 18:30:34', NULL),
-(6, 5, '1” PVC Pipe (10ft)', 'SKU-685BCFF824CAD', 'Polyvinyl chloride pipe for water supply systems', 120.00, NULL, '2025-06-24 18:31:20', '2025-06-24 18:31:20', NULL),
-(7, 6, 'Electrical Tape (Black', 'SKU-685BD014DFD3C', 'Insulating tape for electrical wiring', 25.00, NULL, '2025-06-24 18:31:48', '2025-06-24 18:31:48', NULL),
-(8, 7, 'Paint – White Latex (4L)', 'SKU-685BD06953EF9', 'Water-based paint for interior walls and ceilings', 560.00, NULL, '2025-06-24 18:33:13', '2025-06-24 18:33:13', NULL),
-(9, 8, 'Door Knob (Entrance Set)', 'SKU-685BD0943711E', 'Heavy-duty cylindrical door knob with lockset', 620.00, NULL, '2025-06-24 18:33:56', '2025-06-24 18:33:56', NULL),
-(10, 9, '1” Paint Brush', 'SKU-685BD0B953CE5', 'Standard 1-inch brush used for painting and touch-ups', 35.00, NULL, '2025-06-24 18:34:33', '2025-06-24 18:34:33', NULL),
-(11, 1, 'sdfdsf', 'SKU-686A5E1E39DBB', 'dgdfgdfg', 4435.00, '2025-07-23', '2025-07-06 03:29:34', '2025-07-06 03:30:29', '2025-07-06 03:30:29'),
-(12, 9, 'The Saw', 'SKU-689050706A4D3', 'This is the saw episodes tools.', 100.00, NULL, '2025-08-04 14:17:20', '2025-08-04 14:17:20', NULL);
+INSERT INTO `products` (`id`, `category_id`, `name`, `sku`, `description`, `price`, `discount`, `discounted_price`, `expiry_date`, `maximum_stock`, `critical_stock_level`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 1, 'Cement (40kg bag)', 'SKU-685BCEE4C5E58', 'Portland type 1 cement ideal for general construction use', 260.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:26:44', '2025-08-19 10:29:22', NULL),
+(2, 1, 'Concrete Hollow Block 6”', 'SKU-685BCF19EE185', 'Standard 6-inch hollow block for wall partitions', 18.00, 0, 0.00, NULL, 600, 15, '2025-06-24 18:27:37', '2025-08-19 10:42:33', NULL),
+(3, 2, '10mm Rebar (Steel Bar)', 'SKU-685BCF7725412', '10mm diameter steel reinforcement bar for slabs and columns', 175.00, 0, 0.00, NULL, 500, 10, '2025-06-24 18:29:11', '2025-08-19 10:42:13', NULL),
+(4, 3, 'Plywood (1/4” x 4’ x 8’)', 'SKU-685BCF9C6B631', 'Commercial plywood used for temporary walls and ceiling work', 495.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:29:48', '2025-08-19 10:44:15', NULL),
+(5, 4, 'GL Sheet (Corrugated, 8ft)', 'SKU-685BCFCA3C81A', 'Galvanized iron sheet for roofing and siding', 320.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:30:34', '2025-08-19 10:43:12', NULL),
+(6, 5, '1” PVC Pipe (10ft)', 'SKU-685BCFF824CAD', 'Polyvinyl chloride pipe for water supply systems', 120.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:31:20', '2025-08-19 10:42:02', NULL),
+(7, 6, 'Electrical Tape (Black', 'SKU-685BD014DFD3C', 'Insulating tape for electrical wiring', 25.00, 0, 0.00, NULL, 300, 5, '2025-06-24 18:31:48', '2025-08-19 10:42:58', NULL),
+(8, 7, 'Paint – White Latex (4L)', 'SKU-685BD06953EF9', 'Water-based paint for interior walls and ceilings', 560.00, 0, 0.00, NULL, 500, 10, '2025-06-24 18:33:13', '2025-08-19 10:43:21', NULL),
+(9, 8, 'Door Knob (Entrance Set)', 'SKU-685BD0943711E', 'Heavy-duty cylindrical door knob with lockset', 620.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:33:56', '2025-08-19 10:42:42', NULL),
+(10, 9, '1” Paint Brush', 'SKU-685BD0B953CE5', 'Standard 1-inch brush used for painting and touch-ups', 35.00, 2, 34.30, NULL, 1000, 20, '2025-06-24 18:34:33', '2025-08-23 07:33:37', NULL),
+(11, 1, 'sdfdsf', 'SKU-686A5E1E39DBB', 'dgdfgdfg', 4435.00, 0, 0.00, '2025-07-23', 0, 0, '2025-07-06 03:29:34', '2025-07-06 03:30:29', '2025-07-06 03:30:29'),
+(12, 9, 'The Saw', 'SKU-689050706A4D3', 'This is the saw episodes tools.', 100.00, 0, 0.00, NULL, 500, 10, '2025-08-04 14:17:20', '2025-08-19 10:44:27', NULL);
 
 -- --------------------------------------------------------
 
@@ -490,20 +604,36 @@ CREATE TABLE `product_images` (
 --
 
 INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `main_image_path`, `is_main`, `created_at`, `updated_at`) VALUES
-(1, 1, 'assets/upload/products/1750847204_Cement.jpg', NULL, 1, '2025-06-24 18:26:44', '2025-06-24 18:26:44'),
-(2, 2, 'assets/upload/products/1750847258_Concrete Hollow Block.jpg', NULL, 1, '2025-06-24 18:27:38', '2025-06-24 18:27:38'),
-(3, 3, 'assets/upload/products/1750847351_texture-steel-deformed-bars-background-600nw-2371218435.webp', NULL, 1, '2025-06-24 18:29:11', '2025-06-24 18:29:11'),
-(4, 4, 'assets/upload/products/1750847388_Plywood.jpg', NULL, 1, '2025-06-24 18:29:48', '2025-06-24 18:29:48'),
-(5, 5, 'assets/upload/products/1750847434_Roof GL Sheet Corrugated .jpg', NULL, 1, '2025-06-24 18:30:34', '2025-06-24 18:30:34'),
-(6, 6, 'assets/upload/products/1750847480_PVC pipe.jpg', NULL, 1, '2025-06-24 18:31:20', '2025-06-24 18:31:20'),
-(7, 8, 'assets/upload/products/1750847593_2017596014.webp', NULL, 1, '2025-06-24 18:33:13', '2025-06-24 18:33:13'),
-(8, 9, 'assets/upload/products/1750847636_Door Knob set.jpg', NULL, 1, '2025-06-24 18:33:56', '2025-06-24 18:33:56'),
-(9, 10, 'assets/upload/products/1750847673_Paint brush.jpg', NULL, 1, '2025-06-24 18:34:33', '2025-06-24 18:34:33'),
-(10, 7, 'assets/upload/products/1750847714_Electric tape .jpg', NULL, 1, '2025-06-24 18:35:14', '2025-06-24 18:35:14'),
+(1, 1, 'assets/upload/products/1750847204_Cement.jpg', NULL, 1, '2025-06-24 18:26:44', '2025-08-19 10:29:22'),
+(2, 2, 'assets/upload/products/1750847258_Concrete Hollow Block.jpg', NULL, 1, '2025-06-24 18:27:38', '2025-08-19 10:42:33'),
+(3, 3, 'assets/upload/products/1750847351_texture-steel-deformed-bars-background-600nw-2371218435.webp', NULL, 1, '2025-06-24 18:29:11', '2025-08-19 10:42:13'),
+(4, 4, 'assets/upload/products/1750847388_Plywood.jpg', NULL, 1, '2025-06-24 18:29:48', '2025-08-19 10:44:15'),
+(5, 5, 'assets/upload/products/1750847434_Roof GL Sheet Corrugated .jpg', NULL, 1, '2025-06-24 18:30:34', '2025-08-19 10:43:12'),
+(6, 6, 'assets/upload/products/1750847480_PVC pipe.jpg', NULL, 1, '2025-06-24 18:31:20', '2025-08-19 10:42:02'),
+(7, 8, 'assets/upload/products/1750847593_2017596014.webp', NULL, 1, '2025-06-24 18:33:13', '2025-08-19 10:43:21'),
+(8, 9, 'assets/upload/products/1750847636_Door Knob set.jpg', NULL, 1, '2025-06-24 18:33:56', '2025-08-19 10:42:42'),
+(9, 10, 'assets/upload/products/1750847673_Paint brush.jpg', NULL, 1, '2025-06-24 18:34:33', '2025-08-23 07:33:37'),
+(10, 7, 'assets/upload/products/1750847714_Electric tape .jpg', NULL, 1, '2025-06-24 18:35:14', '2025-08-19 10:42:58'),
 (11, 11, 'assets/upload/products/1751801374_TantucoCTC_Logo.png', NULL, 1, '2025-07-06 03:29:34', '2025-07-06 03:30:03'),
-(12, 12, 'assets/upload/products/1754288240_saw_1.png', NULL, 0, '2025-08-04 14:17:20', '2025-08-04 14:17:20'),
-(13, 12, 'assets/upload/products/1754288240_saw_2.png', NULL, 0, '2025-08-04 14:17:20', '2025-08-04 14:17:20'),
-(14, 12, 'assets/upload/products/1754288240_saw_3.png', NULL, 1, '2025-08-04 14:17:20', '2025-08-04 14:17:20');
+(12, 12, 'assets/upload/products/1754288240_saw_1.png', NULL, 0, '2025-08-04 14:17:20', '2025-08-19 10:44:27'),
+(13, 12, 'assets/upload/products/1754288240_saw_2.png', NULL, 0, '2025-08-04 14:17:20', '2025-08-19 10:44:27'),
+(14, 12, 'assets/upload/products/1754288240_saw_3.png', NULL, 1, '2025-08-04 14:17:20', '2025-08-19 10:44:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `product_ratings`
+--
+
+CREATE TABLE `product_ratings` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `product_id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `rating` tinyint(4) NOT NULL COMMENT '1 to 5 stars',
+  `review` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -513,26 +643,25 @@ INSERT INTO `product_images` (`id`, `product_id`, `image_path`, `main_image_path
 
 CREATE TABLE `purchase_requests` (
   `id` bigint(20) UNSIGNED NOT NULL,
+  `transaction_uuid` varchar(20) DEFAULT NULL,
   `customer_id` bigint(20) UNSIGNED NOT NULL,
-  `bank_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `status` enum('pending','quotation_sent','po_submitted','so_created','delivery_in_progress','delivered','invoice_sent','cancelled','returned','refunded') NOT NULL DEFAULT 'pending',
-  `vat` int(11) DEFAULT NULL,
+  `prepared_by_id` int(11) DEFAULT NULL,
+  `status` enum('pending','quotation_sent','po_submitted','so_created','delivery_in_progress','delivered','invoice_sent','cancelled','returned','refunded','reject_quotation') DEFAULT NULL,
+  `vat` int(11) DEFAULT 12,
+  `b2b_delivery_date` date DEFAULT NULL,
   `delivery_fee` decimal(10,2) DEFAULT NULL,
-  `credit` tinyint(1) NOT NULL DEFAULT 0,
+  `credit` int(1) NOT NULL DEFAULT 0,
+  `credit_amount` decimal(10,2) DEFAULT NULL,
+  `credit_payment_type` varchar(20) DEFAULT NULL,
   `payment_method` enum('pay_now','pay_later') DEFAULT NULL,
-  `proof_payment` varchar(255) DEFAULT NULL,
+  `cod_flg` tinyint(1) NOT NULL DEFAULT 0,
   `pr_remarks` text DEFAULT NULL,
+  `pr_remarks_cancel` text DEFAULT NULL,
+  `date_issued` date DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `purchase_requests`
---
-
-INSERT INTO `purchase_requests` (`id`, `customer_id`, `bank_id`, `status`, `vat`, `delivery_fee`, `credit`, `payment_method`, `proof_payment`, `pr_remarks`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 4, NULL, 'pending', NULL, NULL, 0, NULL, NULL, NULL, '2025-08-04 17:04:34', '2025-08-04 17:04:34', NULL);
 
 -- --------------------------------------------------------
 
@@ -550,14 +679,6 @@ CREATE TABLE `purchase_request_items` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data for table `purchase_request_items`
---
-
-INSERT INTO `purchase_request_items` (`id`, `purchase_request_id`, `product_id`, `quantity`, `subtotal`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 14, 3640.00, '2025-08-04 17:04:34', '2025-08-04 17:18:23'),
-(2, 1, 2, 13, 234.00, '2025-08-04 17:04:37', '2025-08-04 17:17:36');
-
 -- --------------------------------------------------------
 
 --
@@ -573,7 +694,9 @@ CREATE TABLE `purchase_request_refunds` (
   `method` varchar(255) DEFAULT NULL,
   `reference` varchar(255) DEFAULT NULL,
   `proof` varchar(255) DEFAULT NULL,
+  `admin_response` text DEFAULT NULL,
   `processed_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -591,8 +714,9 @@ CREATE TABLE `purchase_request_returns` (
   `product_id` bigint(20) UNSIGNED NOT NULL,
   `reason` text DEFAULT NULL,
   `photo` varchar(255) DEFAULT NULL,
-  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `admin_response` text DEFAULT NULL,
+  `processed_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -642,7 +766,7 @@ CREATE TABLE `users` (
   `otp_expire` timestamp NULL DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1,
   `about` text DEFAULT NULL,
-  `credit_limit` decimal(10,2) DEFAULT NULL,
+  `credit_limit` decimal(10,2) DEFAULT 300000.00,
   `remember_token` varchar(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
@@ -655,9 +779,11 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `profile`, `username`, `email`, `email_verified_at`, `password`, `force_password_change`, `created_by_admin`, `role`, `otp_code`, `otp_expire`, `status`, `about`, `credit_limit`, `remember_token`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 'John Superadmin', NULL, 'superadmin', 'superadmin@example.com', '2025-07-09 11:33:35', '$2y$10$fpHuUdg4vFV0l.s4fzQFp.AkYcvwwJb1pGIknFNmAg.kKHv.omTNy', 0, 0, 'superadmin', '733006', '2025-07-09 11:42:49', 1, NULL, NULL, NULL, '2025-07-09 11:29:00', '2025-07-09 11:33:35', NULL),
-(2, 'John DeliveryRider', NULL, 'deliveryrider', 'deliveryrider@example.com', '2025-07-09 23:49:40', '$2y$10$0LUNUv/HDZ5kbz35U3Akju8ygpt79fMey.U3kXrt.Y2BgXGbsaOUi', 0, 0, 'deliveryrider', '237579', '2025-07-09 23:59:16', 1, NULL, NULL, NULL, '2025-07-09 11:29:00', '2025-07-09 23:49:40', NULL),
-(3, 'John SalesOfficer', NULL, 'salesofficer', 'salesofficer@example.com', '2025-07-09 23:09:39', '$2y$10$lQBpIfaVKcZOhUkfNKqNCef1tDZ968unqOvi6OAZvxq1DkbhIX3AW', 0, 0, 'salesofficer', '121212', '2025-07-09 23:18:37', 1, NULL, NULL, NULL, '2025-07-09 11:29:00', '2025-07-09 23:09:39', NULL),
-(4, 'John B2B', 'assets/upload/profiles/1752172600_68700838af669.jpg', 'b2b', 'b2b@example.com', '2025-07-09 23:05:05', '$2y$10$fpHuUdg4vFV0l.s4fzQFp.AkYcvwwJb1pGIknFNmAg.kKHv.omTNy', 0, 0, 'b2b', '960918', '2025-07-09 23:14:10', 1, 'Im Seller', 271219.00, NULL, '2025-07-09 11:29:00', '2025-07-20 07:32:18', NULL);
+(2, 'John DeliveryRider', 'assets/upload/profiles/1755589579_image 5.png', 'deliveryrider', 'deliveryrider@example.com', '2025-07-09 23:49:40', '$2y$10$0LUNUv/HDZ5kbz35U3Akju8ygpt79fMey.U3kXrt.Y2BgXGbsaOUi', 0, 0, 'deliveryrider', '237579', '2025-07-09 23:59:16', 1, NULL, NULL, NULL, '2025-07-09 11:29:00', '2025-08-19 15:46:19', NULL),
+(3, 'John SalesOfficer', NULL, 'salesofficer', 'assistantsales@example.com', '2025-07-09 23:09:39', '$2y$10$lQBpIfaVKcZOhUkfNKqNCef1tDZ968unqOvi6OAZvxq1DkbhIX3AW', 0, 0, 'salesofficer', '121212', '2025-07-09 23:18:37', 1, NULL, NULL, NULL, '2025-07-09 11:29:00', '2025-08-19 17:40:48', NULL),
+(4, 'John B2B', 'assets/upload/profiles/1752172600_68700838af669.jpg', 'b2b', 'b2b@example.com', '2025-07-09 23:05:05', '$2y$10$fpHuUdg4vFV0l.s4fzQFp.AkYcvwwJb1pGIknFNmAg.kKHv.omTNy', 0, 0, 'b2b', '960918', '2025-07-09 23:14:10', 1, 'Im Seller', 272544.00, NULL, '2025-07-09 11:29:00', '2025-08-20 14:18:06', NULL),
+(8, 'Ben Tulfo', 'assets/upload/profiles/1752172600_68700838af669.jpg', 'b2btwo', 'b2btwo@example.com', '2025-07-09 23:05:05', '$2y$10$fpHuUdg4vFV0l.s4fzQFp.AkYcvwwJb1pGIknFNmAg.kKHv.omTNy', 0, 0, 'b2b', '960918', '2025-07-09 23:14:10', 1, 'Im Seller', 21741.44, NULL, '2025-07-09 11:29:00', '2025-09-04 16:06:26', NULL),
+(9, 'Renzo Bancud', 'https://lh3.googleusercontent.com/a/ACg8ocIMVsDeQxvDOZw0Z_Oeb1f1n2EloZbk4YLh489ujI9TLmb_ME8=s96-c', 'Renzo Bancud', 'bancudzo3@gmail.com', '2025-08-30 12:17:59', '$2y$10$qi/hxdZIQVBsYG0ZLCYBLOHr.AcC6l1Y8XggAIHHDsHKciXCatGYm', 0, 0, 'b2b', NULL, NULL, 1, NULL, 300000.00, NULL, '2025-08-30 12:17:59', '2025-08-30 12:17:59', NULL);
 
 -- --------------------------------------------------------
 
@@ -675,126 +801,6 @@ CREATE TABLE `user_logs` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `user_logs`
---
-
-INSERT INTO `user_logs` (`id`, `user_id`, `event`, `ip_address`, `user_agent`, `logged_at`, `created_at`, `updated_at`) VALUES
-(1, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 11:32:55', NULL, NULL),
-(2, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 22:46:56', NULL, NULL),
-(3, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:03:57', NULL, NULL),
-(4, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:04:17', NULL, NULL),
-(5, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:08:23', NULL, NULL),
-(6, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:08:41', NULL, NULL),
-(7, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:10:10', NULL, NULL),
-(8, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:10:22', NULL, NULL),
-(9, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:25:51', NULL, NULL),
-(10, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:26:01', NULL, NULL),
-(11, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:26:36', NULL, NULL),
-(12, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:26:49', NULL, NULL),
-(13, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:26:55', NULL, NULL),
-(14, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:27:08', NULL, NULL),
-(15, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:45:35', NULL, NULL),
-(16, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:45:48', NULL, NULL),
-(17, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:49:04', NULL, NULL),
-(18, 2, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:49:21', NULL, NULL),
-(19, 2, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:50:59', NULL, NULL),
-(20, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-09 23:51:12', NULL, NULL),
-(21, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 11:14:33', NULL, NULL),
-(22, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 15:11:36', NULL, NULL),
-(23, 2, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 15:11:47', NULL, NULL),
-(24, 2, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 15:32:03', NULL, NULL),
-(25, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 15:32:32', NULL, NULL),
-(26, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 15:41:40', NULL, NULL),
-(27, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 15:41:53', NULL, NULL),
-(28, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 15:51:54', NULL, NULL),
-(29, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 15:52:40', NULL, NULL),
-(30, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 17:13:16', NULL, NULL),
-(31, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 17:13:27', NULL, NULL),
-(32, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 17:44:01', NULL, NULL),
-(33, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 17:44:13', NULL, NULL),
-(34, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 18:07:26', NULL, NULL),
-(35, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 18:09:28', NULL, NULL),
-(36, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 19:19:52', NULL, NULL),
-(37, 2, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-10 19:20:04', NULL, NULL),
-(38, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 20:44:40', NULL, NULL),
-(39, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 20:45:00', NULL, NULL),
-(40, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 20:45:09', NULL, NULL),
-(41, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 20:56:29', NULL, NULL),
-(42, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 20:58:02', NULL, NULL),
-(43, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 21:29:47', NULL, NULL),
-(44, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 21:30:05', NULL, NULL),
-(45, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 22:05:24', NULL, NULL),
-(46, 2, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 22:06:01', NULL, NULL),
-(47, 2, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 22:06:31', NULL, NULL),
-(48, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 22:09:22', NULL, NULL),
-(49, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 22:11:16', NULL, NULL),
-(50, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 22:11:33', NULL, NULL),
-(51, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 22:57:40', NULL, NULL),
-(52, 2, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-11 22:58:03', NULL, NULL),
-(53, 2, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 00:15:34', NULL, NULL),
-(54, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 00:15:42', NULL, NULL),
-(55, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 00:28:18', NULL, NULL),
-(56, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 01:23:31', NULL, NULL),
-(57, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 03:11:09', NULL, NULL),
-(58, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 03:56:25', NULL, NULL),
-(59, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 04:04:23', NULL, NULL),
-(60, 2, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 04:04:48', NULL, NULL),
-(61, 2, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 04:08:25', NULL, NULL),
-(62, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 04:09:22', NULL, NULL),
-(63, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 04:27:05', NULL, NULL),
-(64, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 04:27:43', NULL, NULL),
-(65, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 04:49:04', NULL, NULL),
-(66, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 04:49:15', NULL, NULL),
-(67, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 06:38:18', NULL, NULL),
-(68, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 06:38:27', NULL, NULL),
-(69, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 06:40:35', NULL, NULL),
-(70, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 06:40:47', NULL, NULL),
-(71, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 06:43:14', NULL, NULL),
-(72, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 06:43:49', NULL, NULL),
-(73, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 08:01:47', NULL, NULL),
-(74, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 08:13:50', NULL, NULL),
-(75, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 09:08:09', NULL, NULL),
-(76, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 09:08:20', NULL, NULL),
-(77, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 10:03:10', NULL, NULL),
-(78, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 10:06:02', NULL, NULL),
-(79, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 10:08:34', NULL, NULL),
-(80, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-12 10:10:14', NULL, NULL),
-(81, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-20 04:37:22', NULL, NULL),
-(82, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-20 04:46:24', NULL, NULL),
-(83, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-20 05:57:57', NULL, NULL),
-(84, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-20 07:23:21', NULL, NULL),
-(85, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-20 07:24:38', NULL, NULL),
-(86, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-20 07:30:40', NULL, NULL),
-(87, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36 Edg/138.0.0.0', '2025-07-20 07:31:09', NULL, NULL),
-(88, 4, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:02:03', NULL, NULL),
-(89, 4, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:42:37', NULL, NULL),
-(90, 1, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:42:49', NULL, NULL),
-(91, 1, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:43:46', NULL, NULL),
-(92, 4, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:43:58', NULL, NULL),
-(93, 4, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:44:25', NULL, NULL),
-(94, 1, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:44:35', NULL, NULL),
-(95, 1, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:44:52', NULL, NULL),
-(96, 4, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 10:44:59', NULL, NULL),
-(97, 4, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:16:11', NULL, NULL),
-(98, 2, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:16:20', NULL, NULL),
-(99, 2, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:20:33', NULL, NULL),
-(100, 4, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:23:12', NULL, NULL),
-(101, 4, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:24:51', NULL, NULL),
-(102, 1, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:25:01', NULL, NULL),
-(103, 1, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:25:31', NULL, NULL),
-(104, 4, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:25:49', NULL, NULL),
-(105, 4, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:27:38', NULL, NULL),
-(106, 1, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:27:44', NULL, NULL),
-(107, 1, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:28:31', NULL, NULL),
-(108, 4, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 13:28:39', NULL, NULL),
-(109, 4, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 14:12:48', NULL, NULL),
-(110, 1, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 14:16:27', NULL, NULL),
-(111, 1, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 14:21:06', NULL, NULL),
-(112, 4, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 14:22:14', NULL, NULL),
-(113, 4, 'logout', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 14:36:24', NULL, NULL),
-(114, 4, 'login', '172.19.0.1', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36', '2025-08-04 14:44:21', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -831,6 +837,14 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `company_settings`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `credit_partial_payments`
+--
+ALTER TABLE `credit_partial_payments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `credit_partial_payments_purchase_request_id_foreign` (`purchase_request_id`),
+  ADD KEY `credit_partial_payments_bank_id_foreign` (`bank_id`);
 
 --
 -- Indexes for table `credit_payments`
@@ -877,6 +891,12 @@ ALTER TABLE `inventories`
   ADD KEY `inventories_product_id_foreign` (`product_id`);
 
 --
+-- Indexes for table `manual_email_order`
+--
+ALTER TABLE `manual_email_order`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `messages`
 --
 ALTER TABLE `messages`
@@ -913,6 +933,14 @@ ALTER TABLE `order_items`
   ADD KEY `order_items_product_id_foreign` (`product_id`);
 
 --
+-- Indexes for table `paid_payments`
+--
+ALTER TABLE `paid_payments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `paid_payments_purchase_request_id_foreign` (`purchase_request_id`),
+  ADD KEY `paid_payments_bank_id_foreign` (`bank_id`);
+
+--
 -- Indexes for table `password_resets`
 --
 ALTER TABLE `password_resets`
@@ -942,12 +970,19 @@ ALTER TABLE `product_images`
   ADD KEY `product_images_product_id_foreign` (`product_id`);
 
 --
+-- Indexes for table `product_ratings`
+--
+ALTER TABLE `product_ratings`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `product_ratings_product_id_user_id_unique` (`product_id`,`user_id`),
+  ADD KEY `product_ratings_user_id_foreign` (`user_id`);
+
+--
 -- Indexes for table `purchase_requests`
 --
 ALTER TABLE `purchase_requests`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `purchase_requests_customer_id_foreign` (`customer_id`),
-  ADD KEY `purchase_requests_bank_id_foreign` (`bank_id`);
+  ADD KEY `purchase_requests_customer_id_foreign` (`customer_id`);
 
 --
 -- Indexes for table `purchase_request_items`
@@ -974,7 +1009,8 @@ ALTER TABLE `purchase_request_returns`
   ADD PRIMARY KEY (`id`),
   ADD KEY `purchase_request_returns_purchase_request_id_foreign` (`purchase_request_id`),
   ADD KEY `purchase_request_returns_purchase_request_item_id_foreign` (`purchase_request_item_id`),
-  ADD KEY `purchase_request_returns_product_id_foreign` (`product_id`);
+  ADD KEY `purchase_request_returns_product_id_foreign` (`product_id`),
+  ADD KEY `purchase_request_returns_processed_by_foreign` (`processed_by`);
 
 --
 -- Indexes for table `terms_conditions`
@@ -1011,7 +1047,7 @@ ALTER TABLE `b2b_address`
 -- AUTO_INCREMENT for table `b2b_details`
 --
 ALTER TABLE `b2b_details`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `banks`
@@ -1030,6 +1066,12 @@ ALTER TABLE `categories`
 --
 ALTER TABLE `company_settings`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `credit_partial_payments`
+--
+ALTER TABLE `credit_partial_payments`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `credit_payments`
@@ -1065,7 +1107,13 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT for table `inventories`
 --
 ALTER TABLE `inventories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- AUTO_INCREMENT for table `manual_email_order`
+--
+ALTER TABLE `manual_email_order`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -1077,13 +1125,13 @@ ALTER TABLE `messages`
 -- AUTO_INCREMENT for table `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT for table `orders`
@@ -1095,6 +1143,12 @@ ALTER TABLE `orders`
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `paid_payments`
+--
+ALTER TABLE `paid_payments`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -1116,16 +1170,22 @@ ALTER TABLE `product_images`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
+-- AUTO_INCREMENT for table `product_ratings`
+--
+ALTER TABLE `product_ratings`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `purchase_requests`
 --
 ALTER TABLE `purchase_requests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `purchase_request_items`
 --
 ALTER TABLE `purchase_request_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `purchase_request_refunds`
@@ -1149,13 +1209,13 @@ ALTER TABLE `terms_conditions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `user_logs`
 --
 ALTER TABLE `user_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- Constraints for dumped tables
@@ -1172,6 +1232,13 @@ ALTER TABLE `b2b_address`
 --
 ALTER TABLE `b2b_details`
   ADD CONSTRAINT `b2b_details_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `credit_partial_payments`
+--
+ALTER TABLE `credit_partial_payments`
+  ADD CONSTRAINT `credit_partial_payments_bank_id_foreign` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `credit_partial_payments_purchase_request_id_foreign` FOREIGN KEY (`purchase_request_id`) REFERENCES `purchase_requests` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `credit_payments`
@@ -1226,6 +1293,13 @@ ALTER TABLE `order_items`
   ADD CONSTRAINT `order_items_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `paid_payments`
+--
+ALTER TABLE `paid_payments`
+  ADD CONSTRAINT `paid_payments_bank_id_foreign` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `paid_payments_purchase_request_id_foreign` FOREIGN KEY (`purchase_request_id`) REFERENCES `purchase_requests` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `products`
 --
 ALTER TABLE `products`
@@ -1238,10 +1312,16 @@ ALTER TABLE `product_images`
   ADD CONSTRAINT `product_images_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `product_ratings`
+--
+ALTER TABLE `product_ratings`
+  ADD CONSTRAINT `product_ratings_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `product_ratings_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `purchase_requests`
 --
 ALTER TABLE `purchase_requests`
-  ADD CONSTRAINT `purchase_requests_bank_id_foreign` FOREIGN KEY (`bank_id`) REFERENCES `banks` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `purchase_requests_customer_id_foreign` FOREIGN KEY (`customer_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
@@ -1264,6 +1344,7 @@ ALTER TABLE `purchase_request_refunds`
 -- Constraints for table `purchase_request_returns`
 --
 ALTER TABLE `purchase_request_returns`
+  ADD CONSTRAINT `purchase_request_returns_processed_by_foreign` FOREIGN KEY (`processed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `purchase_request_returns_product_id_foreign` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `purchase_request_returns_purchase_request_id_foreign` FOREIGN KEY (`purchase_request_id`) REFERENCES `purchase_requests` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `purchase_request_returns_purchase_request_item_id_foreign` FOREIGN KEY (`purchase_request_item_id`) REFERENCES `purchase_request_items` (`id`) ON DELETE CASCADE;

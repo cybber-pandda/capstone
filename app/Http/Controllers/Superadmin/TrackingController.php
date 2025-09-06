@@ -106,7 +106,7 @@ class TrackingController extends Controller
             $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
         }
 
-        return view('pages.superadmin.v_purchase_order_show', compact('quotation', 'b2bReq', 'b2bAddress', 'salesOfficer', 'superadmin', 'page', 'pageCategory'));
+        return view('pages.superadmin.v_showPurchaseOrder', compact('quotation', 'b2bReq', 'b2bAddress', 'salesOfficer', 'superadmin', 'page', 'pageCategory'));
     }
 
     public function processSO($id)

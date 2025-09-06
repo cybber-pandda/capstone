@@ -6,11 +6,10 @@
     {{-- Summary Cards --}}
     <div class="row mb-4">
         @foreach ([
-        ['label' => 'Total Pending', 'value' => $totalPending],
         ['label' => 'Total Overdue', 'value' => $totalOverDue],
         ['label' => 'Total Balance', 'value' => $totalBalance],
         ] as $stat)
-        <div class="col-md-4 grid-margin stretch-card">
+        <div class="col-md-6 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
                     <h6 class="card-title mb-0">{{ $stat['label'] }}</h6>
@@ -34,7 +33,7 @@
             'thead' => '
             <tr>
                 <th>Customer Name</th>
-                <th>Total Straight & Partial<br>Pending Amount</th>
+                <!-- <th>Total Straight & Partial<br>Pending Amount</th> -->
                 <th>Total Straight & Partial<br>Overdue Amount</th>
                 <th>Total Straight & Partial<br>Balance Amount</th>
                 <th></th>
@@ -93,11 +92,11 @@
                     data: 'customer_name',
                     width: '30%'
                 },
-                {
-                    data: 'pending',
-                    width: '15%',
-                    render: $.fn.dataTable.render.number(',', '.', 2, '₱')
-                },
+                // {
+                //     data: 'pending',
+                //     width: '15%',
+                //     render: $.fn.dataTable.render.number(',', '.', 2, '₱')
+                // },
                 {
                     data: 'overdue',
                     width: '15%',
@@ -283,7 +282,7 @@
                             <span><b class="text-uppercase">Credit limit:</b> ₱ ${customer.customer_creditlimit}</span>
                             <span><b class="text-uppercase">Balance:</b> ₱ ${customer.balance || 0}</span>
                             <span><b class="text-uppercase">Overdue:</b> ₱ ${customer.overdue || 0}</span>
-                            <span><b class="text-uppercase">Pending:</b> ₱ ${customer.pending || 0}</span>
+                            <span class="d-none"><b class="text-uppercase">Pending:</b> ₱ ${customer.pending || 0}</span>
                         </div>
                     </div>
 

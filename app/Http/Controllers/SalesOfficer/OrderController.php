@@ -7,7 +7,12 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 
+use App\Models\B2BAddress;
 use App\Models\PurchaseRequest;
+use App\Models\User;
+use App\Models\Order;
+use App\Models\Delivery;
+use App\Models\B2BDetail;
 
 class OrderController extends Controller
 {
@@ -49,5 +54,111 @@ class OrderController extends Controller
         return view('pages.admin.salesofficer.v_submittedOrder', [
             'page' => 'Submitted Purchase Order'
         ]);
+    }
+
+    public function sales_invoice(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = PurchaseRequest::with(['customer', 'items.product'])->latest();
+
+            return DataTables::of($query)
+                ->addColumn('customer_name', function ($pr) {
+                    return optional($pr->customer)->name;
+                })
+                ->addColumn('total_items', function ($pr) {
+                    return $pr->items->sum('quantity');
+                })
+                ->addColumn('grand_total', function ($pr) {
+                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $vatRate = $pr->vat ?? 0; // VAT percentage
+                    $vatAmount = $subtotal * ($vatRate / 100);
+                    $deliveryFee = $pr->delivery_fee ?? 0;
+                    $total = $subtotal + $vatAmount + $deliveryFee;
+
+                    return '₱' . number_format($total, 2);
+                })
+                ->editColumn('created_at', function ($pr) {
+                    return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
+                })
+                ->addColumn('status', function ($pr) {
+                    return '<span class="badge bg-success text-white">' . ucfirst($pr->status) . '</span>';
+                })
+                ->addColumn('action', function ($pr) {
+                    $url = route('salesofficer.sales.invoice.show', $pr->id);
+                    return '<a href="' . $url . '" class="btn btn-sm btn-inverse-dark p-2">
+                                <i class="link-icon" data-lucide="eye"></i> Show Invoice
+                            </a>';
+                })
+
+                ->rawColumns(['status', 'action'])
+                ->make(true);
+        }
+
+        return view('pages.admin.salesofficer.v_salesInvoice', [
+            'page' => 'B2B Sales Invoice'
+        ]);
+    }
+
+
+    public function show_sales_invoice($id)
+    {
+        $quotation = PurchaseRequest::with(['items.product.productImages'])->findOrFail($id);
+
+        $page = 'B2B Sales Invoice';
+        $b2bReq = null;
+        $b2bAddress = null;
+        $salesOfficer = null;
+
+        $superadmin = User::where('role', 'superadmin')->first();
+
+        if ($quotation->customer_id) {
+            $b2bReq = B2BDetail::where('user_id', $quotation->customer_id)
+                ->where('status', 'approved')
+                ->first();
+
+            $b2bAddress = B2BAddress::where('user_id', $quotation->customer_id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        if ($quotation->prepared_by_id) {
+            $salesOfficer = User::where('id', $quotation->prepared_by_id)->first();
+        }
+
+        return view('pages.admin.salesofficer.v_showInvoice', compact('quotation', 'b2bReq', 'b2bAddress', 'salesOfficer', 'superadmin', 'page'));
+    }
+
+    public function submit_sales_invoice(Request $request)
+    {
+        $request->validate([
+            'quotation_id' => 'required', 
+        ]);
+
+        try {
+            // Clean up order_number to extract only the number
+            $cleanedOrderNum = preg_replace('/^REF\s*(\d+)-.*/', '$1', $request->quotation_id);
+
+            // Find order
+            $order = Order::whereRaw("order_number LIKE ?", ["REF {$cleanedOrderNum}-%"])->firstOrFail();
+
+            if ($order) {
+                $delivery = Delivery::where('order_id', $order->id)->first();
+
+                if ($delivery) {
+                    $delivery->sales_invoice_flg = 1;
+                    $delivery->save();
+                }
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Invoice submitted successfully!',
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

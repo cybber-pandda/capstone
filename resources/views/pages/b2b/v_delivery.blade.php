@@ -1,11 +1,6 @@
 @extends('layouts.shop')
 <style>
-    .dataTables_wrapper {
-        width: 100% !important;
-        overflow-x: auto;
-    }
-
-    #deliveryLocationTable{
+    #deliveryLocationTable {
         font-size: 12px;
     }
 </style>
@@ -18,20 +13,27 @@
             <h3 class="title">{{ $page }}</h3>
         </div>
 
-        @component('components.table', [
-        'id' => 'deliveryLocationTable',
-        'thead' => '
-        <tr style="font-size: 12px;">
-            <th>Order #</th>
-            <th>Driver</th>
-            <th>Items</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th></th>
-            <th></th>
-        </tr>'
-        ])
-        @endcomponent
+        <div>
+            <table id="deliveryLocationTable" class="table-2">
+                <thead>
+                    <tr style="font-size: 12px;">
+                        <th>Order #</th>
+                        <th>Driver</th>
+                        <!-- <th>Items</th> -->
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Rating</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+
+
+
 
     </div>
 
@@ -66,8 +68,9 @@
             scrollCollapse: true,
             scrollX: true,
             scrollY: 600,
+            paging: false,
             autoWidth: false,
-            responsive: true,
+            // responsive: true,
             ajax: {
                 url: "{{ route('b2b.delivery.index') }}"
             },
@@ -79,10 +82,10 @@
                     data: "delivery_name",
                     name: "delivery_name"
                 },
-                {
-                    data: "total_items",
-                    name: "total_items"
-                },
+                // {
+                //     data: "total_items",
+                //     name: "total_items"
+                // },
                 {
                     data: "grand_total",
                     name: "grand_total"
@@ -103,7 +106,8 @@
                     data: "action",
                     name: "action",
                     orderable: false,
-                    searchable: false
+                    searchable: false,
+                    width: "220px" // ✅ set fixed width
                 },
             ]
         });

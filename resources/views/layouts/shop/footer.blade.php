@@ -144,12 +144,14 @@
                         </div>
 
                         <!-- Menu Toogle -->
+                        @if (Route::is('home') || Route::is('welcome') )
                         <div class="menu-toggle">
                             <a href="#">
                                 <i class="fa fa-bars"></i>
                                 <span>Menu</span>
                             </a>
                         </div>
+                        @endif
                         <!-- /Menu Toogle -->
                     </div>
                 </div>

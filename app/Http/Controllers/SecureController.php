@@ -30,6 +30,7 @@ class SecureController extends Controller
             'user_report' => resource_path('function/superadmin/user_report.js'),
             'delivery_report' => resource_path('function/superadmin/delivery_report.js'),
             'inventory_report' => resource_path('function/superadmin/inventory_report.js'),
+            'expired_product_report' => resource_path('function/superadmin/expired_product_report.js'),
             'b2b' => resource_path('function/superadmin/b2b.js'),
             'delivery_rider' => resource_path('function/superadmin/delivery_rider.js'),
             'salesofficer' => resource_path('function/superadmin/salesofficer.js'),

@@ -383,7 +383,7 @@ class ACPaymentController extends Controller
 
         return view('pages.admin.salesofficer.v_accountreceivable', [
             'page'          => 'Account Receivable',
-            'totalPending'  => $totalPending,
+            // 'totalPending'  => $totalPending,
             'totalOverDue'  => $totalOverDue,
             'totalBalance'  => $totalBalance,
             'customers'     => $customers,
