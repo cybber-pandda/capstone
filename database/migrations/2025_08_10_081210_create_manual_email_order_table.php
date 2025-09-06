@@ -16,13 +16,14 @@ class CreateManualEmailOrderTable extends Migration
         Schema::create('manual_email_order', function (Blueprint $table) {
             $table->id();
             $table->string('customer_name')->nullable();
+            $table->string('customer_type', 20)->nullable();
             $table->string('customer_email');
             $table->string('customer_address')->nullable();
             $table->string('customer_phone_number')->nullable();
             $table->string('order_date')->nullable();
             $table->json('purchase_request')->nullable();
             $table->string('remarks')->nullable();
-            $table->enum('status', ['pending', 'waiting','approve'])->default('pending');
+            $table->enum('status', ['pending', 'waiting','approve', 'rejected'])->default('pending');
             $table->timestamps();
         });
     }

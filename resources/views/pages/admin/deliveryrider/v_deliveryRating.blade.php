@@ -30,6 +30,22 @@
         const table = $('#deliveryRatingTable').DataTable({
             processing: true,
             serverSide: true,
+            paginationType: "simple_numbers",
+            responsive: true,
+            aLengthMenu: [
+                [5, 10, 30, 50, -1],
+                [5, 10, 30, 50, "All"]
+            ],
+            iDisplayLength: 10,
+            language: {
+                search: ""
+            },
+            fixedHeader: {
+                header: true
+            },
+            scrollCollapse: true,
+            scrollX: true,
+            scrollY: 600,
             ajax: "{{ route('deliveryrider.delivery.ratings') }}",
             columns: [{
                     data: 'order_number',

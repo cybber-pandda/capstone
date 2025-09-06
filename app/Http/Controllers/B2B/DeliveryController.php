@@ -120,11 +120,11 @@ class DeliveryController extends Controller
                     if ($status === 'delivered' && $order->delivery->proof_delivery) {
                         $proofBtn = '<button class="btn btn-sm btn-info view-proof-btn" 
                                         data-proof="' . asset($order->delivery->proof_delivery) . '" style="margin-right:5px;font-size:10.5px;">
-                                        Proof
+                                        <i class="fa fa-file-image" aria-hidden="true"></i>
                                     </button>';
 
                         $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;font-size:10.5px;">
-                                        Invoice
+                                        <i class="fa fa-file-text" aria-hidden="true"></i>
                                        </a>';
 
                         if ($hasRiderRating && $hasProductRating) {
@@ -133,11 +133,11 @@ class DeliveryController extends Controller
                                         </button>';
                         } else {
                             $ratingBtn = '<a href="' . route('b2b.delivery.rider.rate', $order->delivery->id) . '" class="btn btn-warning btn-sm" style="font-size:10.5px;">
-                                                Rate Rider
+                                                <i class="fa fa-car" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i>
                                             </a>  
                                             
                                             <a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" class="btn btn-success btn-sm" style="font-size:10.5px;">
-                                                Rate Product
+                                              <i class="fa fa-shopping-cart" aria-hidden="true"></i></i><i class="fa fa-star" aria-hidden="true"></i>
                                             </a>
                                             
                                             ';

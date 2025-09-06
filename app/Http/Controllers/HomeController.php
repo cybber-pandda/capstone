@@ -5,12 +5,18 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use App\Exports\SalesSummaryExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 use App\Models\Product;
 use App\Models\Order;
 use App\Models\Inventory;
 use App\Models\PurchaseRequest;
+use App\Models\PaidPayment;
+use App\Models\CreditPayment;
+use App\Models\CreditPartialPayment;
 
 class HomeController extends Controller
 {
@@ -55,6 +61,11 @@ class HomeController extends Controller
         $totalSalesOrderPRChange = 0;
         $totalDeliveredPRChange = 0;
 
+        $totalpaynow = 0;
+        $totalpaylater = 0;
+        $creditpayment = CreditPayment::where('status', 'paid')->sum('paid_amount');
+        $creditpartialpayment = CreditPartialPayment::where('status', 'paid')->sum('paid_amount');
+
         $role = $user->role ?? null;
 
         $view = match ($role) {
@@ -86,6 +97,11 @@ class HomeController extends Controller
                 ->whereBetween('created_at', [$startLastMonth, $endLastMonth])
                 ->count();
 
+
+            $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
+            $totalpaylater = $creditpayment + $creditpartialpayment;
+
+
             // Percentage changes
             $b2bChange = $prevB2B > 0 ? (($totalB2B - $prevB2B) / $prevB2B) * 100 : 0;
             $riderChange = $prevDeliveryRider > 0 ? (($totalDeliveryRider - $prevDeliveryRider) / $prevDeliveryRider) * 100 : 0;
@@ -94,7 +110,7 @@ class HomeController extends Controller
 
         if ($role === 'b2b') {
 
-            $products = Product::with('category', 'productImages')
+            $products = Product::with('inventories', 'category', 'productImages')
                 ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'discount', 'discounted_price', 'created_at', 'expiry_date']);
 
             if ($request->filled('search')) {
@@ -142,6 +158,9 @@ class HomeController extends Controller
             $totalPOSubmittedPRChange = $prevPOSubmittedPR > 0 ? (($totalPOSubmittedPR - $prevPOSubmittedPR) / $prevPOSubmittedPR) * 100 : 0;
             $totalSalesOrderPRChange = $prevSalesOrderPR > 0 ? (($totalSalesOrderPR - $prevSalesOrderPR) / $prevSalesOrderPR) * 100 : 0;
             $totalDeliveredPRChange = $prevDeliveredPR > 0 ? (($totalDeliveredPR - $prevDeliveredPR) / $prevDeliveredPR) * 100 : 0;
+
+            $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
+            $totalpaylater = $creditpayment + $creditpartialpayment;
         }
 
         if ($role === 'deliveryrider') {
@@ -181,6 +200,8 @@ class HomeController extends Controller
             'totalPOSubmittedPRChange',
             'totalSalesOrderPRChange',
             'totalDeliveredPRChange',
+            'totalpaynow',
+            'totalpaylater'
         ));
     }
 
@@ -347,5 +368,106 @@ class HomeController extends Controller
         }
 
         return response()->json($months);
+    }
+
+    public function summary_sales()
+    {
+        $page = 'Summary List of Sales';
+
+        $purchaseRequests = PurchaseRequest::with(['items.product'])->get();
+
+        // Subtotal of items only (excluding VAT & delivery fee)
+        $subtotal = $purchaseRequests->sum(function ($pr) {
+            return $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+        });
+
+        // VAT computation per PR
+        $vatAmount = $purchaseRequests->sum(function ($pr) {
+            $prSubtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+            return $prSubtotal * (($pr->vat ?? 0) / 100);
+        });
+
+        // Total delivery fees
+        $deliveryFee = $purchaseRequests->sum(fn($pr) => $pr->delivery_fee ?? 0);
+
+        // VAT Exclusive = items subtotal + delivery fee (before VAT)
+        $vatExclusive = $subtotal + $deliveryFee;
+
+        // Total = subtotal + vat + delivery fee
+        $total = $subtotal + $vatAmount + $deliveryFee;
+
+        return view('pages.summary_sales', compact(
+            'page',
+            'purchaseRequests',
+            'subtotal',
+            'vatAmount',
+            'vatExclusive',
+            'deliveryFee',
+            'total'
+        ));
+    }
+
+    public function summary_sales_api($date_from, $date_to)
+    {
+        $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
+            ->whereBetween('created_at', [$date_from, $date_to])
+            ->get();
+
+        return DataTables::of($query)
+            ->addColumn('created_at', function ($pr) {
+                return $pr->created_at->format('F d, Y h:i A');
+            })
+            ->addColumn('invoice_no', function ($pr) {
+                return 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
+            })
+            ->addColumn('customer', function ($pr) {
+                return ($pr->detail->business_name ?? 'No Company Name') . '/' . (optional($pr->customer)->name ?? '-');
+            })
+            ->addColumn('tin', function ($pr) {
+                return $pr->detail->tin_number ?? 'No provided tin number';
+            })
+            ->addColumn('address', function ($pr) {
+                return $pr->address->full_address ?? 'No provided address';
+            })
+            ->addColumn('total_items', function ($pr) {
+                return $pr->items->sum('quantity');
+            })
+            ->addColumn('avg_price', function ($pr) {
+                return number_format($pr->items->avg(fn($item) => $item->product->price ?? 0), 2);
+            })
+            ->addColumn('subtotal', function ($pr) {
+                // Subtotal includes items + delivery fee
+                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                $subtotal += $pr->delivery_fee ?? 0;
+                return number_format($subtotal, 2);
+            })
+            ->addColumn('vat_amount', function ($pr) {
+                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                $subtotal += $pr->delivery_fee ?? 0;
+
+                $vatRate  = $pr->vat ?? 0;
+                $vatAmount = $subtotal * ($vatRate / 100);
+                return number_format($vatAmount, 2);
+            })
+            ->addColumn('vat_exclusive', function ($pr) {
+                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                $subtotal += $pr->delivery_fee ?? 0;
+                return number_format($subtotal, 2);
+            })
+            ->addColumn('grand_total', function ($pr) {
+                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                $subtotal += $pr->delivery_fee ?? 0;
+
+                $vatRate  = $pr->vat ?? 0;
+                $vatAmount = $subtotal * ($vatRate / 100);
+                $total = $subtotal + $vatAmount;
+                return number_format($total, 2);
+            })
+            ->make(true);
+    }
+
+    public function export($date_from, $date_to)
+    {
+        return Excel::download(new SalesSummaryExport($date_from, $date_to), 'sales_summary.xlsx');
     }
 }

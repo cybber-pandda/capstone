@@ -152,14 +152,14 @@ class ACPaymentController extends Controller
                     ->addColumn('action', function ($payment) {
                         return is_null($payment->proof_payment) && is_null($payment->reference_number)
                             ? '<span class="badge bg-danger text-white"> <i class="link-icon" data-lucide="clock"></i> Waiting for B2B Payment</span>'
-                            : '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
+                            : ($payment->status === 'paid' ? '' :
+                                '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
                                     Approve
                                 </button>
                                 <button type="button" class="btn btn-sm btn-inverse-danger reject-payment p-2" data-id="' . $payment->id . '" data-paymenttype="straight" style="font-size:11px">
                                     Reject
-                                </button>
-                        
-                        ';
+                                </button>'
+                            );
                     })
                     ->rawColumns(['bank_name', 'paid_date', 'proof_payment', 'reference_number', 'status', 'action'])
                     ->make(true);
@@ -205,10 +205,18 @@ class ACPaymentController extends Controller
             return response()->json(['message' => 'This payment is already approved.'], 400);
         }
 
-        $payment->status = 'paid';
-        $payment->approved_at = Carbon::today();
-        $payment->approved_by = auth()->id();
-        $payment->save();
+        $customerPR = PurchaseRequest::findOrFail($payment->purchase_request_id);
+
+        $payment->update([
+            'status' => 'paid',
+            'approved_at' => Carbon::today(),
+            'approved_by' => auth()->id()
+        ]);
+
+        $user = User::findOrFail($customerPR->customer_id);
+        $user->update([
+            'credit_limit' => min($user->credit_limit + $payment->paid_amount, 300000)
+        ]);
 
         return response()->json(['message' => 'Payment has been approved successfully.']);
     }
@@ -241,11 +249,11 @@ class ACPaymentController extends Controller
     }
 
     public function reject_payment($id)
-    { 
+    {
         $payment = null;
         $paymentType = request()->input('paymentType');
 
-        if( $paymentType === 'straight') {
+        if ($paymentType === 'straight') {
             $payment = CreditPayment::findOrFail($id);
         } elseif ($paymentType === 'partial') {
             $payment = CreditPartialPayment::findOrFail($id);
@@ -267,15 +275,26 @@ class ACPaymentController extends Controller
         $payment = CreditPartialPayment::findOrFail($id);
 
         if ($payment->status === 'paid') {
-            return response()->json(['message' => 'This payment is already approved.'], 400);
+            return response()->json(['message' => 'Payment already approved.'], 400);
         }
 
-        $payment->status = 'paid';
-        $payment->approved_at = Carbon::today();
-        $payment->approved_by = auth()->id();
-        $payment->save();
+        $customerPR = PurchaseRequest::findOrFail($payment->purchase_request_id);
 
-        return response()->json(['message' => 'Payment has been approved successfully.', 'pp_id' => $payment->id]);
+        $payment->update([
+            'status' => 'paid',
+            'approved_at' => Carbon::today(),
+            'approved_by' => auth()->id()
+        ]);
+
+        $user = User::findOrFail($customerPR->customer_id);
+        $user->update([
+            'credit_limit' => min($user->credit_limit + $payment->paid_amount, 300000)
+        ]);
+
+        return response()->json([
+            'message' => 'Payment approved successfully.',
+            'pp_id' => $payment->id
+        ]);
     }
 
     public function account_receivable(Request $request)
@@ -318,18 +337,20 @@ class ACPaymentController extends Controller
                     ->sum('amount_to_pay');
 
                 $overdueStraight = $customer->purchaseRequests
-                    ->filter(fn($pr) => 
+                    ->filter(
+                        fn($pr) =>
                         $pr->creditPayment &&
-                        $pr->creditPayment->status === 'overdue' &&
-                        $pr->creditPayment->due_date < $today
+                            $pr->creditPayment->status === 'overdue' &&
+                            $pr->creditPayment->due_date < $today
                     )
                     ->sum('credit_amount');
 
                 $overduePartial = $customer->purchaseRequests
                     ->flatMap(fn($pr) => $pr->creditPartialPayments)
-                    ->filter(fn($payment) =>
+                    ->filter(
+                        fn($payment) =>
                         $payment->status === 'overdue' &&
-                        $payment->due_date < $today
+                            $payment->due_date < $today
                     )
                     ->sum('amount_to_pay');
 
@@ -490,7 +511,7 @@ class ACPaymentController extends Controller
     public function account_receivable_payments($prid, Request $request)
     {
         $type = $request->query('type', 'straight');
-        
+
         $purchaseRequest = PurchaseRequest::with(['customer'])->where('id', $prid)->first();
 
         if (!$purchaseRequest) {

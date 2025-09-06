@@ -65,6 +65,9 @@
                 /* let pagination show */
                 padding-bottom: 80px;
                 /* add space for fixed footer */
+
+                margin-bottom: 20px;
+                margin-top: 20px;
             }
 
             .address-map-view {

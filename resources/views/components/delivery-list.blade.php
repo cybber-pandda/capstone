@@ -19,6 +19,25 @@
             @php
             $fullAddress = $delivery->b2bAddress->full_address ?? 'N/A';
             $shortAddress = strlen($fullAddress) > 20 ? substr($fullAddress, 0, 20) . '...' : $fullAddress;
+
+            $subtotal = $delivery->items->sum(function ($item) {
+            return $item->quantity * ($item->product->price ?? 0);
+            });
+
+            $vatRate = 0;
+            $deliveryFee = 0;
+
+            if (preg_match('/REF (\d+)-/', $delivery->order_number, $matches)) {
+            $purchaseRequestId = $matches[1];
+            $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+            if ($purchaseRequest) {
+            $vatRate = $purchaseRequest->vat ?? 0;
+            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+            }
+            }
+
+            $vat = $subtotal * ($vatRate / 100);
+            $grandTotal = $subtotal + $vat + $deliveryFee;
             @endphp
 
             <tr>
@@ -35,9 +54,7 @@
                     </span>
                 </td>
                 <td>{{ $delivery->items->sum('quantity') }}</td>
-                <td>₱{{ number_format($delivery->items->sum(function ($item) {
-                    return $item->quantity * ($item->product->price ?? 0);
-                }), 2) }}</td>
+                <td>₱{{ number_format($grandTotal, 2) }}</td>
                 <td>
                     <ul class="mb-0">
                         @foreach($delivery->items as $item)

@@ -7,9 +7,9 @@
         <div>
             <h4 class="mb-3 mb-md-0">Welcome
                 @if(Auth::user()->role === 'salesofficer')
-                Sales Offcer
+                Assistant Sales Offcer
                 @elseif(Auth::user()->role === 'deliveryrider')
-                Delivery Rider
+                Delivery Driver
                 @else
                 Anonymous
                 @endif
@@ -21,17 +21,18 @@
                 <input type="text" class="form-control bg-transparent border-primary" placeholder="Select date" data-input>
             </div> -->
             @if(Auth::user()->role === 'salesofficer')
-            <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0" 
-                    data-bs-toggle="modal" data-bs-target="#salesSummaryModal">
+            <button type="button" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0 d-none"
+                data-bs-toggle="modal" data-bs-target="#salesSummaryModal">
                 <i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i>
                 Summary List of Sales
             </button>
+            <a href="{{ route('summary.sales') }}"  class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0"><i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i> Summary List of Sales</a>
             @endif
 
             <!-- Modal -->
-            <div class="modal fade" id="salesSummaryModal" tabindex="-1" aria-labelledby="salesSummaryLabel" aria-hidden="true">
+            <!-- <div class="modal fade" id="salesSummaryModal" tabindex="-1" aria-labelledby="salesSummaryLabel" aria-hidden="true">
                 <div class="modal-dialog">
-                    <form action="{{ route('salesofficer.sales-summary.export') }}" method="GET">
+                    <form action="" method="GET">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="salesSummaryLabel">Generate Sales Summary</h5>
@@ -53,7 +54,7 @@
                         </div>
                     </form>
                 </div>
-            </div>
+            </div> -->
 
             <!-- <button type="button" class="btn btn-primary btn-icon-text mb-2 mb-md-0">
                 <i class="btn-icon-prepend" data-lucide="download-cloud"></i>
@@ -94,6 +95,40 @@
         </div>
         @endforeach
     </div>
+
+    @if(Auth::user()->role === 'salesofficer')
+    <div class="row">
+        <div class="col-12 col-xl-12 stretch-card">
+            <div class="row flex-grow-1">
+                {{-- Total Paid Pay Now --}}
+                <div class="col-md-6 grid-margin stretch-card">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <h6 class="card-title mb-0">Total Pay Now</h6>
+                            </div>
+                            <h3 class="mb-2 mt-2">{{ number_format($totalpaynow,2) }}</h3>
+
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Total Paid Pay Later --}}
+                <div class="col-md-6 grid-margin stretch-card">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <h6 class="card-title mb-0">Total Pay Later</h6>
+                            </div>
+                            <h3 class="mb-2 mt-2">{{ number_format($totalpaylater,2) }}</h3>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    @endif
 
 
     <div class="row">

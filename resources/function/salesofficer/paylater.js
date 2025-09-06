@@ -168,7 +168,7 @@ $(document).ready(function () {
                             <th>Paid Amount</th>
                             <th>Proof of Delivery</th>
                             <th>Reference</th>
-                            <th>Action</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -210,13 +210,13 @@ $(document).ready(function () {
                             <td>${item.reference_number ?? "--"}</td>
                             <td>
                                 ${
-                                    item.proof_payment && item.reference_number
+                                    item.proof_payment && item.reference_number &&  item.status === 'pending'
                                         ? `<button class="btn btn-sm btn-inverse-dark approve-partial-payment p-1" data-id="${item.id}" style="font-size:11px;">Approve
                                         </button>
                                         <button class="btn btn-sm btn-inverse-dark reject-payment p-1" data-id="${item.id}" data-paymenttype="partial" style="font-size:11px;">Reject
-                                        </button>
-                                          `
-                                        : `<span class="badge bg-danger">Waiting for B2B Payment</span>`
+                                        </button>`
+                                        : ( item.status === 'paid' ? '' : `<span class="badge bg-danger">Waiting for B2B Payment</span>`)
+                                        
                                 }
                             </td>
                         </tr>

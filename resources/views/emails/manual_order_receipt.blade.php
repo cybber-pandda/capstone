@@ -1,14 +1,27 @@
 @php
     $products = json_decode($order->purchase_request, true) ?? [];
     $total = 0;
+
+    foreach ($products as $p) {
+        $lineTotal = $p['qty'] * $p['price'];
+        $total += $lineTotal;
+    }
+
+    $vatRate = 0.12;
+    $vatAmount = $total * $vatRate;
+
+    // Default delivery fee (Quezon Province)
+    $deliveryFee = 200;
+
+    $finalTotal = $total + $vatAmount + $deliveryFee;
 @endphp
 
-<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5;padding:20px;">
+<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.5; padding:20px;">
     <h2 style="color: #2c3e50;">Hello {{ $order->customer_name }}!</h2>
 
     <p>Thank you for your order. Here are your order details:</p>
 
-    <table cellpadding="8" cellspacing="0" width="100%" 
+    <table cellpadding="8" cellspacing="0" width="100%"
         style="border-collapse: collapse; font-size: 14px; margin-top: 10px; border: 1px solid #ddd;">
         <thead>
             <tr style="background-color: #f4f6f8; text-align: left; border-bottom: 2px solid #ddd;">
@@ -25,7 +38,6 @@
                     $categoryName = DB::table('categories')->where('id', $p['category_id'])->value('name');
                     $productName  = DB::table('products')->where('id', $p['product_id'])->value('name');
                     $lineTotal = $p['qty'] * $p['price'];
-                    $total += $lineTotal;
                 @endphp
                 <tr>
                     <td style="border: 1px solid #ddd;">{{ $categoryName }}</td>
@@ -38,8 +50,20 @@
         </tbody>
         <tfoot>
             <tr style="background-color: #f9f9f9;">
-                <td colspan="4" style="text-align: right; font-weight: bold; border: 1px solid #ddd;">Grand Total</td>
+                <td colspan="4" style="text-align: right; font-weight: bold; border: 1px solid #ddd;">Subtotal</td>
                 <td style="font-weight: bold; border: 1px solid #ddd;">₱{{ number_format($total, 2) }}</td>
+            </tr>
+            <tr>
+                <td colspan="4" style="text-align: right; border: 1px solid #ddd;">VAT (12%)</td>
+                <td style="border: 1px solid #ddd;">₱{{ number_format($vatAmount, 2) }}</td>
+            </tr>
+            <tr>
+                <td colspan="4" style="text-align: right; border: 1px solid #ddd;">Delivery Fee (Quezon Province)</td>
+                <td style="border: 1px solid #ddd;">₱{{ number_format($deliveryFee, 2) }}</td>
+            </tr>
+            <tr style="background-color: #f9f9f9;">
+                <td colspan="4" style="text-align: right; font-weight: bold; border: 1px solid #ddd;">Grand Total</td>
+                <td style="font-weight: bold; border: 1px solid #ddd;">₱{{ number_format($finalTotal, 2) }}</td>
             </tr>
         </tfoot>
     </table>

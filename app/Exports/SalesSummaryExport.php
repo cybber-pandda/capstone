@@ -27,16 +27,22 @@ class SalesSummaryExport implements FromCollection, WithHeadings, WithMapping, W
     public function collection()
     {
         return PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
-            ->whereBetween('created_at', [$this->startDate, $this->endDate])
+            ->whereDate('created_at', '>=', $this->startDate)
+            ->whereDate('created_at', '<=', $this->endDate)
             ->get();
     }
 
     public function map($pr): array
     {
         $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-        $vatRate = $pr->vat ?? 0;
+        $deliveryFee = $pr->delivery_fee ?? 0;
+        
+        $subtotal += $deliveryFee;
+
+        $vatRate   = $pr->vat ?? 0;
         $vatAmount = $subtotal * ($vatRate / 100);
         $vatExclusive = $subtotal;
+
         $total = $subtotal + $vatAmount;
 
         $fullAddress = $pr->address->full_address ?? 'No provided address';

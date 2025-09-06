@@ -12,6 +12,7 @@ use App\Notifications\ManualOrderReceiptNotification;
 use Illuminate\Support\Facades\Notification;
 
 use App\Models\ManualEmailOrder;
+use App\Models\Inventory;
 
 class EmailManualOrderController extends Controller
 {
@@ -25,12 +26,12 @@ class EmailManualOrderController extends Controller
                     return $pr->customer_name ?? '--';
                 })
                 ->addColumn('customer_type', function ($pr) {
-                    return is_null($pr->customer_email) ? 'Walk-In' : 'Manual Order';
+                    return $pr->customer_type ?? '--';
                 })
                 ->addColumn('customer_address', function ($pr) {
                     return $pr->customer_address ?? '--';
                 })
-                 ->addColumn('phone_number', function ($pr) {
+                ->addColumn('phone_number', function ($pr) {
                     return $pr->customer_phone_number ?? '--';
                 })
                 ->addColumn('total_items', function ($pr) {
@@ -49,9 +50,9 @@ class EmailManualOrderController extends Controller
                     return $pr->created_at->format('F d, Y H:i:s');
                 })
                 ->addColumn('status', function ($pr) {
-                    return '<span class="badge bg-info text-dark">'. ucfirst($pr->status) .'</span>';
+                    return '<span class="badge bg-info text-dark">' . ucfirst($pr->status) . '</span>';
                 })
-               ->addColumn('action', function ($pr) {
+                ->addColumn('action', function ($pr) {
                     $products = json_decode($pr->purchase_request, true) ?? [];
 
                     // Fetch product and category names
@@ -74,15 +75,22 @@ class EmailManualOrderController extends Controller
                                 </button> ';
 
                     if ($pr->status === 'waiting') {
-                        $buttons .= '<button class="btn btn-sm btn-success approve-order" 
+                        $buttons .= '<button class="btn btn-sm btn-success approve-order me-1" 
                                         data-id="' . $pr->id . '">
                                         Approve
                                     </button>';
                     }
 
+                    if ($pr->customer_type === 'Manual Order' && $pr->status === 'waiting') {
+                        $buttons .= '<button class="btn btn-sm btn-danger reject-order" 
+                                        data-id="' . $pr->id . '">
+                                        Reject
+                                    </button>';
+                    }
+
                     return $buttons;
                 })
-                ->rawColumns(['status','action'])
+                ->rawColumns(['status', 'action'])
                 ->make(true);
         }
 
@@ -95,18 +103,55 @@ class EmailManualOrderController extends Controller
     {
         $order = ManualEmailOrder::findOrFail($request->id);
 
-        if ($order->status !== 'approve') {
-            $order->status = 'approve';
-            $order->save();
+        if ($request->type === 'approve') {
+            if ($order->status !== 'approve') {
+                $order->status = 'approve';
+                $order->save();
 
-            Notification::route('mail', $order->customer_email)->notify(new ManualOrderReceiptNotification($order));
+                $items = json_decode($order->purchase_request, true);
+
+                if (!empty($items)) {
+                    foreach ($items as $item) {
+                        Inventory::create([
+                            'product_id' => $item['product_id'],
+                            'type'       => 'out',
+                            'quantity'   => $item['qty'],
+                            'reason'     => 'sold',
+                        ]);
+                    }
+                }
+
+                if (!empty($order->customer_email)) {
+                    Notification::route('mail', $order->customer_email)
+                        ->notify(new ManualOrderReceiptNotification($order, 'approve'));
+                }
+            }
+
+            return response()->json(['message' => 'Order approved and receipt sent successfully.']);
         }
 
-        return response()->json(['message' => 'Order approved and receipt sent successfully.']);
+        if ($request->type === 'reject') {
+            if ($order->status !== 'rejected') {
+                $order->status = 'rejected';
+                $order->save();
+
+                if (!empty($order->customer_email)) {
+                    Notification::route('mail', $order->customer_email)
+                        ->notify(new ManualOrderReceiptNotification($order, 'reject'));
+                }
+            }
+
+            return response()->json(['message' => 'Order successfully rejected.']);
+        }
+
+        return response()->json(['message' => 'Invalid action.'], 400);
     }
 
-    public function submit_manual_order(Request $request){
-       $validator = Validator::make($request->all(), [
+
+
+    public function submit_manual_order(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
             'customer_email' => 'required|email',
         ]);
 

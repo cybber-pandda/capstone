@@ -1,7 +1,16 @@
 @extends('layouts.shop')
+<style>
+    .dataTables_wrapper {
+        width: 100% !important;
+        overflow-x: auto;
+    }
 
+    #deliveryLocationTable{
+        font-size: 12px;
+    }
+</style>
 @section('content')
-<div class="section section-scrollable" style="margin-bottom: 20px;">
+<div class="section section-scrollable">
     <div class="container">
 
 
@@ -12,11 +21,11 @@
         @component('components.table', [
         'id' => 'deliveryLocationTable',
         'thead' => '
-        <tr>
+        <tr style="font-size: 12px;">
             <th>Order #</th>
-            <th>Delivery Rider</th>
-            <th>Total Items</th>
-            <th>Grand Total</th>
+            <th>Driver</th>
+            <th>Items</th>
+            <th>Total</th>
             <th>Status</th>
             <th></th>
             <th></th>

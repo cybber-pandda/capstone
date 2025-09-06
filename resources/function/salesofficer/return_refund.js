@@ -13,6 +13,7 @@ $(document).ready(function () {
             { data: "product_name", name: "product_name" },
             { data: "reason", name: "reason" },
             { data: "status", name: "status" },
+            { data: "photo", name: "photo" },
             { data: "created_at", name: "created_at" },
             { data: "action", name: "action", orderable: false, searchable: false }
         ]
@@ -33,6 +34,7 @@ $(document).ready(function () {
             { data: "amount", name: "amount" },
             { data: "method", name: "method" },
             { data: "status", name: "status" },
+            { data: "photo", name: "photo" },
             { data: "created_at", name: "created_at" },
             { data: "action", name: "action", orderable: false, searchable: false }
         ]

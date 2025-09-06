@@ -1,6 +1,13 @@
 @if(!empty($data) && count($data) > 0)
 <div class="row product-list">
     @foreach ($data as $product)
+
+    @php
+        $totalIn = $product->inventories->where('type', 'in')->sum('quantity');
+        $totalOut = $product->inventories->where('type', 'out')->sum('quantity');
+        $netStock = $totalIn - $totalOut;
+    @endphp
+
     <div class="col-xs-6 col-sm-6 col-md-3">
         <div class="product h-100">
             <div class="product-img-wrapper">
@@ -35,6 +42,7 @@
             </div>
 
             <div class="add-to-cart">
+                @if($netStock > 0)
                 @auth
                     @if($showPendingRequirements)
                         <button class="add-to-cart-btn pending-requirements-btn" style="font-size:12px;" data-id="{{ $product->id }}">
@@ -50,6 +58,11 @@
                         <i class="fa fa-shopping-cart"></i> Purchase Request
                     </button>
                 @endauth
+                @else
+                    <button class="add-to-cart-btn btn-secondary" style="font-size:12px;" disabled>
+                        <i class="fa fa-ban"></i> Out of Stock
+                    </button>
+                @endif
             </div>
         </div>
     </div>

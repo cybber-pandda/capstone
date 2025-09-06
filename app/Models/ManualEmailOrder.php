@@ -13,6 +13,7 @@ class ManualEmailOrder extends Model
 
     protected $fillable = [
         'customer_name',
+        'customer_type',
         'customer_email',
         'customer_address',
         'customer_phone_number',

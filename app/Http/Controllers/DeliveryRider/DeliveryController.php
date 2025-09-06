@@ -92,12 +92,14 @@ class DeliveryController extends Controller
                     $grandTotal = $subtotal + $vat + $deliveryFee;
 
                     return '₱' . number_format($grandTotal, 2);
-
                 })
                 ->editColumn('created_at', fn($pr) => $pr->created_at->format('Y-m-d H:i:s'))
                 ->addColumn('action', function ($pr) {
-                    $btn = '<button class="btn btn-sm btn-inverse-info view-items-btn" data-id="' . $pr->id . '"><i class="link-icon" data-lucide="list"></i> View Items</button> ';
-                    $btn .= '<a href="' . route('deliveryrider.delivery.sales.inv', $pr->id) . '" class="btn btn-sm btn-inverse-primary">Show Sales Invoice</a>';
+                    $btn = '<button class="btn btn-sm btn-inverse-info view-items-btn" data-id="' . $pr->id . '"><i class="link-icon" data-lucide="list"></i>Items</button> ';
+                    $btn .= '<a href="' . route('deliveryrider.delivery.sales.inv', [
+                        'prId' => $pr->id,
+                        'customerId' => $pr->user_id
+                    ]) . '" class="btn btn-sm btn-inverse-primary">Invoice</a>';
                     return $btn;
                 })
                 ->rawColumns(['action'])
@@ -138,8 +140,29 @@ class DeliveryController extends Controller
                 ->addColumn('customer_name', fn($pr) => optional($pr->user)->name ?? 'N/A')
                 ->addColumn('total_items', fn($pr) => $pr->items->sum('quantity'))
                 ->addColumn('grand_total', function ($pr) {
-                    $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                    return '₱' . number_format($total, 2);
+                   $subtotal = $pr->items->sum(function ($item) {
+                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                        return $item->quantity * ($price ?? 0);
+                    });
+
+                    // Default values
+                    $vatRate = 0;
+                    $deliveryFee = 0;
+
+                    if (preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
+                        $purchaseRequestId = $matches[1];
+                        $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
+
+                        if ($purchaseRequest) {
+                            $vatRate = $purchaseRequest->vat ?? 0;
+                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                        }
+                    }
+
+                    $vat = $subtotal * ($vatRate / 100);
+                    $grandTotal = $subtotal + $vat + $deliveryFee;
+
+                    return '₱' . number_format($grandTotal, 2);
                 })
                 ->addColumn('tracking_number', fn($pr) => $pr->delivery->tracking_number ?? 'N/A')
                 ->addColumn('action', function ($pr) {
@@ -193,10 +216,29 @@ class DeliveryController extends Controller
                 ->addColumn('customer_name', fn($order) => optional($order->user)->name ?? 'N/A')
                 ->addColumn('total_items', fn($order) => $order->items->sum('quantity') ?? 0)
                 ->addColumn('grand_total', function ($order) {
-                    $total = $order->items->sum(function ($item) {
-                        return $item->quantity * ($item->product->price ?? 0);
+                    $subtotal = $order->items->sum(function ($item) {
+                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                        return $item->quantity * ($price ?? 0);
                     });
-                    return '₱' . number_format($total, 2);
+
+                    // Default values
+                    $vatRate = 0;
+                    $deliveryFee = 0;
+
+                    if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
+                        $purchaseRequestId = $matches[1];
+                        $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
+
+                        if ($purchaseRequest) {
+                            $vatRate = $purchaseRequest->vat ?? 0;
+                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                        }
+                    }
+
+                    $vat = $subtotal * ($vatRate / 100);
+                    $grandTotal = $subtotal + $vat + $deliveryFee;
+
+                    return '₱' . number_format($grandTotal, 2);
                 })
                 ->addColumn('address', fn($order) => optional($order->b2bAddress)->full_address ?? 'N/A')
                 ->addColumn('action', function ($order) {
@@ -430,7 +472,7 @@ class DeliveryController extends Controller
         ]);
     }
 
-     public function show_sales_inv($id)
+    public function show_sales_inv($prId, $customerId)
     {
         $page = "Sales Invoice";
         $b2bReqDetails = null;
@@ -441,7 +483,8 @@ class DeliveryController extends Controller
         $superadmin = User::where('role', 'superadmin')->first();
 
         $quotation = PurchaseRequest::with(['customer', 'items.product'])
-            ->findOrFail($id);
+            ->where('customer_id', $customerId)
+            ->findOrFail($prId);
 
         if ($quotation->customer_id) {
             $b2bReqDetails = B2BDetail::where('user_id', $quotation->customer_id)->first();

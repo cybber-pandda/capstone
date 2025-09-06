@@ -30,7 +30,7 @@ class NotificationController extends Controller
                     }
                     return '';
                 })
-                ->rawColumns(['checkbox','message', 'read_at']) // Allow HTML
+                ->rawColumns(['checkbox', 'message', 'read_at']) // Allow HTML
                 ->make(true);
         }
 
@@ -52,12 +52,19 @@ class NotificationController extends Controller
 
         $notifications = Notification::where('user_id', $user->id)
             ->latest()
-            ->take(10)
+            ->take(3)
             ->get()
             ->map(function ($noti) {
+
+                $words = str_word_count($noti->message, 1);
+                $truncatedMessage = implode(' ', array_slice($words, 0, 3));
+
+                if (count($words) > 3) {
+                    $truncatedMessage .= '...';
+                }
                 return [
                     'id' => $noti->id,
-                    'message' => $noti->message,
+                    'message' => $truncatedMessage,
                     'type' => $noti->type,
                     'time' => $noti->created_at->diffForHumans(),
                 ];

@@ -108,7 +108,7 @@ class PurchaseController extends Controller
         if ($request->hasFile('photo')) {
             $filename = Str::random(10) . '.' . $request->file('photo')->getClientOriginalExtension();
             $photoPath = $request->file('photo')->move(public_path('assets/upload'), $filename);
-            $photoPath = 'assets/uploads/' . $filename;
+            $photoPath = 'assets/upload/' . $filename;
         }
 
         PurchaseRequestReturn::create([
@@ -148,7 +148,7 @@ class PurchaseController extends Controller
         if ($request->hasFile('proof')) {
             $filename = Str::random(10) . '.' . $request->file('proof')->getClientOriginalExtension();
             $request->file('proof')->move(public_path('assets/upload'), $filename);
-            $proofPath = 'assets/uploads/' . $filename;
+            $proofPath = 'assets/upload/' . $filename;
         }
 
         PurchaseRequestRefund::create([

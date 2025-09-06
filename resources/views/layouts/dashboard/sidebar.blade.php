@@ -61,13 +61,13 @@
            <li class="nav-item {{ Route::is('deliveryrider-creation.*') ? 'active' : '' }}">
                 <a href="{{ route('deliveryrider-creation.index') }}" class="nav-link">
                     <i class="link-icon" data-lucide="user"></i>
-                    <span class="link-title">Delivery Rider</span>
+                    <span class="link-title">Delivery Driver</span>
                 </a>
             </li>
             <li class="nav-item {{ Route::is('salesofficer-creation.*') ? 'active' : '' }}">
                 <a href="{{ route('salesofficer-creation.index') }}" class="nav-link">
                     <i class="link-icon" data-lucide="user"></i>
-                    <span class="link-title">Sales Officer</span>
+                    <span class="link-title">Assistant Sales Officer</span>
                 </a>
             </li>
 

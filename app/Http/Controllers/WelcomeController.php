@@ -54,22 +54,22 @@ class WelcomeController extends Controller
             'productImages',
             'ratings.user:id,name' // Only fetch id and name for efficiency
         ])
-        ->select([
-            'id',
-            'sku',
-            'name',
-            'description',
-            'price',
-            'discount',
-            'discounted_price',
-            'expiry_date',
-            'created_at',
-            'category_id'
-        ])
-        ->findOrFail($id);
+            ->select([
+                'id',
+                'sku',
+                'name',
+                'description',
+                'price',
+                'discount',
+                'discounted_price',
+                'expiry_date',
+                'created_at',
+                'category_id'
+            ])
+            ->findOrFail($id);
 
         // Calculate average rating and total number of ratings
-        $averageRating = $product->ratings->avg('rating'); 
+        $averageRating = $product->ratings->avg('rating');
         $totalRatings  = $product->ratings->count();
 
         return response()->json([
@@ -110,9 +110,10 @@ class WelcomeController extends Controller
         return response()->json($products);
     }
 
-     public function store(Request $request)
+    public function store(Request $request)
     {
-         $validated = $request->validate([
+        $validated = $request->validate([
+            'customer_type'          => 'required',
             'customer_name'          => 'required|string|max:255',
             'customer_address'       => 'required|string|max:255',
             'customer_phone_number'  => ['required', 'regex:/^09\d{9}$/'],
@@ -123,7 +124,7 @@ class WelcomeController extends Controller
             'products.*.product_id'  => 'required|integer',
             'products.*.qty'         => 'required|integer|min:1',
             'products.*.price'       => 'required|numeric|min:0',
-        ],[
+        ], [
             'customer_phone_number.required' => 'Please enter the customer phone number.',
             'customer_phone_number.regex'    => 'Phone number must be 11 digits and start with 09.',
             'products.required'                => 'Please add at least one product.',
@@ -135,31 +136,35 @@ class WelcomeController extends Controller
             'products.*.price.min'             => 'Price cannot be negative in any product row.',
         ]);
 
+        $status = $request->customer_type === 'walkin' ? 'approve' : 'waiting';
+        $customer_type = $request->customer_type === 'walkin' ? 'Walk-In' : 'Manual Order';
+
         if ($request->filled('order_id')) {
             // Update existing order
             $manualOrder = ManualEmailOrder::findOrFail($request->order_id);
             $manualOrder->update([
                 'customer_name'         => $validated['customer_name'],
+                'customer_type'         => $customer_type,
                 'customer_address'      => $validated['customer_address'],
                 'customer_phone_number' => $validated['customer_phone_number'],
                 'order_date'            => $validated['order_date'],
                 'remarks'               => $validated['remarks'] ?? null,
                 'purchase_request'      => json_encode($validated['products']),
-                'status'                => 'waiting'
+                'status'                => $status
             ]);
 
             $message = 'Manual purchase request updated successfully!';
         } else {
-            // Create new order
             $manualOrder = ManualEmailOrder::create([
                 'customer_name'         => $validated['customer_name'],
-                // 'customer_email'        => $request->customer_email ?? null,
+                'customer_type'         => $customer_type,
+                'customer_email'        => $request->customer_email ?? null,
                 'customer_address'      => $validated['customer_address'],
                 'customer_phone_number' => $validated['customer_phone_number'],
                 'order_date'            => $validated['order_date'],
                 'remarks'               => $validated['remarks'] ?? null,
                 'purchase_request'      => json_encode($validated['products']),
-                'status'                => 'waiting'
+                'status'                =>  $status
             ]);
 
             $message = 'Manual purchase request saved successfully!';
@@ -171,5 +176,4 @@ class WelcomeController extends Controller
             'data'    => $manualOrder
         ]);
     }
-
 }

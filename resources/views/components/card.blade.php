@@ -8,7 +8,7 @@
             <div>
             @if(!empty($cardtopAddButton))
                 @if($cardtopAddButtonTitle === 'Send Email Order')
-                 <a href="{{ route('manual-order.process') }}" class="btn btn-inverse-dark btn-sm mx-1">Walk-In Order</a>
+                 <a href="{{ url('/customer-email-order?type=walkin') }}" class="btn btn-inverse-dark btn-sm mx-1">Walk-In Order</a>
                 @endif
                 <button type="button" class="btn btn-inverse-primary btn-sm me-2" id="{{ $cardtopAddButtonId ?? 'add' }}" data-mode="{{ $cardtopButtonMode }}">
                     <i class="link-icon" data-lucide="plus"></i>

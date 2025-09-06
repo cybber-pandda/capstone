@@ -35,6 +35,7 @@
                                 <th>Product</th>
                                 <th>Reason</th>
                                 <th>Status</th>
+                                <th>Photo</th>
                                 <th>Date Requested</th>
                                 <th>Action</th>
                             </tr>
@@ -52,6 +53,7 @@
                                 <th>Amount</th>
                                 <th>Method</th>
                                 <th>Status</th>
+                                <th>Photo</th>
                                 <th>Date Processed</th>
                                 <th>Action</th>
                             </tr>

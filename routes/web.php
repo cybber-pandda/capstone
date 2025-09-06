@@ -73,7 +73,6 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/purchase-requests/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'show']);
         Route::put('/purchase-requests/s-q/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'updateSendQuotation']);
         Route::put('/purchase-requests/r-q/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'updateRejectQuotation']);
-        Route::get('/sales-summary/export', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'export'])->name('sales-summary.export');
         Route::get('/send-quotations/all', [App\Http\Controllers\SalesOfficer\QuotationsController::class, 'index'])->name('send-quotations.index');
         Route::get('/submitted-order/all', [App\Http\Controllers\SalesOfficer\OrderController::class, 'index'])->name('submitted-order.index');
         Route::get('/paynow/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'paynow'])->name('paynow.index');
@@ -113,7 +112,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::post('/delivery/upload-proof', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'uploadProof'])->name('delivery.upload-proof');
         Route::post('/delivery/cancel/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'cancelDelivery'])->name('delivery.cancel');
         Route::get('/delivery/ratings', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'deliveryRatings'])->name('delivery.ratings');
-        Route::get('/delivery/sales-inv/{id}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'show_sales_inv'])->name('delivery.sales.inv');
+        Route::get('/delivery/sales-inv/{prId}/{customerId}', [App\Http\Controllers\DeliveryRider\DeliveryController::class, 'show_sales_inv'])->name('delivery.sales.inv');
     });
 
     /* B2B */
@@ -194,8 +193,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::get('user-profile/settings', [App\Http\Controllers\SettingsController::class, 'getUserProfile']);
     Route::post('/profile/update', [App\Http\Controllers\SettingsController::class, 'updateProfile'])->name('profile.update');
 
-    // Route::post('generalsettings-company', [App\Http\Controllers\GeneralSettingsController::class, 'company']);
-    // Route::post('generalsettings-profile', [App\Http\Controllers\GeneralSettingsController::class, 'profile']);
-    // Route::post('generalsettings-account', [App\Http\Controllers\GeneralSettingsController::class, 'account']);
-    // Route::post('generalsettings-password', [App\Http\Controllers\GeneralSettingsController::class, 'password']);
+    Route::get('summary-sales', [App\Http\Controllers\HomeController::class, 'summary_sales'])->name('summary.sales');
+    Route::get('/summary-sales-api/{date_from}/{date_to}', [App\Http\Controllers\HomeController::class, 'summary_sales_api'])->name('summary.sales.api');
+    Route::get('/download/summary-sales/export/{date_from}/{date_to}', [App\Http\Controllers\HomeController::class, 'export'])->name('sales-summary.export');
 });

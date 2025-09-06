@@ -46,7 +46,7 @@ class TrackingController extends Controller
                     return '₱' . number_format($total, 2);
                 })
                 ->addColumn('is_credit', function ($pr) {
-                    return '<span class="badge badge-primary">'. $pr->credit  ? 'Yes' : 'No'.'</span>';
+                    return $pr->credit ? 'Yes' : 'No';
                 })
                 ->addColumn('credit_amount', function ($pr) {
                     return is_null($pr->credit_amount) ? '0.00' : '₱'. $pr->credit_amount;
@@ -221,7 +221,26 @@ class TrackingController extends Controller
                     return $order->order_number ?? '-';
                 })
                 ->addColumn('total_amount', function ($order) {
-                    return '₱' . number_format($order->total_amount ?? 0, 2);
+                    $subtotal = $order->items->sum(function ($item) {
+                        return $item->quantity * ($item->product->price ?? 0);
+                    });
+
+                    $vatRate = 0;
+                    $deliveryFee = 0;
+
+                    if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
+                        $purchaseRequestId = $matches[1];
+                        $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+                        if ($purchaseRequest) {
+                            $vatRate = $purchaseRequest->vat ?? 0;
+                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                        }
+                    }
+
+                    $vat = $subtotal * ($vatRate / 100);
+                    $grandTotal = $subtotal + $vat + $deliveryFee;
+
+                    return '₱' . number_format($grandTotal, 2);
                 })
                 ->addColumn('total_items', function ($order) {
                     return $order->items->sum('quantity');

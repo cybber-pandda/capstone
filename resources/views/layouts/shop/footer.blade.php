@@ -136,34 +136,12 @@
                             </a>
                         </div>
 
-                        <div class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                        <div>
+                            <a href="{{ route('b2b.purchase-requests.index') }}">
                                 <i class="fa-solid fa-box"></i>
                                 <span>PR</span>
-                                @if($pendingRequestCount > 0)
-                                <div class="qty" id="purchase-request-count">{{ $pendingRequestCount }}</div>
-                                @else
-                                <div class="qty d-none" id="purchase-request-count">0</div>
-                                @endif
                             </a>
-                            <div class="cart-dropdown">
-                                <div class="cart-list" id="cart-list">
-                                    <!-- Product widgets will be injected here -->
-                                </div>
-
-                                <div class="cart-summary">
-                                    <small id="cart-total-quantity">0 Item(s) selected</small>
-                                    <h5 id="cart-subtotal">GRAND TOTAL: $0.00</h5>
-                                </div>
-
-                                <div class="cart-btns p-1 {{ Route::is('b2b.purchase-requests.index') ? 'd-none' : '' }}">
-                                    <a href="{{ route('b2b.purchase-requests.index') }}" style="font-size:12px;width:100%">View All</a>
-                                </div>
-                            </div>
-
                         </div>
-
-
 
                         <!-- Menu Toogle -->
                         <div class="menu-toggle">
