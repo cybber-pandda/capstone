@@ -254,6 +254,7 @@ class CreditController extends Controller
             'paid_date' => now(),
             'proof_payment' => $path,
             'reference_number' => $request->reference_number,
+            'status' => $creditPayment->status === 'reject' ? 'pending' : 'pending'
         ]);
 
         return response()->json([
