@@ -64,9 +64,9 @@ class QuotationController extends Controller
                 ->addColumn('action', function ($pr) {
                     switch ($pr->status) {
                         case 'po_submitted':
-                            return '<span class="badge bg-info text-dark p-2">Purchase Order Submitted — Sales Officer Reviewing Order</span>';
+                            return '<span class="badge bg-info text-dark p-2">PO Submitted — SO Reviewing Order</span>';
                         case 'so_created':
-                            return '<span class="badge bg-info text-dark p-2">Sales Order Created — Processing Delivery</span>';
+                            return '<span class="badge bg-info text-dark p-2">SO Created — Processing Delivery</span>';
                         case 'reject_quotation':
                             return '
                             <div style="display: flex; flex-direction: column;">

@@ -46,6 +46,16 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.css" />
 
+    @if(Route::is('home'))
+    <style>
+        @media (max-width: 767.98px) {
+            .section-title {
+                display: none;
+            }
+        }
+    </style>
+    @endif
+
     <style>
         @media (max-width: 767.98px) {
 
@@ -130,10 +140,6 @@
             #showHeaderFormobile {
                 padding-top: 0px !important;
                 padding-bottom: 0px !important;
-            }
-
-            .section-title {
-                display: none;
             }
 
             #showPaginateMobile {
@@ -538,7 +544,9 @@
             }
         });
 
-        window.purchaseRequestCart = {!!$cartJson!!};
+        window.purchaseRequestCart = {
+            !!$cartJson!!
+        };
 
         $(document).ready(function() {
             updateCartDropdown();

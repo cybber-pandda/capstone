@@ -54,7 +54,7 @@ class B2BAddressController extends Controller
         try {
             $response = Http::timeout(10)
                 ->withHeaders([
-                    'User-Agent' => 'Laravel App - yourdomain.com', // REQUIRED
+                    'User-Agent' => 'https://tantucoctc.store/', // REQUIRED
                     'Accept-Language' => 'en-US'
                 ])
                 ->get('https://nominatim.openstreetmap.org/search', [
