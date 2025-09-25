@@ -300,10 +300,12 @@ class ACPaymentController extends Controller
     public function account_receivable(Request $request)
     {
         $today = Carbon::today();
+        
+        $status = array('pending', 'reject', 'unpaid');
 
         // Overall totals
-        $totalPendingStraight = CreditPayment::where('status', 'pending')->sum('paid_amount');
-        $totalPendingPartial  = CreditPartialPayment::where('status', 'pending')->sum('amount_to_pay');
+        $totalPendingStraight = CreditPayment::whereIn('status', $status)->sum('paid_amount');
+        $totalPendingPartial  = CreditPartialPayment::whereIn('status', $status)->sum('amount_to_pay');
         $totalPending = $totalPendingStraight + $totalPendingPartial;
 
         $totalOverDueStraight = CreditPayment::with('purchaseRequest:id,credit_amount')
@@ -325,15 +327,15 @@ class ACPaymentController extends Controller
         $customers = User::whereHas('purchaseRequests')
             ->with(['purchaseRequests.creditPayment', 'purchaseRequests.creditPartialPayments'])
             ->get()
-            ->map(function ($customer) use ($today) {
+            ->map(function ($customer) use ($today, $status) {
 
                 $pendingStraight = $customer->purchaseRequests
-                    ->filter(fn($pr) => $pr->creditPayment && $pr->creditPayment->status === 'pending')
+                    ->filter(fn($pr) => $pr->creditPayment && in_array($pr->creditPayment->status, $status))
                     ->sum('credit_amount');
 
                 $pendingPartial = $customer->purchaseRequests
                     ->flatMap(fn($pr) => $pr->creditPartialPayments)
-                    ->filter(fn($payment) => $payment->status === 'pending')
+                    ->filter(fn($payment) => in_array($payment->status, $status))
                     ->sum('amount_to_pay');
 
                 $overdueStraight = $customer->purchaseRequests

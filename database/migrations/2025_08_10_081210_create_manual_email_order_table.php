@@ -23,6 +23,7 @@ class CreateManualEmailOrderTable extends Migration
             $table->string('order_date')->nullable();
             $table->json('purchase_request')->nullable();
             $table->string('remarks')->nullable();
+            $table->integer('delivery_fee')->default(0);
             $table->enum('status', ['pending', 'waiting','approve', 'rejected'])->default('pending');
             $table->timestamps();
         });

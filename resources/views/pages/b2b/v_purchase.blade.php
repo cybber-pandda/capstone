@@ -181,7 +181,17 @@
                     orderable: false,
                     searchable: false
                 },
-            ]
+            ],
+            createdRow: function(row, data, dataIndex) {
+                $('td', row).eq(0).attr('data-label', 'Image:');
+                $('td', row).eq(1).attr('data-label', 'SKU:');
+                $('td', row).eq(2).attr('data-label', 'Name:');
+                $('td', row).eq(3).attr('data-label', 'Price:');
+                $('td', row).eq(4).attr('data-label', 'Quantity:');
+                $('td', row).eq(5).attr('data-label', 'Subtotal:');
+                $('td', row).eq(6).attr('data-label', 'Created At:');
+                // $('td', row).eq(7).attr('data-label', 'Actions');
+            }
         });
 
 

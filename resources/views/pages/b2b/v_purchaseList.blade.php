@@ -59,10 +59,10 @@
                 $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
                 @endphp
                 <tr data-id="{{ $item->id }}">
-                    <td><img src="{{ asset($image) }}" width="50" height="50" alt="Image"></td>
-                    <td>{{ $product->sku }}</td>
-                    <td>{{ $product->name }}</td>
-                    <td>₱{{ number_format($product->discount == 0 ? $product->price : $product->discounted_price , 2) }}</td>
+                    <td data-label="Image:"><img src="{{ asset($image) }}" width="50" height="50" alt="Image"></td>
+                    <td data-label="SKU:">{{ $product->sku }}</td>
+                    <td data-label="Product:">{{ $product->name }}</td>
+                    <td data-label="Price:">₱{{ number_format($product->discount == 0 ? $product->price : $product->discounted_price , 2) }}</td>
                     <td>
                         <center>
                             <div class="input-group" style="max-width: 130px;display: flex; align-items: center;">
@@ -73,8 +73,8 @@
                             </div>
                         </center>
                     </td>
-                    <td>₱{{ $item->subtotal }}</td>
-                    <td>{{ $item->created_at->toDateTimeString() }}</td>
+                    <td data-label="Subtotal:">₱{{ $item->subtotal }}</td>
+                    <td data-label="Date:">{{ $item->created_at->toDateTimeString() }}</td>
                     <td>
                         <center>
                             <button class="btn btn-danger btn-sm btn-remove-item">Remove</button>

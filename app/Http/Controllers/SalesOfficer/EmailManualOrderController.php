@@ -38,13 +38,17 @@ class EmailManualOrderController extends Controller
                     $products = json_decode($pr->purchase_request, true) ?? [];
                     return array_sum(array_column($products, 'qty'));
                 })
+                ->addColumn('delivery_fee', function ($pr) {
+                    return '₱' .$pr->delivery_fee;
+                })
                 ->addColumn('grand_total', function ($pr) {
                     $products = json_decode($pr->purchase_request, true) ?? [];
+                    $deliveryFee = $pr->delivery_fee ?? 0;
                     $total = 0;
                     foreach ($products as $product) {
                         $total += ((float) $product['qty']) * ((float) $product['price']);
                     }
-                    return '₱' . number_format($total, 2);
+                    return '₱' . number_format($total + $deliveryFee, 2);
                 })
                 ->editColumn('created_at', function ($pr) {
                     return $pr->created_at->format('F d, Y H:i:s');
@@ -54,6 +58,8 @@ class EmailManualOrderController extends Controller
                 })
                 ->addColumn('action', function ($pr) {
                     $products = json_decode($pr->purchase_request, true) ?? [];
+                    $deliveryFee = $pr->delivery_fee ?? 0;
+                    $requestId = $pr->id ?? null;
 
                     // Fetch product and category names
                     $detailedProducts = [];
@@ -65,12 +71,12 @@ class EmailManualOrderController extends Controller
                             'category' => $categoryName ?? 'N/A',
                             'product'  => $productName ?? 'N/A',
                             'qty'      => $p['qty'],
-                            'price'    => $p['price']
+                            'price'    => $p['price'], 
                         ];
                     }
 
                     $buttons = '<button class="btn btn-sm btn-primary view-products" 
-                                    data-products=\'' . json_encode($detailedProducts) . '\'>
+                                    data-products=\'' . json_encode($detailedProducts) . '\' data-fee="'.$deliveryFee.'" data-id="'.$requestId.'">
                                     View
                                 </button> ';
 
@@ -174,4 +180,28 @@ class EmailManualOrderController extends Controller
             'message' => 'Email manual order successfully sent!',
         ], 200);
     }
+
+    public function delivery_fee(Request $request){
+        $validator = Validator::make($request->all(), [
+            'manual_order_fee' => 'required',
+            'order_id' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $manualOrder = ManualEmailOrder::findOrFail($request->order_id);
+        $manualOrder->delivery_fee = $request->manual_order_fee;
+        $manualOrder->save();
+
+        return response()->json([
+            'type' => 'success',
+            'message' => 'Delivery successfully updated!',
+        ], 200);
+
+    }
+
 }

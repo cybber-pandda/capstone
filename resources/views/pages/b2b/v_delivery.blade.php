@@ -109,7 +109,15 @@
                     searchable: false,
                     width: "220px" // ✅ set fixed width
                 },
-            ]
+            ],
+            createdRow: function(row, data, dataIndex) {
+                $('td', row).eq(0).attr('data-label', 'Order #');
+                $('td', row).eq(1).attr('data-label', 'Driver');
+                $('td', row).eq(2).attr('data-label', 'Total');
+                $('td', row).eq(3).attr('data-label', 'Status');
+                $('td', row).eq(4).attr('data-label', 'Rating');
+                $('td', row).eq(5).attr('data-label', '');
+            }
         });
 
         $(document).on("click", ".view-proof-btn", function() {

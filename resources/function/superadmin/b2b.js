@@ -18,12 +18,8 @@ $(document).ready(function () {
             [5, 10, 30, 50, "All"],
         ],
         iDisplayLength: 10,
-        language: {
-            search: "",
-        },
-        fixedHeader: {
-            header: true,
-        },
+        language: { search: "" },
+        fixedHeader: { header: true },
         scrollCollapse: true,
         scrollX: true,
         scrollY: 600,
@@ -37,39 +33,29 @@ $(document).ready(function () {
                 searchable: false,
                 width: "10%",
             },
-            {
-                data: "name",
-                name: "name",
-                width: "20%",
-            },
-            {
-                data: "username",
-                name: "username",
-                width: "15%",
-            },
-            {
-                data: "email",
-                name: "email",
-                width: "20%",
-            },
+            { data: "name", name: "name", width: "20%" },
+            { data: "username", name: "username", width: "15%" },
+            { data: "email", name: "email", width: "20%" },
             {
                 data: "created_at",
                 name: "created_at",
                 width: "15%",
-                render: function (data) {
-                    return new Date(data).toLocaleString();
-                },
+                render: (data) => new Date(data).toLocaleString(),
             },
-            {
-                data: "action",
-                name: "action",
-                orderable: false,
-                searchable: false,
-                width: "15%",
-            },
+            // Conditionally add the action column
+            ...(superadmin === 1
+                ? [
+                      {
+                          data: "action",
+                          name: "action",
+                          orderable: false,
+                          searchable: false,
+                          width: "15%",
+                      },
+                  ]
+                : []),
         ],
         drawCallback: function () {
-            // Re-initialize Lucide icons
             if (typeof lucide !== "undefined") {
                 lucide.createIcons();
             }
@@ -101,21 +87,22 @@ $(document).ready(function () {
 
         $.get(`/b2b-creation/${B2BId}/edit`, function (response) {
             const fullName = response.data.name.split(" ");
-            
+
             // $('#B2BForm input[name="creditlimit"]').val(response.data.credit_limit);
             $('#B2BForm input[name="firstname"]').val(fullName[0]);
             $('#B2BForm input[name="lastname"]').val(fullName[1]);
             $('#B2BForm input[name="username"]').val(response.data.username);
             $('#B2BForm input[name="email"]').val(response.data.email);
-            $('#B2BForm input[name="password"]').val('');
+            $('#B2BForm input[name="password"]').val("");
         });
     });
 
-    $('#togglePassword').on('click', function() {
-        const passwordField = $('#password');
-        const type = passwordField.attr('type') === 'password' ? 'text' : 'password';
-        passwordField.attr('type', type);
-        $(this).text(type === 'password' ? 'Show Password' : 'Hide Password');
+    $("#togglePassword").on("click", function () {
+        const passwordField = $("#password");
+        const type =
+            passwordField.attr("type") === "password" ? "text" : "password";
+        passwordField.attr("type", type);
+        $(this).text(type === "password" ? "Show Password" : "Hide Password");
     });
 
     $(document).on("click", ".delete", function () {
@@ -206,12 +193,12 @@ $(document).ready(function () {
                 );
             },
         })
-        .done(function (response) {
-            toast(response.type, response.message);
-            table.ajax.reload();
-        })
-        .fail(function (data) {
-            console.log(data);
-        });
+            .done(function (response) {
+                toast(response.type, response.message);
+                table.ajax.reload();
+            })
+            .fail(function (data) {
+                console.log(data);
+            });
     }
 });

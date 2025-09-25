@@ -544,9 +544,7 @@
             }
         });
 
-        window.purchaseRequestCart = {
-            !!$cartJson!!
-        };
+        window.purchaseRequestCart = {!!$cartJson!!};
 
         $(document).ready(function() {
             updateCartDropdown();

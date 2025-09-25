@@ -8,17 +8,20 @@
             <button class="btn btn-primary btn-sm" id="addAddressBtn" style="margin-top:-30px;padding:5px;">Add Address</button>
         </div>
 
-        @component('components.table', [
-        'id' => 'b2bAddressTable',
-        'thead' => '
-        <tr>
-            <th>Select</th>
-            <th>Full Address</th>
-            <th>Status</th>
-            <th>Created At</th>
-        </tr>
-        ' ])
-        @endcomponent
+        <table id="b2bAddressTable" class="table-2">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Full Address</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+
+
     </div>
 </div>
 
@@ -87,7 +90,7 @@
         scrollX: true,
         scrollY: 600,
         autoWidth: false,
-        responsive: true,
+        // responsive: true,
         ajax: '{{ route("b2b.address.index") }}',
         columns: [{
                 data: 'select',
@@ -107,8 +110,14 @@
                 data: 'created_at',
                 name: 'created_at'
             }
-        ]
-    });
+        ],
+        createdRow: function(row, data, dataIndex) {
+            $('td', row).eq(0).attr('data-label', 'Select:');
+            $('td', row).eq(1).attr('data-label', 'Address:');
+            $('td', row).eq(2).attr('data-label', 'Status:');
+            $('td', row).eq(3).attr('data-label', 'Date Created:');
+        }
+});
 
 
 
@@ -200,10 +209,10 @@
                 id: addressId
             },
             success: function() {
-               table.ajax.reload();
+                table.ajax.reload();
             },
             error: function() {
-                toast('warning','Failed to update default address.');
+                toast('warning', 'Failed to update default address.');
             }
         });
     });

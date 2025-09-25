@@ -172,8 +172,19 @@ class PurchaseRequestController extends Controller
         ]);
 
         $product = Product::findOrFail($request->product_id);
+        
+        // ✅ Check available stock
+        $availableStock = $product->current_stock;
 
         $item = $purchaseRequest->items()->where('product_id', $request->product_id)->first();
+
+        $requestedQty = $request->quantity + ($item ? $item->quantity : 0);
+
+        if ($requestedQty > $availableStock) {
+            return response()->json([
+                'message' => "Not enough stock available. Requested: {$requestedQty}, Available: {$availableStock}"
+            ], 400, [], JSON_UNESCAPED_UNICODE);
+        }
 
         if ($item) {
             $item->quantity += $request->quantity;

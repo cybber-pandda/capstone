@@ -158,7 +158,7 @@ $(document).ready(function () {
             success: function (response) {
                 // Build HTML table dynamically
                 let tableHtml = `
-                <table class="table table-striped">
+                <table class="table table-striped table-2">
                     <thead>
                         <tr>
                             <th>Amount to Pay</th>
@@ -178,13 +178,13 @@ $(document).ready(function () {
                     response.forEach((item, index) => {
                         tableHtml += `
                         <tr>
-                            <td>₱${parseFloat(
+                            <td data-label="Amount to Pay:">₱${parseFloat(
                                 item.amount_to_pay
                             ).toLocaleString(undefined, {
                                 minimumFractionDigits: 2,
                             })}</td>
-                            <td>${item.due_date_formatted ?? "--"}</td>
-                            <td>
+                            <td data-label="Due Date:">${item.due_date_formatted ?? "--"}</td>
+                            <td data-label="Status:">
                                 <span class="badge ${
                                     item.status === "pending"
                                         ? "bg-warning text-dark"
@@ -196,9 +196,9 @@ $(document).ready(function () {
                                     }
                                 </span>
                             </td>
-                            <td>${item.date_paid ?? "--"}</td>
-                            <td>${item.paid_amount ?? "--"}</td>
-                            <td>
+                            <td data-label="Date Paid:">${item.date_paid ?? "--"}</td>
+                            <td data-label="Paid Amount:">${item.paid_amount ?? "--"}</td>
+                            <td data-label="Proof:">
                                 ${
                                     item.proof_payment
                                         ? `<a href="${item.proof_payment}" target="_blank">
@@ -207,7 +207,7 @@ $(document).ready(function () {
                                         : "--"
                                 }
                             </td>
-                            <td>${item.reference_number ?? "--"}</td>
+                            <td data-label="Reference:">${item.reference_number ?? "--"}</td>
                             <td>
                                 ${
                                     item.proof_payment && item.reference_number &&  item.status === 'pending'

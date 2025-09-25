@@ -43,6 +43,13 @@ $(document).ready(function () {
                 responsivePriority: 1,
                 width: "5%",
             },
+            {
+                data: "delivery_fee",
+                name: "delivery_fee",
+                className: "dt-left-int",
+                responsivePriority: 1,
+                width: "5%",
+            },
             { data: "grand_total", name: "grand_total", width: "5%" },
             // { data: "created_at", name: "created_at",   className: "dt-left-int", responsivePriority: 1, width: "15%" },
             { data: "status", name: "status", width: "10%" },
@@ -142,6 +149,21 @@ $(document).ready(function () {
         $(".modal-title").text("Purchase Request Items");
 
         let products = JSON.parse($(this).attr("data-products"));
+        let deliveryFee = JSON.parse($(this).attr("data-fee"));
+        let requestId = $(this).attr("data-id");
+
+        if (deliveryFee == 0) {
+            $('#manualOrderFeebtn').removeClass('d-none');
+            $('#manualOrderFeebtn').text('Add Delivery Fee');
+            $('#manualOrderFeebtn').attr('data-id', requestId);
+        } else if (deliveryFee > 0) {
+            $('#manualOrderFeebtn').removeClass('d-none');
+            $('#manualOrderFeebtn').text('Edit Delivery Fee');
+            $('#manualOrderFeebtn').attr('data-id', requestId);
+        } else {
+            $('#manualOrderFeebtn').addClass('d-none');
+            $('#manualOrderFeebtn').removeAttr('data-id');
+        }
 
         let totalQty = 0;
         let grandTotal = 0;
@@ -183,7 +205,7 @@ $(document).ready(function () {
         // Compute VAT and Delivery Fee
         const vatAmount = grandTotal * VAT_RATE;
         const totalWithVat = grandTotal + vatAmount;
-        const finalTotal = totalWithVat + DELIVERY_FEE;
+        const finalTotal = totalWithVat + deliveryFee;
 
         html += `
             </tbody>
@@ -198,8 +220,8 @@ $(document).ready(function () {
                     <th class="text-end">₱${vatAmount.toFixed(2)}</th>
                 </tr>
                 <tr>
-                    <th colspan="3" class="text-end">Delivery Fee <br> <i style="font-size:12px;">Quezon Province<i></th>
-                    <th class="text-end">₱${DELIVERY_FEE.toFixed(2)}</th>
+                    <th colspan="3" class="text-end">Delivery Fee <br> <i style="font-size:12px;">${deliveryFee == 0 ? 'No delivery fee' : ''}<i></th>
+                    <th class="text-end">₱${deliveryFee.toFixed(2)}</th>
                 </tr>
                 <tr>
                     <th colspan="3" class="text-end">Grand Total (Incl. VAT + Delivery)</th>
@@ -260,4 +282,68 @@ $(document).ready(function () {
             },
         });
     });
+
+    $(document).on("click", "#manualOrderFeebtn", function () {
+        const id = $(this).attr('data-id');
+        $(".modal-title").text("Manual Order Delivery Fee");
+        $("#deliveryFeeModal").modal("show");
+        $("#deliveryFeeForm")[0].reset();
+        $("#deliveryFeeForm").attr('data-rid', id);
+        $("#viewProductModal").modal("hide");
+    });
+
+    $(document).on("click", "#closeDeliveryFeeModal", function () {
+        $("#viewProductModal").modal("show");
+    });
+
+    $("#deliveryFeebtn").on("click", function (e) {
+        e.preventDefault();
+
+        showLoader(".deliveryFeebtn");
+
+        let form = $("#deliveryFeeForm")[0];
+        let url = $(form).attr("action");
+        let method = $(form).attr("method");
+        let formData = new FormData(form);
+
+        // Append order_id from data-rid attribute
+        let orderId = $(form).attr('data-rid');
+        formData.append('order_id', orderId);
+
+        $("#deliveryFeebtn").prop("disabled", true);
+
+        $.ajax({
+            url: url,
+            method: method,
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (response) {
+                hideLoader(".deliveryFeebtn");
+                $("#deliveryFeeForm")[0].reset();
+                $("#deliveryFeebtn").prop("disabled", false);
+                toast("success", response.message);
+                $("#deliveryFeeModal").modal("hide");
+                table.ajax.reload();
+            },
+            error: function (response) {
+                hideLoader(".deliveryFeebtn");
+                $("#deliveryFeebtn").prop("disabled", false);
+                if (response.status === 422) {
+                    let errors = response.responseJSON.errors;
+                    $.each(errors, function (key, value) {
+                        $("#" + key).addClass("border-danger is-invalid");
+                        $("#" + key + "_error").html(
+                            "<strong>" + value[0] + "</strong>"
+                        );
+                    });
+                }
+            },
+        });
+    });
+
+    
+
+
+    
 });

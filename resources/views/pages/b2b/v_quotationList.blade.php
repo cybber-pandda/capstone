@@ -273,8 +273,9 @@
                     url: `/b2b/quotations/status/${trackId}`,
                     method: 'GET',
                     success: function(res) {
-                        if (res.status === 'so_created' || res.status === 'delivery_in_progress') {
+                        if (res.status === 'delivery_in_progress') {
                             clearInterval(interval);
+
                             Swal.fire({
                                 icon: 'info',
                                 title: 'Your Order is on the Way!',

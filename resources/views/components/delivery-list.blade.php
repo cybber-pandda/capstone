@@ -41,28 +41,28 @@
             @endphp
 
             <tr>
-                <td>{{ $delivery->order_number }}</td>
-                <td>{{ $delivery->user->name ?? 'N/A' }}</td>
-                <td>
+                <td data-label="Order #:">{{ $delivery->order_number }}</td>
+                <td data-label="Customer:">{{ $delivery->user->name ?? 'N/A' }}</td>
+                <td data-label="Address:">
                     <span class="view-full-address text-primary" style="cursor:pointer;" data-address="{{ e($fullAddress) }}" title="Click to view full address">
                         {{ e($shortAddress) }}
                     </span>
                 </td>
-                <td>
+                <td data-label="Status:">
                     <span class="badge bg-warning">
                         {{ $delivery->delivery->status ?? 'N/A' }}
                     </span>
                 </td>
-                <td>{{ $delivery->items->sum('quantity') }}</td>
-                <td>₱{{ number_format($grandTotal, 2) }}</td>
-                <td>
+                <td data-label="Total Items:">{{ $delivery->items->sum('quantity') }}</td>
+                <td data-label="Total Amount:">₱{{ number_format($grandTotal, 2) }}</td>
+                <td data-label="Items:">
                     <ul class="mb-0 delivery-list">
                         @foreach($delivery->items as $item)
                         <li>{{ $item->product->name ?? 'Unknown Product' }} x{{ $item->quantity }}</li>
                         @endforeach
                     </ul>
                 </td>
-                <td>
+                <td data-label="Action:">
                     <button
                         type="button"
                         class="btn btn-sm btn-inverse-primary pickup-btn"

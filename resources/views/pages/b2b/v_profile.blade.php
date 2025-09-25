@@ -124,7 +124,7 @@
                         <input type="password" class="form-control" name="password_confirmation">
                     </div>
 
-                    <button type="submit" class="btn btn-success">Save Changes</button>
+                    <button type="submit" class="btn btn-success" style="margin-bottom: 45px;">Save Changes</button>
                 </form>
             </div>
         </div>

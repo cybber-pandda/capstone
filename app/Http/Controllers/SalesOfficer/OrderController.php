@@ -59,7 +59,7 @@ class OrderController extends Controller
     public function sales_invoice(Request $request)
     {
         if ($request->ajax()) {
-            $query = PurchaseRequest::with(['customer', 'items.product'])->latest();
+            $query = PurchaseRequest::with(['customer', 'items.product'])->where('status', 'so_created')->latest();
 
             return DataTables::of($query)
                 ->addColumn('customer_name', function ($pr) {
@@ -102,7 +102,7 @@ class OrderController extends Controller
 
     public function show_sales_invoice($id)
     {
-        $quotation = PurchaseRequest::with(['items.product.productImages'])->findOrFail($id);
+        $quotation = PurchaseRequest::with(['items.product.productImages'])->where('status', 'so_created')->findOrFail($id);
 
         $page = 'B2B Sales Invoice';
         $b2bReq = null;
@@ -139,7 +139,14 @@ class OrderController extends Controller
             $cleanedOrderNum = preg_replace('/^REF\s*(\d+)-.*/', '$1', $request->quotation_id);
 
             // Find order
-            $order = Order::whereRaw("order_number LIKE ?", ["REF {$cleanedOrderNum}-%"])->firstOrFail();
+            $order = Order::whereRaw("order_number LIKE ?", ["REF {$cleanedOrderNum}-%"])->first();
+
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No order found with this quotation ID.',
+                ], 404);
+            }
 
             if ($order) {
                 $delivery = Delivery::where('order_id', $order->id)->first();

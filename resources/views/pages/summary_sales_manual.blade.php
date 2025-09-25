@@ -8,7 +8,7 @@
         ['label' => 'Total Sales (VAT Inclusive)', 'value' => $total],
         ['label' => 'VAT Amount', 'value' => $vatAmount],
         ['label' => 'VAT Exclusive Sales', 'value' => $vatExclusive],
-        ['label' => 'Total Amount', 'value' => $subtotal],
+        ['label' => 'Total Amount', 'value' => $total],
         ] as $stat)
         <div class="col-md-3 grid-margin stretch-card">
             <div class="card">
@@ -33,16 +33,17 @@
         @endif
     </div>
 
-    <div class="d-flex justify-content-between mb-3">
-        <div class="d-flex">
-            <input id="date_from" class="form-control me-2" type="date">
-            <input id="date_to" class="form-control me-2" type="date">
+    <div class="d-flex flex-column flex-md-row justify-content-between mb-3">
+        <div class="d-flex flex-column flex-sm-row mb-2 mb-md-0">
+            <input id="date_from" class="form-control me-0 me-sm-2 mb-2 mb-sm-0" type="date">
+            <input id="date_to" class="form-control me-0 me-sm-2 mb-2 mb-sm-0" type="date">
             <input id="clear_date" class="form-control text-center btn btn-dark" value="CLEAR DATE">
         </div>
-        <div>
-            <button id="downloadExcel" class="btn btn-primary">Download as Excel</button>
+        <div class="mt-2 mt-md-0">
+            <button id="downloadExcel" class="btn btn-primary w-100 w-md-auto">Download as Excel</button>
         </div>
     </div>
+
 
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
@@ -98,8 +99,7 @@
             ajax: {
                 url: getApiUrl() // call the function, don’t pass function itself
             },
-            columns: [
-                {
+            columns: [{
                     data: 'invoice_no',
                     name: 'invoice_no'
                 },

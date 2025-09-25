@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ManualEmailOrder;
+use App\Models\Inventory;
 
 class WelcomeController extends Controller
 {
@@ -168,6 +169,15 @@ class WelcomeController extends Controller
             ]);
 
             $message = 'Manual purchase request saved successfully!';
+        }
+
+        foreach ($validated['products'] as $product) {
+            Inventory::create([
+                'product_id' => $product['product_id'],
+                'type'       => 'out',
+                'quantity'   => $product['qty'],
+                'reason'     => 'sold',
+            ]);
         }
 
         return response()->json([

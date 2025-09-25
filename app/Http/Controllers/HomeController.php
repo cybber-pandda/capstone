@@ -376,7 +376,9 @@ class HomeController extends Controller
     {
         $page = 'Summary List of Sales';
 
-        $purchaseRequests = PurchaseRequest::with(['items.product'])->get();
+        $purchaseRequests = PurchaseRequest::with(['items.product'])
+        ->where('status', '!=', 'reject_quotation')
+        ->get();
 
         // Subtotal of items only (excluding VAT & delivery fee)
         $subtotal = $purchaseRequests->sum(function ($pr) {
@@ -413,6 +415,10 @@ class HomeController extends Controller
     {
         $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
             ->whereBetween('created_at', [$date_from, $date_to])
+            ->where(function ($q) {
+                $q->where('status', '!=', 'reject_quotation')
+                ->orWhereNull('status');
+            })
             ->get();
 
         return DataTables::of($query)

@@ -94,6 +94,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
         Route::get('/email-manual-order', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'index'])->name('email.manual.order');
         Route::post('/submit-email-manual-order', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'submit_manual_order'])->name('submit.email-manual.order');
         Route::post('/manual-email-order/approve', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'approve'])->name('manualemailorder.approve');
+        Route::post('/manual-email-order/delivery-fee', [App\Http\Controllers\SalesOfficer\EmailManualOrderController::class, 'delivery_fee'])->name('manualemailorder.delivery.fee');
         Route::get('/return-refund/all', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'index'])->name('return-refund.index');
         Route::get('/return-refund/data', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'data'])->name('return-refund.data');
         Route::get('/return-details/{return}', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'returnDetails'])->name('return-refund.return-details');

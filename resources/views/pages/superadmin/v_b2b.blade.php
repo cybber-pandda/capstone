@@ -6,6 +6,10 @@
     @include('layouts.dashboard.breadcrumb')
     @endif
 
+    @php
+    $isSuperadmin = Auth::user()->role === 'superadmin';
+    @endphp
+
     <div class="row">
         <div class="col-md-12 grid-margin stretch-card">
             @if(Auth::user()->role === 'superadmin')
@@ -23,9 +27,7 @@
             ])
             @endif
 
-            @php
-            $isSuperadmin = Auth::user()->role === 'superadmin';
-            @endphp
+          
 
             @component('components.table', [
             'id' => 'B2BCreation',
@@ -82,5 +84,8 @@
 @endsection
 
 @push('scripts')
+<script>
+const superadmin = <?php echo $isSuperadmin ? 1 : 0 ; ?>
+</script>
 <script src="{{ route('secure.js', ['filename' => 'b2b']) }}"></script>
 @endpush

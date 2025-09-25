@@ -20,6 +20,7 @@ class ManualEmailOrder extends Model
         'order_date',
         'purchase_request',
         'remarks',
+        'delivery_fee',
         'status'
     ];
 

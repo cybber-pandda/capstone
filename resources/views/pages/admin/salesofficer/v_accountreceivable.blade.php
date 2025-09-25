@@ -6,7 +6,7 @@
     {{-- Summary Cards --}}
     <div class="row mb-4">
         @foreach ([
-        ['label' => 'Total Overdue', 'value' => $totalOverDue],
+        ['label' => 'Total Due Date Overdue', 'value' => $totalOverDue],
         ['label' => 'Total Balance', 'value' => $totalBalance],
         ] as $stat)
         <div class="col-md-6 grid-margin stretch-card">
@@ -150,7 +150,7 @@
                 <div id="straightPaymentBox" class="d-none">
                     <h5 class="text-uppercase">Straight Payment List</h5>
 
-                    <table class="table table-striped table-sm mt-3 mb-3" id="straightPRTable">
+                    <table class="table table-striped table-sm mt-3 mb-3 table-2" id="straightPRTable">
                         <thead>
                             <tr>
                                 <th>Invoice No.</th>
@@ -227,8 +227,8 @@
                 }
 
                 res.prLists.forEach(pr => {
-                    let invoiceTd = `<td>${pr.invoice_number}</td>`;
-                    let creditAmountTd = `<td>₱ ${pr.credit_amount}</td>`;
+                    let invoiceTd = `<td data-label="Invoice #:">${pr.invoice_number}</td>`;
+                    let creditAmountTd = `<td data-label="Credit Amount">₱ ${pr.credit_amount}</td>`;
                     let dateCreated = pr.created_at;
                     let status = pr.status.charAt(0).toUpperCase() + pr.status.slice(1);
 
@@ -236,8 +236,8 @@
                         <tr>
                             ${invoiceTd}
                             ${creditAmountTd}
-                            <td><span class="badge bg-info text-white">${status}</span></td>
-                            <td>${dateCreated}</td>
+                            <td data-label="Status"><span class="badge bg-info text-white">${status}</span></td>
+                            <td data-label="Date Created">${dateCreated}</td>
                             <td>
                                 <button class="btn btn-sm btn-inverse-dark show-pr-payment" 
                                 data-id="${pr.pr_id}" style="font-size:11px;">Show Payment
@@ -286,7 +286,7 @@
                         </div>
                     </div>
 
-                    <table class="table table-striped table-sm mt-3 mb-3" id="paymentDetailsTable">
+                    <table class="table table-striped table-sm mt-3 mb-3 table-2" id="paymentDetailsTable">
                         <thead>
                             <tr>
                                 <th>Invoice No.</th>
@@ -326,11 +326,11 @@
 
                 res.payments.forEach(payment => {
                     let dueDate = new Date(payment.due_date).toLocaleDateString();
-                    let paidAmountTd = `<td>₱ ${parseFloat(payment.paid_amount).toFixed(2)}</td>`;
+                    let paidAmountTd = `<td data-label="Paid Amount:">₱ ${parseFloat(payment.paid_amount).toFixed(2)}</td>`;
                     let amountToPayTd = type === 'partial' ?
-                        `<td>₱ ${parseFloat(payment.amount_to_pay).toFixed(2)}</td>` :
+                        `<td data-label="Amount to Pay:">₱ ${parseFloat(payment.amount_to_pay).toFixed(2)}</td>` :
                         '';
-                    let invoiceTd = `<td>${payment.invoice_number}</td>`;
+                    let invoiceTd = `<td data-label="Invoice #:">${payment.invoice_number}</td>`;
 
                     // Capitalize first letter of status
                     let status = payment.status.charAt(0).toUpperCase() + payment.status.slice(1);
@@ -338,10 +338,10 @@
                     let rowHtml = `
                         <tr>
                             ${invoiceTd}
-                            <td>${dueDate}</td>
+                            <td data-label="Due Date:">${dueDate}</td>
                             ${paidAmountTd}
                             ${amountToPayTd}
-                            <td><span class="badge bg-info text-white">${status}</span></td>
+                            <td data-label="Status:"><span class="badge bg-info text-white">${status}</span></td>
                         </tr>
                     `;
                     tbody.append(rowHtml);

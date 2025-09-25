@@ -42,8 +42,8 @@
                 <h4 class="mb-0"><strong>Billed To</strong></h4>
                 <span><b>Name:</b> {{ $quotation->customer->name ?? 'No customer name provided' }}</span>
                 <span><b>Address:</b> {{ $b2bAddress->full_address ?? 'No full address provided' }}</span>
-                <span><b>TIN:</b> {{ $b2bReqDetails->tin_number ?? 'No TIN provided' }}</span>
-                <span><b>Business Style:</b> {{ $b2bReqDetails->business_name ?? 'No business style provided' }}</span>
+                <span><b>TIN:</b> {{ $b2bReq->tin_number ?? 'No TIN provided' }}</span>
+                <span><b>Business Style:</b> {{ $b2bReq->business_name ?? 'No business style provided' }}</span>
             </div>
 
             <div class="d-flex flex-column">
@@ -174,7 +174,13 @@
                     }
                 },
                 error: function(xhr) {
-                    alert("Error: " + xhr.responseJSON.message);
+                    if(xhr.status === 404) {
+                        alert("Order not found for this quotation ID.");
+                    } else if(xhr.responseJSON && xhr.responseJSON.message) {
+                        alert("Error: " + xhr.responseJSON.message);
+                    } else {
+                        alert("Something went wrong. Please try again.");
+                    }
                 }
             });
         });

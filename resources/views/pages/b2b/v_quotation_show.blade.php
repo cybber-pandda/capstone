@@ -8,10 +8,10 @@
             <h3 class="title">{{ $page }}</h3>
         </div>
 
-        <div class="row" style="margin-bottom: 20px;" id="downloadtoPDF">
+        <div class="row" style="padding:5px;" id="downloadtoPDF">
             <!-- Customer Info Column -->
-            <div class="col-sm-4 col-xs-12" style="margin-bottom: 20px;padding:20px;border:2px solid black;border-radius:10px;">
-                <h3 style="font-weight:bold;text-transform:uppercase;font-size:21px;"><i>Tanctuco Construction & Trading Corporation</i></h3>
+            <div class="col-sm-4 col-xs-12" style="margin-bottom: 5px;padding:20px;border:2px solid black;border-radius:10px;">
+                <h3 style="font-weight:bold;text-transform:uppercase;font-size:16px;"><i>Tanctuco Construction & Trading Corporation</i></h3>
                 <div style="display: flex; flex-direction: column;margin-bottom:10px;">
                     <strong>Balubal, Sariaya, Quezon</strong>
                     <span>VAT Reg TIN: {{ $companySettings->company_vat_reg ?? 'No VAT Reg TIN provided' }}</span>
@@ -23,11 +23,11 @@
                     <h4 style="margin-bottom: 0px;"><strong>Purchase Quotation</strong></h4>
                     <span><b>No:</b> {{ $quotation->id ?? 'No PO provided' }}-{{ date('Ymd', strtotime($quotation->created_at)) }}</span>
                     <span><b>Date Issued:</b> {{ $quotation->date_issued ?? 'No date issued provided' }}</span>
-                    <span>
+                    <span style="font-size:12px;">
                         <strong>Disclaimer:</strong>
                         <i>
-                            This document is system-generated and provided for internal/business reference only. 
-                            It is not BIR-accredited and shall not be considered as an official receipt or invoice 
+                            This document is system-generated and provided for internal/business reference only.
+                            It is not BIR-accredited and shall not be considered as an official receipt or invoice
                             for tax or accounting purposes.
                         </i>
                     </span>
@@ -53,7 +53,49 @@
             <div class="col-sm-8 col-xs-12">
                 <div style="overflow-x: auto; width: 100%;">
 
-                    <table class="table table-bordered" style="min-width: 600px;margin-top: 20px;margin-bottom:20px;">
+                    @php
+                    $subtotal = $quotation->items->sum('subtotal');
+                    $vatRate = $quotation->vat ?? 0;
+                    $vat = $subtotal * ($vatRate / 100);
+                    $delivery_fee = $quotation->delivery_fee ?? 0;
+                    $total = $subtotal + $vat + $delivery_fee;
+                    $vatableSales = $subtotal;
+                    $amountPaid = 0.00;
+
+                    $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
+                    $b2bDate = $quotation->b2b_delivery_date;
+                    $delivery_date = null;
+                    $show_note = false;
+
+                    if (!is_null($b2bDate)) {
+                    $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+                    } elseif ($quotation->status !== 'pending') {
+                    if ($isLargeOrder) {
+                    $delivery_date = now()->addDays(2)->format('F j, Y') . ' to ' . now()->addDays(3)->format('F j, Y');
+                    $show_note = true;
+                    } else {
+                    $delivery_date = now()->format('F j, Y');
+                    }
+                    }
+
+                    @endphp
+
+                    <div class="text-right" style="margin-top: 10px;margin-bottom: 10px;">
+
+                        <a href="{{ route('b2b.quotation.download', ['id' => $quotation->id]) }}" class="btn btn-primary">
+                            <i class="fa fa-file-pdf"></i> Download PDF
+                        </a>
+
+                        <button type="button" class="btn btn-warning" id="submitQuotationBtn" data-id="{{ $quotation->id }}" data-totalpayment="{{ $total }}">
+                            <i class="fa fa-check"></i> Accept
+                        </button>
+
+                        <button type="button" class="btn btn-success cancel-pr-btn" data-id="{{ $quotation->id }}">
+                            <i class="fa fa-xmark"></i> Cancel
+                        </button>
+                    </div>
+
+                    <table class="table table-bordered" style="min-width: 600px;margin-top: 10px;margin-bottom:10px;font-size:12px;">
                         <thead>
                             <tr>
                                 <th>SKU</th>
@@ -78,34 +120,9 @@
                             @endforeach
                         </tbody>
 
-                        @php
-                        $subtotal = $quotation->items->sum('subtotal');
-                        $vatRate = $quotation->vat ?? 0;
-                        $vat = $subtotal * ($vatRate / 100);
-                        $delivery_fee = $quotation->delivery_fee ?? 0;
-                        $total = $subtotal + $vat + $delivery_fee;
-                        $vatableSales = $subtotal;
-                        $amountPaid = 0.00;
 
-                        $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
-                        $b2bDate = $quotation->b2b_delivery_date;
-                        $delivery_date = null;
-                        $show_note = false;
 
-                        if (!is_null($b2bDate)) {
-                        $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
-                        } elseif ($quotation->status !== 'pending') {
-                        if ($isLargeOrder) {
-                        $delivery_date = now()->addDays(2)->format('F j, Y') . ' to ' . now()->addDays(3)->format('F j, Y');
-                        $show_note = true;
-                        } else {
-                        $delivery_date = now()->format('F j, Y');
-                        }
-                        }
-
-                        @endphp
-
-                        <tfoot>
+                        <tfoot style="font-size: 12px;">
                             <tr>
                                 <td colspan="4" class="text-right"><span>Subtotal:</span></td>
                                 <td class="text-right">₱{{ number_format($subtotal, 2) }}</td>
@@ -134,7 +151,7 @@
 
                     </table>
 
-                    <div style="display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content:space-between;font-size:12px;margin-bottom:60px;">
                         <span style="margin-bottom:5px;">
                             <b>Delivery Date:</b><br>
                             {{ $delivery_date }}
@@ -142,25 +159,12 @@
                             <br><small><i>Note: Expect delay if too many orders since we are preparing it.</i></small>
                             @endif
                         </span>
-                        <span><b>Payment Terms:</b><br> {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}</span>
+                        <span style="text-align: right;"><b>Payment Terms</b><br> {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}</span>
                     </div>
 
                 </div>
 
-                <div class="text-right" style="margin-top: 10px;">
 
-                    <a href="{{ route('b2b.quotation.download', ['id' => $quotation->id]) }}" class="btn btn-primary">
-                        <i class="fa fa-file-pdf"></i> Download PDF
-                    </a>
-
-                    <button type="button" class="btn btn-warning" id="submitQuotationBtn" data-id="{{ $quotation->id }}" data-totalpayment="{{ $total }}">
-                        <i class="fa fa-check"></i> Accept
-                    </button>
-
-                    <button type="button" class="btn btn-success cancel-pr-btn" data-id="{{ $quotation->id }}">
-                        <i class="fa fa-xmark"></i> Cancel
-                    </button>
-                </div>
             </div>
         </div>
 
@@ -182,8 +186,8 @@
                             <label for="cod_flg" class="form-label">Payment Method:</label>
                             <select name="cod_flg" id="cod_flg" class="form-control">
                                 <option value="" selected disabled>-- Select Payment Method --</option>
-                                <option value="1">Cash on Delivery</option>
-                                <option value="0">Bank Transfer</option>
+                                <option value="1">Cash on Delivery/Cheque</option>
+                                <!-- <option value="0">Bank Transfer</option> -->
                             </select>
                             <div class="invalid-feedback cod_flg_error text-danger"></div>
                         </div>

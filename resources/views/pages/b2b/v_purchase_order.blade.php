@@ -9,7 +9,7 @@
         </div>
 
         @if($purchaseRequests->count() > 0)
-        <table class="table table-bordered table-hover">
+        <table class="table table-bordered table-hover table-2">
             <thead>
                 <tr>
                     <th>PR #</th>
@@ -30,10 +30,10 @@
                 $total = $subtotal + $vatAmount + $deliveryFee;
                 @endphp
                 <tr>
-                    <td>{{ $pr->id }}-{{ date('Ymd', strtotime($pr->created_at)) }}</td>
-                    <td>{{ $pr->items->sum('quantity') }}</td>
-                    <td>₱{{ number_format($total, 2) }}</td>
-                    <td>
+                    <td data-label="PR #:">{{ $pr->id }}-{{ date('Ymd', strtotime($pr->created_at)) }}</td>
+                    <td data-label="QTY:">{{ $pr->items->sum('quantity') }}</td>
+                    <td data-label="Grand Total:">₱{{ number_format($total, 2) }}</td>
+                    <td data-label="Status:">
                         <span class="badge 
                                     @if($pr->status === 'delivered') badge-success 
                                     @elseif($pr->status === 'pending') badge-warning 
@@ -41,8 +41,8 @@
                             {{ ucfirst($pr->status) }}
                         </span>
                     </td>
-                    <td>{{ $pr->created_at->format('Y-m-d H:i') }}</td>
-                    <td style="text-align:center;">
+                    <td data-label="Date Created:">{{ $pr->created_at->format('Y-m-d H:i') }}</td>
+                    <td style="text-align:center;" data-label="Action:">
                         <a href="{{ route('b2b.purchase.order.show', $pr->id) }}" class="btn btn-info btn-sm">
                             View
                         </a>
