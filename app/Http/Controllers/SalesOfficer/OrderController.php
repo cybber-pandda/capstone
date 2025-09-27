@@ -59,7 +59,8 @@ class OrderController extends Controller
     public function sales_invoice(Request $request)
     {
         if ($request->ajax()) {
-            $query = PurchaseRequest::with(['customer', 'items.product'])->where('status', 'so_created')->latest();
+            $status = array('so_created', 'delivery_in_progress', 'delivered');
+            $query = PurchaseRequest::with(['customer', 'items.product'])->whereIn('status', $status)->latest();
 
             return DataTables::of($query)
                 ->addColumn('customer_name', function ($pr) {
@@ -101,8 +102,11 @@ class OrderController extends Controller
 
 
     public function show_sales_invoice($id)
-    {
-        $quotation = PurchaseRequest::with(['items.product.productImages'])->where('status', 'so_created')->findOrFail($id);
+    {   
+
+        $status = array('so_created', 'delivery_in_progress', 'delivered');
+
+        $quotation = PurchaseRequest::with(['items.product.productImages'])->whereIn('status', $status)->findOrFail($id);
 
         $page = 'B2B Sales Invoice';
         $b2bReq = null;
@@ -154,6 +158,8 @@ class OrderController extends Controller
                 if ($delivery) {
                     $delivery->sales_invoice_flg = 1;
                     $delivery->save();
+
+                    PurchaseRequest::where('id', $request->quotation_id)->update(['status' => 'invoice_sent']);
                 }
             }
 

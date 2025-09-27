@@ -22,18 +22,18 @@
 
 
   // Show/hide 'chat-content' on small screen devices (max-width: 991px)
-  const chatListItem = document.querySelectorAll('.chat-list .chat-item');
-  const chatContent = document.querySelector('.chat-content');
-  const backToChatListButton = document.querySelector('#backToChatList');
+  // const chatListItem = document.querySelectorAll('.chat-list .chat-item');
+  // const chatContent = document.querySelector('.chat-content');
+  // const backToChatListButton = document.querySelector('#backToChatList');
 
-  chatListItem.forEach((item) => {
-    item.addEventListener('click', () => {
-      chatContent.classList.toggle('show');
-    });
-  });
+  // chatListItem.forEach((item) => {
+  //   item.addEventListener('click', () => {
+  //     chatContent.classList.toggle('show');
+  //   });
+  // });
 
-  backToChatListButton.addEventListener('click', () => {
-    chatContent.classList.toggle('show');
-  });
+  // backToChatListButton.addEventListener('click', () => {
+  //   chatContent.classList.toggle('show');
+  // });
 
 })();

@@ -377,7 +377,7 @@ class HomeController extends Controller
         $page = 'Summary List of Sales';
 
         $purchaseRequests = PurchaseRequest::with(['items.product'])
-        ->where('status', '!=', 'reject_quotation')
+        ->where('status', 'delivered')
         ->get();
 
         // Subtotal of items only (excluding VAT & delivery fee)
@@ -416,8 +416,8 @@ class HomeController extends Controller
         $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
             ->whereBetween('created_at', [$date_from, $date_to])
             ->where(function ($q) {
-                $q->where('status', '!=', 'reject_quotation')
-                ->orWhereNull('status');
+                $q->where('status','delivered');
+                // ->orWhereNull('status');
             })
             ->get();
 
@@ -484,7 +484,7 @@ class HomeController extends Controller
         $page = 'Summary List of Sales Manual Order';
 
         // Get all manual email orders
-        $purchaseRequestsManual = ManualEmailOrder::all();
+        $purchaseRequestsManual = ManualEmailOrder::where('status', 'approve')->get();
 
         $subtotal = 0;
         $vatAmount = 0;
@@ -534,7 +534,7 @@ class HomeController extends Controller
 
     public function summary_sales_manualorder_api($date_from, $date_to)
     {
-        $query = ManualEmailOrder::whereBetween('order_date', [$date_from, $date_to])->get();
+        $query = ManualEmailOrder::where('status', 'approve')->whereBetween('order_date', [$date_from, $date_to])->get();
 
         return DataTables::of($query)
             ->addColumn('created_at', function ($pr) {

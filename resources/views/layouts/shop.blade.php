@@ -66,7 +66,22 @@
                 /* Remove this: overflow: hidden; */
                 overflow-x: hidden;
                 /* only hide horizontal scroll */
+                padding-top: 50px;
             }
+
+            header {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                z-index: 101;
+                /* must be higher than footer */
+                background: #fff;
+                /* keep background visible */
+                border-bottom: 1px solid #ddd;
+                /* optional separator */
+            }
+            
 
             .section-scrollable {
                 height: auto;
@@ -544,7 +559,9 @@
             }
         });
 
-        window.purchaseRequestCart = {!!$cartJson!!};
+        window.purchaseRequestCart = {
+            !!$cartJson!!
+        };
 
         $(document).ready(function() {
             updateCartDropdown();

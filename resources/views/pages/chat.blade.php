@@ -285,7 +285,7 @@ $avatar = $user->profile
         });
 
         // Bind back button
-        $('#backToUserList').on('click', function() {
+        $(document).on('click', '#backToUserList', function() {
             toggleToUserList();
         });
 

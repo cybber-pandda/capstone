@@ -281,7 +281,7 @@
                                 title: 'Your Order is on the Way!',
                                 text: 'You can now track your delivery.',
                                 confirmButtonText: 'Track Delivery',
-                                timer: 3000,
+                                timer: 4000,
                                 showCancelButton: false,
                                 showConfirmButton: false,
                                 cancelButtonText: 'Close'

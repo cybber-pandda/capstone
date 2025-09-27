@@ -304,7 +304,9 @@ class ACPaymentController extends Controller
         $status = array('pending', 'reject', 'unpaid');
 
         // Overall totals
-        $totalPendingStraight = CreditPayment::whereIn('status', $status)->sum('paid_amount');
+        $totalPendingStraight = CreditPayment::with('purchaseRequest:id,credit_amount')->whereIn('status', $status)->get()->sum(function ($payment) {
+                return $payment->purchaseRequest->credit_amount ?? 0;
+            });
         $totalPendingPartial  = CreditPartialPayment::whereIn('status', $status)->sum('amount_to_pay');
         $totalPending = $totalPendingStraight + $totalPendingPartial;
 
@@ -323,6 +325,8 @@ class ACPaymentController extends Controller
         $totalOverDue = $totalOverDueStraight + $totalOverDuePartial;
 
         $totalBalance = $totalPending + $totalOverDue;
+
+        // dd($totalBalance);
 
         $customers = User::whereHas('purchaseRequests')
             ->with(['purchaseRequests.creditPayment', 'purchaseRequests.creditPartialPayments'])

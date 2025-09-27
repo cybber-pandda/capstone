@@ -24,6 +24,7 @@ class CreateB2bAddressTable extends Migration
             $table->string('zip_code')->nullable();
 
             $table->text('full_address')->nullable();
+            $table->text('address_notes')->nullable();
 
             $table->decimal('delivery_address_lat', 10, 7)->nullable();
             $table->decimal('delivery_address_lng', 10, 7)->nullable();

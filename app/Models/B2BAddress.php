@@ -19,6 +19,7 @@ class B2BAddress extends Model
         'province',
         'zip_code',
         'full_address',
+        'address_notes',
         'delivery_address_lat',
         'delivery_address_lng',
         'status',

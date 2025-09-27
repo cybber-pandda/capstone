@@ -103,6 +103,7 @@ class B2BAddressController extends Controller
             'city' => 'required|string|max:255',
             'province' => 'nullable|string|max:255',
             'zip_code' => 'nullable|string|max:20',
+            'address_notes' => 'nullable',
             'delivery_address_lat' => 'required|numeric',
             'delivery_address_lng' => 'required|numeric',
         ]);
@@ -122,6 +123,7 @@ class B2BAddressController extends Controller
             'city' => $request->city,
             'province' => $request->province,
             'zip_code' => $request->zip_code,
+            'address_notes' => $request->address_notes,
             'delivery_address_lat' => $request->delivery_address_lat,
             'delivery_address_lng' => $request->delivery_address_lng,
             'full_address' => $fullAddress,

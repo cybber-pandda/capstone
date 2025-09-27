@@ -42,6 +42,17 @@
                     <div class="form-group"><label>Province</label><input type="text" name="province" class="form-control" required></div>
                     <div class="form-group"><label>Zip Code</label><input type="text" name="zip_code" class="form-control"></div>
 
+                    <div class="form-group">
+                        <label>Address Notes</label>
+                        <textarea 
+                            style="color:black;"
+                            name="address_notes" 
+                            class="form-control" 
+                            rows="5" 
+                            placeholder="If the house is inside an alley, please provide detailed directions to the exact address"></textarea>
+                    </div>
+
+
                     <input type="hidden" name="delivery_address_lat" id="delivery_address_lat">
                     <input type="hidden" name="delivery_address_lng" id="delivery_address_lng">
                 </div>
@@ -136,6 +147,7 @@
         const city = $('input[name="city"]').val();
         const province = $('input[name="province"]').val();
         const zip = $('input[name="zip_code"]').val();
+        const address_notes = $('input[name="address_notes"]').val();
         const fullAddress = `${street}, ${barangay}, ${city}, ${province}, ${zip}`;
 
         $.get('/b2b/geocode', {

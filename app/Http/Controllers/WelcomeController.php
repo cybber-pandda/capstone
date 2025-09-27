@@ -137,7 +137,7 @@ class WelcomeController extends Controller
             'products.*.price.min'             => 'Price cannot be negative in any product row.',
         ]);
 
-        $status = $request->customer_type === 'walkin' ? 'approve' : 'waiting';
+        $status = $request->customer_type === 'walkin' ? 'approve' : 'pending';
         $customer_type = $request->customer_type === 'walkin' ? 'Walk-In' : 'Manual Order';
 
         if ($request->filled('order_id')) {
