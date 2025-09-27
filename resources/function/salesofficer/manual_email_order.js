@@ -22,19 +22,19 @@ $(document).ready(function () {
         ajax: "/salesofficer/email-manual-order",
         autoWidth: false,
         columns: [
-            { data: "customer_name", name: "customer_name", width: "10%" },
+            { data: "customer_name", name: "customer_name", width: "5%" },
             { data: "customer_type", name: "customer_type", width: "5%" },
             {
                 data: "customer_address",
                 name: "customer_address",
-                width: "15%",
+                width: "10%",
             },
             {
                 data: "phone_number",
                 name: "phone_number",
                 className: "dt-left-int",
                 responsivePriority: 1,
-                width: "10%",
+                width: "5%",
             },
             {
                 data: "total_items",
@@ -52,13 +52,13 @@ $(document).ready(function () {
             },
             { data: "grand_total", name: "grand_total", width: "5%" },
             // { data: "created_at", name: "created_at",   className: "dt-left-int", responsivePriority: 1, width: "15%" },
-            { data: "status", name: "status", width: "10%" },
+            { data: "status", name: "status", width: "5%" },
             {
                 data: "action",
                 name: "action",
                 orderable: false,
                 searchable: false,
-                width: "20%",
+                width: "10%",
             },
         ],
         drawCallback: function () {

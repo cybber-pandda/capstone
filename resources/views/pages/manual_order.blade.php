@@ -8,7 +8,11 @@
             <h3 class="mb-5 fw-bold">{{ $page }}</h3>
         </div>
         <div>
+            @auth
+            @if(Auth::user()->role === 'salesofficer')
             <a href="{{ url('/salesofficer/email-manual-order') }}" class="btn btn-secondary"><i class="link-icon" data-lucide="arrow-big-left-dash"></i> Back</a>
+            @endif
+            @endauth      
         </div>
 
     </div>
@@ -37,17 +41,17 @@
         </div>
 
         <div class="row mb-3">
-            @if($type === 'walkin')
+            @if($type != 'walkin')
             <div class="col-md-4">
                 <label>Customer Email</label>
-                <input type="email" name="customer_email" class="form-control" required>
+                <input type="email" name="customer_email" class="form-control" required value="{{ !empty($_GET['email']) ? $_GET['email'] : '' }}">
             </div>
             @endif
-            <div class="{{ $type === 'walkin' ? 'col-md-4' : 'col-md-6' }}">
+            <div class="{{ $type != 'walkin' ? 'col-md-4' : 'col-md-6' }}">
                 <label>Order Date</label>
                 <input type="date" name="order_date" class="form-control" required>
             </div>
-            <div class="{{ $type === 'walkin' ? 'col-md-4' : 'col-md-6' }}">
+            <div class="{{ $type != 'walkin' ? 'col-md-4' : 'col-md-6' }}">
                 <label>Remarks</label>
                 <input type="text" name="remarks" class="form-control">
             </div>

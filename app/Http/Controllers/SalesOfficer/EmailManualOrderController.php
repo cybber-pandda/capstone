@@ -75,22 +75,22 @@ class EmailManualOrderController extends Controller
                         ];
                     }
 
-                    $buttons = '<button class="btn btn-sm btn-primary view-products" 
+                    $buttons = '<button class="btn btn-sm btn-inverse-primary view-products" 
                                     data-products=\'' . json_encode($detailedProducts) . '\' data-fee="'.$deliveryFee.'" data-id="'.$requestId.'">
-                                    View
+                                     <i class="link-icon" data-lucide="eye"></i>
                                 </button> ';
 
-                    if ($pr->status === 'waiting') {
-                        $buttons .= '<button class="btn btn-sm btn-success approve-order me-1" 
+                    if ($pr->status === 'pending') {
+                        $buttons .= '<button class="btn btn-sm btn-inverse-success approve-order me-1" 
                                         data-id="' . $pr->id . '">
-                                        Approve
+                                         <i class="link-icon" data-lucide="check"></i>
                                     </button>';
                     }
 
-                    if ($pr->customer_type === 'Manual Order' && $pr->status === 'waiting') {
-                        $buttons .= '<button class="btn btn-sm btn-danger reject-order" 
+                    if ($pr->customer_type === 'Manual Order' && $pr->status === 'pending') {
+                        $buttons .= '<button class="btn btn-sm btn-inverse-danger reject-order" 
                                         data-id="' . $pr->id . '">
-                                        Reject
+                                         <i class="link-icon" data-lucide="x"></i>
                                     </button>';
                     }
 

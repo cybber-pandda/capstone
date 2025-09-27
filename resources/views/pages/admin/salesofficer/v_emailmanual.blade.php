@@ -16,13 +16,13 @@
                     'id' => 'manualEmailOrderTable',
                     'thead' => '
                         <tr>
-                            <th>Customer Name</th>
-                            <th>Customer Type</th>
-                            <th>Customer Address</th>
-                            <th>Customer Phone #</th>
-                            <th>Total Items</th>
+                            <th>Customer</th>
+                            <th>Type</th>
+                            <th>Address</th>
+                            <th>Phone #</th>
+                            <th>Items</th>
                             <th>Delivery Fee</th>
-                            <th>Grand Total</th>
+                            <th>Total</th>
                             <!-- <th>Date Created</th> -->
                             <th>Status</th>
                             <th>Action</th>
