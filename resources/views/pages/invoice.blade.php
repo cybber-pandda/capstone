@@ -182,17 +182,17 @@
                             <span><b>Payment Terms:</b><br>
                                 {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}</span>
                         </div>
-
+                                @unless($isPdf)
+                                <div style="clear: both; margin-top: 40px; margin-bottom: 45px;">
+                                    <a href="{{ route('b2b.delivery.invoice.download', $invoiceData->id) }}" class="btn btn-primary">Download PDF</a>
+                                </div>
+                                @endunless
                     </div>
-
+                                
                 </div>
             </div>
 
-        @unless($isPdf)
-        <div style="clear: both; margin-top: 40px;">
-            <a href="{{ route('b2b.delivery.invoice.download', $invoiceData->id) }}" class="btn btn-primary">Download PDF</a>
-        </div>
-        @endunless
+        
 
     </div>
 </div>
