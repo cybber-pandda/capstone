@@ -10,8 +10,11 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
+use Carbon\Carbon;
 
-class SalesSummaryExport implements FromCollection, WithHeadings, WithMapping, WithColumnWidths, WithEvents
+class SalesSummaryExport implements FromCollection, WithHeadings, WithMapping, WithColumnWidths, WithEvents, WithColumnFormatting
 {
     protected $startDate;
     protected $endDate;
@@ -29,74 +32,91 @@ class SalesSummaryExport implements FromCollection, WithHeadings, WithMapping, W
         return PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
             ->whereDate('created_at', '>=', $this->startDate)
             ->whereDate('created_at', '<=', $this->endDate)
+            ->whereIn('status', ['delivered', 'invoice_sent'])
             ->get();
     }
 
+
     public function map($pr): array
-    {
-        $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-        $deliveryFee = $pr->delivery_fee ?? 0;
-        
-        $subtotal += $deliveryFee;
+{
+    $rows = [];
 
-        $vatRate   = $pr->vat ?? 0;
-        $vatAmount = $subtotal * ($vatRate / 100);
-        $vatExclusive = $subtotal;
+    // Calculate totals per PR
+    $itemsSubtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+    $vatRate = $pr->vat ?? 0;
+    $vatAmount = $itemsSubtotal * ($vatRate / 100);
+    $total = $itemsSubtotal + $vatAmount;
 
-        $total = $subtotal + $vatAmount;
+    $fullAddress = $pr->address->full_address ?? 'No provided address';
+    $customer    = ($pr->detail->business_name ?? 'No Company Name') . '/' . (optional($pr->customer)->name ?? '-');
+    $tin         = $pr->detail->tin_number ?? 'No provided tin number';
+    $transactionDate = $pr->created_at ? Carbon::parse($pr->created_at)->format('F d, Y h:i A') : '';
+    $invoiceNo = 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
 
-        $fullAddress = $pr->address->full_address ?? 'No provided address';
-        $customer    = ($pr->detail->business_name ?? 'No Company Name') . '/' . (optional($pr->customer)->name ?? '-');
-        $tin         = $pr->detail->tin_number ?? 'No provided tin number';
+    foreach ($pr->items as $index => $item) {
+        $rows[] = [
+            // Show transaction, invoice, customer, tin, address only in first row
+            $index === 0 ? $transactionDate : '',
+            $index === 0 ? $invoiceNo : '',
+            $index === 0 ? $customer : '',
+            $index === 0 ? $tin : '',
+            $index === 0 ? $fullAddress : '',
 
-        return [
-            $pr->created_at->format('F d, Y h:i A'),
-            'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT),
-            $customer,
-            $tin,
-            $fullAddress,
-            $pr->items->sum('quantity'),
-            number_format($pr->items->avg(fn($item) => $item->product->price ?? 0), 2),
-            number_format($subtotal, 2),
-            number_format($vatAmount, 2),
-            number_format($vatExclusive, 2),
-            number_format($total, 2),
+            $item->product->name ?? 'No Product Name',
+            $item->quantity,
+            (float) ($item->product->price ?? 0),
+            (float) round($item->quantity * ($item->product->price ?? 0), 2),
+
+            // ✅ Show totals only in LAST row of items
+            $index === count($pr->items) - 1 ? round($vatAmount, 2) : '',
+            $index === count($pr->items) - 1 ? round($itemsSubtotal, 2) : '',
+            $index === count($pr->items) - 1 ? round($total, 2) : '',
         ];
     }
+
+    return $rows;
+}
+
 
     public function headings(): array
     {
         return [
-            'Transaction Date',
-            'Invoice No.',
-            'Customer Name/Company',
-            'TIN',
-            'Customer Address',
-            'Quantity',
-            'Unit Price',
-            'Total Sales',
-            'VAT Amount',
-            'VAT Exclusive Sales',
-            'Total Amount',
+        'Transaction Date',
+        'Invoice No.',
+        'Customer Name/Company',
+        'TIN',
+        'Customer Address',
+        'Product Name',      // ✅ moved up
+        'Quantity',
+        'Unit Price',
+        'Subtotal',
+        'VAT Amount',
+        'VAT Exclusive Sales',
+        'Total Amount',
         ];
+
     }
+
 
     public function columnWidths(): array
     {
-        return [
+            return [
             'A' => 30,
             'B' => 15,
             'C' => 30,
             'D' => 15,
             'E' => 50,
-            'F' => 12,
-            'G' => 15,
-            'H' => 18,
+            'F' => 25,  // ✅ Product Name
+            'G' => 12,  // ✅ Quantity
+            'H' => 15,
             'I' => 18,
-            'J' => 22,
-            'K' => 18,
+            'J' => 18,
+            'K' => 22,
+            'L' => 18,
         ];
+
     }
+
 
     public function registerEvents(): array
     {
@@ -134,5 +154,18 @@ class SalesSummaryExport implements FromCollection, WithHeadings, WithMapping, W
                 $sheet->getStyle('A5')->getAlignment()->setHorizontal('center');
             }
         ];
+    }
+
+    public function columnFormats(): array
+    {
+        // F = Quantity (integer), G-K = numeric with 2 decimals
+        return [
+            'G' => NumberFormat::FORMAT_NUMBER,     // ✅ Quantity (integer)
+            'H' => NumberFormat::FORMAT_NUMBER_00,  // Unit Price
+            'I' => NumberFormat::FORMAT_NUMBER_00,  // Total Sales
+            'J' => NumberFormat::FORMAT_NUMBER_00,  // VAT Amount
+            'K' => NumberFormat::FORMAT_NUMBER_00,  // VAT Exclusive Sales
+        ];
+
     }
 }

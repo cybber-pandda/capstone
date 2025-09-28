@@ -23,6 +23,9 @@ class ACPaymentController extends Controller
 
         $codPR = PurchaseRequest::with('customer')
             ->where('cod_flg', 1)
+            ->whereDoesntHave('paidPayments', function ($q) {
+                $q->where('status', 'paid');
+            })
             ->get()
             ->mapWithKeys(function ($pr) {
                 $formattedDate = Carbon::parse($pr->created_at)->format('M. j, Y');
@@ -58,11 +61,11 @@ class ACPaymentController extends Controller
                     return '<p class="ms-3">' . ($payment->reference_number ?: 'No reference (COD) Payment') . '</p>';
                 })
                 ->addColumn('action', function ($payment) {
-                    return is_null($payment->proof_payment) && is_null($payment->reference_number)
-                        ? '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
-                            <i class="link-icon" data-lucide="copy-check"></i> Approve Payment
-                        </button>' : '<span class="badge bg-info text-white"> <i class="link-icon" data-lucide="check"></i> Payment Approved</span>';
+                    return '<span class="badge bg-info text-white">
+                                <i class="link-icon" data-lucide="check"></i> Payment Approved
+                            </span>';
                 })
+
                 ->rawColumns(['bank_name', 'proof_payment', 'reference_number', 'action'])
                 ->make(true);
         }

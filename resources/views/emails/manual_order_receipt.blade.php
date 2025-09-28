@@ -11,7 +11,7 @@
     $vatAmount = $total * $vatRate;
 
     // Default delivery fee (Quezon Province)
-    $deliveryFee = 200;
+      $deliveryFee = $order->delivery_fee ?? 0;
 
     $finalTotal = $total + $vatAmount + $deliveryFee;
 @endphp
@@ -58,7 +58,7 @@
                 <td style="border: 1px solid #ddd;">₱{{ number_format($vatAmount, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="4" style="text-align: right; border: 1px solid #ddd;">Delivery Fee (Quezon Province)</td>
+                <td colspan="4" style="text-align: right; border: 1px solid #ddd;">Delivery Fee</td>
                 <td style="border: 1px solid #ddd;">₱{{ number_format($deliveryFee, 2) }}</td>
             </tr>
             <tr style="background-color: #f9f9f9;">

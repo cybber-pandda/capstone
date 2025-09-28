@@ -62,10 +62,10 @@
                 <th>TIN</th>
                 <!-- <th>Address</th> -->
                 <th>Items</th>
-                <th>Avg Price</th>
+                <!--th>Avg Price</th -->
                 <th>Subtotal</th>
                 <th>VAT</th>
-                <th>Net Sales</th>
+                <th>Total (Excl. VAT)</th>
                 <th>Total (Incl. VAT)</th>
             </tr>
             '
@@ -124,10 +124,10 @@
                     data: 'total_items',
                     name: 'total_items'
                 },
-                {
-                    data: 'avg_price',
-                    name: 'avg_price'
-                },
+                //{
+                //  data: 'avg_price',
+                //   name: 'avg_price'
+                //},
                 {
                     data: 'subtotal',
                     name: 'subtotal'

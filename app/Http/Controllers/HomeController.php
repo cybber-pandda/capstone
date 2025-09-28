@@ -373,106 +373,101 @@ class HomeController extends Controller
     }
 
     public function summary_sales()
-    {
-        $page = 'Summary List of Sales';
+{
+    $page = 'Summary List of Sales';
 
-        $purchaseRequests = PurchaseRequest::with(['items.product'])
-        ->where('status', 'delivered')
+    $purchaseRequests = PurchaseRequest::with(['items.product'])
+    ->whereIn('status', ['delivered', 'invoice_sent'])
+    ->get();
+
+    // Subtotal of items only (excluding VAT & delivery fee)
+    $subtotal = $purchaseRequests->sum(function ($pr) {
+        return $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+    });
+
+    // VAT computation per PR (based on item subtotal only)
+    $vatAmount = $purchaseRequests->sum(function ($pr) {
+        $prSubtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+        return $prSubtotal * (($pr->vat ?? 0) / 100);
+    });
+
+    // Keep deliveryFee if you still want to display it, but DO NOT include in totals
+    $deliveryFee = $purchaseRequests->sum(fn($pr) => $pr->delivery_fee ?? 0);
+
+    // VAT Exclusive = items subtotal (exclude delivery fee)
+    $vatExclusive = $subtotal;
+
+    // Total = subtotal + vat (exclude delivery)
+    $total = $subtotal + $vatAmount;
+
+    return view('pages.summary_sales', compact(
+        'page',
+        'purchaseRequests',
+        'subtotal',
+        'vatAmount',
+        'vatExclusive',
+        'deliveryFee',
+        'total'
+    ));
+}
+
+  public function summary_sales_api($date_from, $date_to)
+{
+        $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
+        ->whereBetween('created_at', [$date_from, $date_to])
+        ->whereIn('status', ['delivered', 'invoice_sent'])
         ->get();
 
-        // Subtotal of items only (excluding VAT & delivery fee)
-        $subtotal = $purchaseRequests->sum(function ($pr) {
-            return $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-        });
 
-        // VAT computation per PR
-        $vatAmount = $purchaseRequests->sum(function ($pr) {
-            $prSubtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-            return $prSubtotal * (($pr->vat ?? 0) / 100);
-        });
+    return DataTables::of($query)
+        ->addColumn('created_at', function ($pr) {
+            return $pr->created_at->format('F d, Y h:i A');
+        })
+        ->addColumn('invoice_no', function ($pr) {
+            return 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
+        })
+        ->addColumn('customer', function ($pr) {
+            return ($pr->detail->business_name ?? 'No Company Name') . '/' . (optional($pr->customer)->name ?? '-');
+        })
+        ->addColumn('tin', function ($pr) {
+            return $pr->detail->tin_number ?? 'No provided tin number';
+        })
+        ->addColumn('address', function ($pr) {
+            return $pr->address->full_address ?? 'No provided address';
+        })
+        ->addColumn('total_items', function ($pr) {
+            return $pr->items->sum('quantity');
+        })
+        ->addColumn('avg_price', function ($pr) {
+            return number_format($pr->items->avg(fn($item) => $item->product->price ?? 0), 2);
+        })
+        ->addColumn('subtotal', function ($pr) {
+            // Subtotal = items only (exclude delivery fee)
+            $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+            return number_format($subtotal, 2);
+        })
+        ->addColumn('vat_amount', function ($pr) {
+            $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+            $vatRate  = $pr->vat ?? 0;
+            $vatAmount = $subtotal * ($vatRate / 100);
+            return number_format($vatAmount, 2);
+        })
+        ->addColumn('vat_exclusive', function ($pr) {
+            // VAT exclusive is item subtotal (exclude delivery)
+            $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+            return number_format($subtotal, 2);
+        })
+        ->addColumn('grand_total', function ($pr) {
+            // Grand total = items subtotal + vat (exclude delivery)
+            $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+            $vatRate  = $pr->vat ?? 0;
+            $vatAmount = $subtotal * ($vatRate / 100);
+            $total = $subtotal + $vatAmount;
+            return number_format($total, 2);
+        })
+        ->make(true);
+}
 
-        // Total delivery fees
-        $deliveryFee = $purchaseRequests->sum(fn($pr) => $pr->delivery_fee ?? 0);
-
-        // VAT Exclusive = items subtotal + delivery fee (before VAT)
-        $vatExclusive = $subtotal + $deliveryFee;
-
-        // Total = subtotal + vat + delivery fee
-        $total = $subtotal + $vatAmount + $deliveryFee;
-
-        return view('pages.summary_sales', compact(
-            'page',
-            'purchaseRequests',
-            'subtotal',
-            'vatAmount',
-            'vatExclusive',
-            'deliveryFee',
-            'total'
-        ));
-    }
-
-    public function summary_sales_api($date_from, $date_to)
-    {
-        $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
-            ->whereBetween('created_at', [$date_from, $date_to])
-            ->where(function ($q) {
-                $q->where('status','delivered');
-                // ->orWhereNull('status');
-            })
-            ->get();
-
-        return DataTables::of($query)
-            ->addColumn('created_at', function ($pr) {
-                return $pr->created_at->format('F d, Y h:i A');
-            })
-            ->addColumn('invoice_no', function ($pr) {
-                return 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
-            })
-            ->addColumn('customer', function ($pr) {
-                return ($pr->detail->business_name ?? 'No Company Name') . '/' . (optional($pr->customer)->name ?? '-');
-            })
-            ->addColumn('tin', function ($pr) {
-                return $pr->detail->tin_number ?? 'No provided tin number';
-            })
-            ->addColumn('address', function ($pr) {
-                return $pr->address->full_address ?? 'No provided address';
-            })
-            ->addColumn('total_items', function ($pr) {
-                return $pr->items->sum('quantity');
-            })
-            ->addColumn('avg_price', function ($pr) {
-                return number_format($pr->items->avg(fn($item) => $item->product->price ?? 0), 2);
-            })
-            ->addColumn('subtotal', function ($pr) {
-                // Subtotal includes items + delivery fee
-                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                $subtotal += $pr->delivery_fee ?? 0;
-                return number_format($subtotal, 2);
-            })
-            ->addColumn('vat_amount', function ($pr) {
-                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                $subtotal += $pr->delivery_fee ?? 0;
-
-                $vatRate  = $pr->vat ?? 0;
-                $vatAmount = $subtotal * ($vatRate / 100);
-                return number_format($vatAmount, 2);
-            })
-            ->addColumn('vat_exclusive', function ($pr) {
-                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                $subtotal += $pr->delivery_fee ?? 0;
-                return number_format($subtotal, 2);
-            })
-            ->addColumn('grand_total', function ($pr) {
-                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                $subtotal += $pr->delivery_fee ?? 0;
-
-                $vatRate  = $pr->vat ?? 0;
-                $vatAmount = $subtotal * ($vatRate / 100);
-                $total = $subtotal + $vatAmount;
-                return number_format($total, 2);
-            })
-            ->make(true);
-    }
 
     public function export($date_from, $date_to)
     {
@@ -480,127 +475,123 @@ class HomeController extends Controller
     }
 
     public function summary_sales_manualorder()
-    {
-        $page = 'Summary List of Sales Manual Order';
+{
+    $page = 'Summary List of Sales Manual Order';
 
-        // Get all manual email orders
-        $purchaseRequestsManual = ManualEmailOrder::where('status', 'approve')->get();
+    // Get all manual email orders
+    $purchaseRequestsManual = ManualEmailOrder::where('status', 'approve')->get();
 
-        $subtotal = 0;
-        $vatAmount = 0;
-        $deliveryFee = 0;
-        $total = 0;
+    $subtotal = 0;
+    $vatAmount = 0;
+    $deliveryFee = 0; // keep if you want to display total delivery, but exclude from calculations
+    $total = 0;
 
-        foreach ($purchaseRequestsManual as $pr) {
-            $items = json_decode($pr->purchase_request, true) ?? [];
+    foreach ($purchaseRequestsManual as $pr) {
+        $items = json_decode($pr->purchase_request, true) ?? [];
 
-            // Compute subtotal for this PR
-            $prSubtotal = 0;
-            foreach ($items as $item) {
-                $qty = (int) ($item['qty'] ?? 0);
-                $price = (float) ($item['price'] ?? 0);
-                $prSubtotal += $qty * $price;
-            }
-
-            // VAT = 12% of subtotal
-            $prVat = $prSubtotal * 0.12;
-
-            // Delivery Fee = fixed 200
-            $prDelivery = 200;
-
-            // Grand total for this PR
-            $prTotal = $prSubtotal + $prVat + $prDelivery;
-
-            // Accumulate
-            $subtotal += $prSubtotal;
-            $vatAmount += $prVat;
-            $deliveryFee += $prDelivery;
-            $total += $prTotal;
+        // Compute subtotal for this PR (items only)
+        $prSubtotal = 0;
+        foreach ($items as $item) {
+            $qty = (int) ($item['qty'] ?? 0);
+            $price = (float) ($item['price'] ?? 0);
+            $prSubtotal += $qty * $price;
         }
 
-        // VAT exclusive = subtotal + delivery fee (before VAT)
-        $vatExclusive = $subtotal + $deliveryFee;
+        // VAT = 12% of subtotal (items only)
+        $prVat = $prSubtotal * 0.12;
 
-        return view('pages.summary_sales_manual', compact(
-            'page',
-            'purchaseRequestsManual',
-            'subtotal',
-            'vatAmount',
-            'vatExclusive',
-            'deliveryFee',
-            'total'
-        ));
+        // Delivery Fee removed from calculations (set zero)
+        $prDelivery = 0;
+
+        // Grand total for this PR (exclude delivery)
+        $prTotal = $prSubtotal + $prVat;
+
+        // Accumulate
+        $subtotal += $prSubtotal;
+        $vatAmount += $prVat;
+        $deliveryFee += $prDelivery; // stays 0 if you want display later
+        $total += $prTotal;
     }
+
+    // VAT exclusive = subtotal (before VAT) — exclude delivery
+    $vatExclusive = $subtotal;
+
+    return view('pages.summary_sales_manual', compact(
+        'page',
+        'purchaseRequestsManual',
+        'subtotal',
+        'vatAmount',
+        'vatExclusive',
+        'deliveryFee',
+        'total'
+    ));
+}
+
 
     public function summary_sales_manualorder_api($date_from, $date_to)
-    {
-        $query = ManualEmailOrder::where('status', 'approve')->whereBetween('order_date', [$date_from, $date_to])->get();
+{
+    $query = ManualEmailOrder::where('status', 'approve')->whereBetween('order_date', [$date_from, $date_to])->get();
 
-        return DataTables::of($query)
-            ->addColumn('created_at', function ($pr) {
-                return Carbon::parse($pr->created_at)->format('F d, Y h:i A');
-            })
-            ->addColumn('invoice_no', function ($pr) {
-                return 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
-            })
-            ->addColumn('customer', function ($pr) {
-                return $pr->customer_name ?? '-';
-            })
-            ->addColumn('customer_type', function ($pr) {
-                return $pr->customer_type ?? '-';
-            })
-            ->addColumn('email', function ($pr) {
-                return $pr->customer_email ?? '-';
-            })
-            ->addColumn('address', function ($pr) {
-                return $pr->customer_address ?? '-';
-            })
-            ->addColumn('phone', function ($pr) {
-                return $pr->customer_phone_number ?? '-';
-            })
-            ->addColumn('order_date', function ($pr) {
-                return $pr->order_date ?? '-';
-            })
-            ->addColumn('total_items', function ($pr) {
-                $items = json_decode($pr->purchase_request, true) ?? [];
-                return collect($items)->sum(fn($item) => (int) ($item['qty'] ?? 0));
-            })
-            ->addColumn('avg_price', function ($pr) {
-                $items = json_decode($pr->purchase_request, true) ?? [];
-                if (count($items) === 0) return '0.00';
-                $avg = collect($items)->avg(fn($item) => (float) ($item['price'] ?? 0));
-                return number_format($avg, 2);
-            })
-            ->addColumn('subtotal', function ($pr) {
-                $items = json_decode($pr->purchase_request, true) ?? [];
-                $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
-                return number_format($subtotal, 2);
-            })
-            ->addColumn('vat_amount', function ($pr) {
-                $items = json_decode($pr->purchase_request, true) ?? [];
-                $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
-                $deliveryFee = 200;
-                $vatAmount = ($subtotal + $deliveryFee) * 0.12; // include delivery fee
-                return number_format($vatAmount, 2);
-            })
-            ->addColumn('vat_exclusive', function ($pr) {
-                $items = json_decode($pr->purchase_request, true) ?? [];
-                $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
-                $deliveryFee = 200;
-                $vatExclusive = $subtotal + $deliveryFee;
-                return number_format($vatExclusive, 2);
-            })
-            ->addColumn('grand_total', function ($pr) {
-                $items = json_decode($pr->purchase_request, true) ?? [];
-                $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
-                $deliveryFee = 200;
-                $vatAmount = ($subtotal + $deliveryFee) * 0.12;
-                $grandTotal = $subtotal + $deliveryFee + $vatAmount;
-                return number_format($grandTotal, 2);
-            })
-
-            ->make(true);
-    }
+    return DataTables::of($query)
+        ->addColumn('created_at', function ($pr) {
+            return Carbon::parse($pr->created_at)->format('F d, Y h:i A');
+        })
+        ->addColumn('invoice_no', function ($pr) {
+            return 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
+        })
+        ->addColumn('customer', function ($pr) {
+            return $pr->customer_name ?? '-';
+        })
+        ->addColumn('customer_type', function ($pr) {
+            return $pr->customer_type ?? '-';
+        })
+        ->addColumn('email', function ($pr) {
+            return $pr->customer_email ?? '-';
+        })
+        ->addColumn('address', function ($pr) {
+            return $pr->customer_address ?? '-';
+        })
+        ->addColumn('phone', function ($pr) {
+            return $pr->customer_phone_number ?? '-';
+        })
+        ->addColumn('order_date', function ($pr) {
+            return $pr->order_date ?? '-';
+        })
+        ->addColumn('total_items', function ($pr) {
+            $items = json_decode($pr->purchase_request, true) ?? [];
+            return collect($items)->sum(fn($item) => (int) ($item['qty'] ?? 0));
+        })
+        ->addColumn('avg_price', function ($pr) {
+            $items = json_decode($pr->purchase_request, true) ?? [];
+            if (count($items) === 0) return '0.00';
+            $avg = collect($items)->avg(fn($item) => (float) ($item['price'] ?? 0));
+            return number_format($avg, 2);
+        })
+        ->addColumn('subtotal', function ($pr) {
+            $items = json_decode($pr->purchase_request, true) ?? [];
+            $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
+            return number_format($subtotal, 2);
+        })
+        ->addColumn('vat_amount', function ($pr) {
+            $items = json_decode($pr->purchase_request, true) ?? [];
+            $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
+            $vatAmount = $subtotal * 0.12; // exclude delivery
+            return number_format($vatAmount, 2);
+        })
+        ->addColumn('vat_exclusive', function ($pr) {
+            $items = json_decode($pr->purchase_request, true) ?? [];
+            $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
+            return number_format($subtotal, 2);
+        })
+        ->addColumn('grand_total', function ($pr) {
+            $items = json_decode($pr->purchase_request, true) ?? [];
+            $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
+            $vatAmount = $subtotal * 0.12; // exclude delivery
+            $grandTotal = $subtotal + $vatAmount;
+            return number_format($grandTotal, 2);
+        })
+        ->make(true);
+}
 
     public function export_manualorder($date_from, $date_to)
     {

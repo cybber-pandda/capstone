@@ -8,7 +8,18 @@
             <h4 class="mb-3 mb-md-0">Welcome Sales Officer</h4>
         </div>
         <div class="d-flex align-items-center flex-wrap text-nowrap">
-            <a href="{{ route('summary.sales') }}" class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0"><i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i> Summary List of Sales</a>
+            <a href="{{ route('summary.sales') }}" 
+               class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
+               <i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i> 
+               Summary List of Sales
+            </a>
+
+            {{-- ✅ Added Manual Order (SLS) button --}}
+            <a href="{{ route('summary.sales.manualorder') }}"  
+               class="btn btn-outline-primary btn-icon-text me-2 mb-2 mb-md-0">
+               <i class="btn-icon-prepend" data-lucide="chart-no-axes-combined"></i> 
+               Manual Order (SLS)
+            </a>
         </div>
     </div>
 
