@@ -24,7 +24,7 @@ class B2BAddressController extends Controller
                     return '<input type="radio" name="default_address" class="select-address" data-id="' . $address->id . '" ' . $checked . '>';
                 })
                 ->addColumn('full_address', function ($address) {
-                    return $address->street . ', ' . $address->barangay . ', ' . $address->city . ', ' . $address->province . ', ' . $address->zip_code;
+                    return  $address->street . ', ' . $address->barangay . ', ' . $address->city . ', ' . $address->province . ', ' . $address->zip_code . ' , ' . $address->address_notes;
                 })
                 ->addColumn('status', function ($address) {
                     $status = $address->status === 'active' ? 'Default' : '--';
@@ -113,7 +113,8 @@ class B2BAddressController extends Controller
             $request->barangay,
             $request->city,
             $request->province,
-            $request->zip_code
+            $request->zip_code,
+            $request->address_notes
         ])->filter()->implode(', ');
 
         B2BAddress::create([

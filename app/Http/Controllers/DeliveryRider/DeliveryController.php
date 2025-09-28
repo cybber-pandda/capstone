@@ -241,6 +241,7 @@ class DeliveryController extends Controller
                     return '₱' . number_format($grandTotal, 2);
                 })
                 ->addColumn('address', fn($order) => optional($order->b2bAddress)->full_address ?? 'N/A')
+                ->addColumn('address_notes', fn($order) => optional($order->b2bAddress)->address_notes ?? 'N/A')
                 ->addColumn('action', function ($order) {
                     $status = $order->delivery->status ?? 'unknown';
 

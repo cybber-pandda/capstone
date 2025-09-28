@@ -68,7 +68,7 @@
 
         @if($b2bAddress)
             <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
-                <b>Address:</b> {{ $b2bAddress->full_address ?? 'No address provided' }}
+                <b>Address:</b> {{ $b2bAddress->full_address ?? 'No address provided' }} --- {{ $b2bAddress->address_notes}}
             </h6>
         @endif
 

@@ -43,21 +43,25 @@ $(document).ready(function () {
                 width: "10%",
             },
             {
-                data: "address",
+                data: null,
                 name: "address",
-                width: "10%",
+                width: "20%",
                 render: function (data, type, row) {
+                    const fullAddress = row.address?.full_address || row.address || "";
+                    const notes = row.address_notes || "";
+                    const combined = `${fullAddress} --- ${notes}`.trim();
                     const shortText =
-                        data.length > 20 ? data.slice(0, 20) + "..." : data;
+                        combined.length > 20 ? combined.slice(0, 20) + "..." : combined;
                     return `
-                        <span class="view-full-address text-primary" style="cursor:pointer" data-address="${_.escape(
-                        data
-                    )}" title="Click to view full address">
+                        <span class="view-full-address text-primary" 
+                            style="cursor:pointer" 
+                            data-address="${_.escape(combined)}">
                             ${_.escape(shortText)}
                         </span>
                     `;
                 },
             },
+
             {
                 data: "action",
                 name: "action",

@@ -33,7 +33,7 @@
                 <div class="mb-3">
                     <h4 class="mb-1"><strong>Billed To</strong></h4>
                     <div><b>Name:</b> {{ $quotation->customer->name ?? 'No customer name provided' }}</div>
-                    <div><b>Address:</b> {{ $b2bAddress->full_address ?? 'No full address provided' }}</div>
+                    <div><b>Address:</b> {{ $b2bAddress->full_address ?? 'No full address provided' }} --- {{ $b2bAddress->address_notes}}</div>
                     <div><b>TIN:</b> {{ $b2bReqDetails->tin_number ?? 'No TIN provided' }}</div>
                     <div><b>Business Style:</b> {{ $b2bReqDetails->business_name ?? 'No business style provided' }}</div>
                 </div>

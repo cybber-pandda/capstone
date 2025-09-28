@@ -18,6 +18,7 @@
 
             @php
             $fullAddress = $delivery->b2bAddress->full_address ?? 'N/A';
+            $addressNotes = $delivery->b2bAddress->address_notes;
             $shortAddress = strlen($fullAddress) > 20 ? substr($fullAddress, 0, 20) . '...' : $fullAddress;
 
             $subtotal = $delivery->items->sum(function ($item) {
@@ -44,7 +45,7 @@
                 <td data-label="Order #:">{{ $delivery->order_number }}</td>
                 <td data-label="Customer:">{{ $delivery->user->name ?? 'N/A' }}</td>
                 <td data-label="Address:">
-                    <span class="view-full-address text-primary" style="cursor:pointer;" data-address="{{ e($fullAddress) }}" title="Click to view full address">
+                    <span class="view-full-address text-primary" style="cursor:pointer;" data-address="{{ e($fullAddress) }} {{ e($addressNotes) }}" title="Click to view full address">
                         {{ e($shortAddress) }}
                     </span>
                 </td>

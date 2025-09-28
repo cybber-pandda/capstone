@@ -5,8 +5,8 @@
     <div class="container">
         <div class="section-title d-flex justify-content-between align-items-center">
             <h3 class="title">{{ $page }}</h3>
-            <button class="btn btn-primary btn-sm" id="addAddressBtn" style="margin-top:-30px;padding:5px;">Add Address</button>
         </div>
+        <div><button class="btn btn-primary btn-sm" id="addAddressBtn" style="margin-top:-30px;padding:5px;">Add Address</button></div>
 
         <table id="b2bAddressTable" class="table-2">
             <thead>
