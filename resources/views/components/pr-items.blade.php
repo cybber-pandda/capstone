@@ -68,8 +68,14 @@
 
         @if($b2bAddress)
             <h6 class="lead text-xs mt-2 text-wrap" style="font-size: 0.875rem;">
-                <b>Address:</b> {{ $b2bAddress->full_address ?? 'No address provided' }} --- {{ $b2bAddress->address_notes}}
+                <b>Address:</b> {{ $b2bAddress->full_address ?? 'No address provided' }}
             </h6>
+
+            @if(!empty($b2bAddress->address_notes))
+                <h6 class="lead text-xs mt-1 text-wrap text-muted" style="font-size: 0.875rem;">
+                    <b>Delivery Note:</b> {{ $b2bAddress->address_notes }}
+                </h6>
+            @endif
         @endif
 
         @if($b2bReq)

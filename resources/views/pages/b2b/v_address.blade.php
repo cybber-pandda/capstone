@@ -13,6 +13,7 @@
                 <tr>
                     <th>Select</th>
                     <th>Full Address</th>
+                    <th>Notes</th>
                     <th>Status</th>
                     <th>Created At</th>
                 </tr>
@@ -113,6 +114,7 @@
                 data: 'full_address',
                 name: 'full_address'
             },
+            { data: 'address_notes', name: 'address_notes' }, 
             {
                 data: 'status',
                 name: 'status'
@@ -125,8 +127,10 @@
         createdRow: function(row, data, dataIndex) {
             $('td', row).eq(0).attr('data-label', 'Select:');
             $('td', row).eq(1).attr('data-label', 'Address:');
-            $('td', row).eq(2).attr('data-label', 'Status:');
-            $('td', row).eq(3).attr('data-label', 'Date Created:');
+            $('td', row).eq(2).attr('data-label', 'Notes:');
+            $('td', row).eq(3).attr('data-label', 'Status:');
+            $('td', row).eq(4).attr('data-label', 'Date Created:');
+
         }
 });
 

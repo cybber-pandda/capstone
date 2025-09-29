@@ -79,19 +79,22 @@
         </p>
     </div>
 
-    <div class="section">
-        <h3>Billed To</h3>
-        <p>
-            <strong>Name:</strong> {{ $quotation->customer->name ?? 'N/A' }}<br>
-            <strong>Address:</strong> {{ $b2bAddress->full_address ?? 'N/A' }}<br>
-            <strong>TIN:</strong> {{ $b2bReqDetails->tin_number ?? 'N/A' }}<br>
-            <strong>Business Style:</strong> {{ $b2bReqDetails->business_name ?? 'N/A' }}
-        </p>
-        <p>
-            <strong>Prepared By:</strong> {{ $superadmin->name ?? 'N/A' }}<br>
-            <strong>Authorized Representative:</strong> {{ $salesOfficer->name ?? 'N/A' }}
-        </p>
-    </div>
+        <div class="section">
+            <h3>Billed To</h3>
+            <p>
+                <strong>Name:</strong> {{ $quotation->customer->name ?? 'N/A' }}<br>
+                <strong>Address:</strong> {{ $b2bAddress->full_address ?? 'N/A' }}<br>
+                @if(!empty(trim($b2bAddress?->address_notes ?? '')))
+                    <strong>Address Note:</strong> {{ $b2bAddress->address_notes }}<br>
+                @endif
+                <strong>TIN:</strong> {{ $b2bReqDetails->tin_number ?? 'N/A' }}<br>
+                <strong>Business Style:</strong> {{ $b2bReqDetails->business_name ?? 'N/A' }}
+            </p>
+            <p>
+                <strong>Prepared By:</strong> {{ $superadmin->name ?? 'N/A' }}<br>
+                <strong>Authorized Representative:</strong> {{ $salesOfficer->name ?? 'N/A' }}
+            </p>
+        </div>
 
     <h3>Quotation Items</h3>
     <table class="table-bordered">

@@ -13,7 +13,7 @@ use App\Models\B2BAddress;
 
 class B2BAddressController extends Controller
 {
-    public function index(Request $request)
+public function index(Request $request)
     {
         if ($request->ajax()) {
             $addresses = B2BAddress::where('user_id', Auth::id())->latest();
@@ -24,19 +24,22 @@ class B2BAddressController extends Controller
                     return '<input type="radio" name="default_address" class="select-address" data-id="' . $address->id . '" ' . $checked . '>';
                 })
                 ->addColumn('full_address', function ($address) {
-                    return  $address->street . ', ' . $address->barangay . ', ' . $address->city . ', ' . $address->province . ', ' . $address->zip_code . ' , ' . $address->address_notes;
+                    return $address->full_address;
+                })
+                ->addColumn('address_notes', function ($address) {
+                    return $address->address_notes 
+                        ? '<small>'.$address->address_notes.'</small>' 
+                        : '<small class="text-muted">No notes</small>'; // placeholder for empty notes
                 })
                 ->addColumn('status', function ($address) {
-                    $status = $address->status === 'active' ? 'Default' : '--';
-                    return $status;
+                    return $address->status === 'active' ? 'Default' : '--';
                 })
                 ->editColumn('created_at', function ($address) {
                     return Carbon::parse($address->created_at)->format('Y-m-d H:i:s');
                 })
-                ->rawColumns(['select', 'full_address'])
+                ->rawColumns(['select', 'address_notes']) // only once
                 ->make(true);
         }
-
 
         return view('pages.b2b.v_address', [
             'page' => 'My Addresses',
@@ -108,28 +111,26 @@ class B2BAddressController extends Controller
             'delivery_address_lng' => 'required|numeric',
         ]);
 
-        $fullAddress = collect([
-            $request->street,
-            $request->barangay,
-            $request->city,
-            $request->province,
-            $request->zip_code,
-            $request->address_notes
-        ])->filter()->implode(', ');
+            $fullAddress = collect([
+                $request->street,
+                $request->barangay,
+                $request->city,
+                $request->province,
+                $request->zip_code
+            ])->filter()->implode(', '); // DO NOT include address_notes
 
-        B2BAddress::create([
-            'user_id' => Auth::id(),
-            'street' => $request->street,
-            'barangay' => $request->barangay,
-            'city' => $request->city,
-            'province' => $request->province,
-            'zip_code' => $request->zip_code,
-            'address_notes' => $request->address_notes,
-            'delivery_address_lat' => $request->delivery_address_lat,
-            'delivery_address_lng' => $request->delivery_address_lng,
-            'full_address' => $fullAddress,
-            'status' => 'active'
-        ]);
+            B2BAddress::create([
+                'user_id' => Auth::id(),
+                'street' => $request->street,
+                'barangay' => $request->barangay,
+                'city' => $request->city,
+                'province' => $request->province,
+                'zip_code' => $request->zip_code,
+                'address_notes' => $request->address_notes, // store separately
+                'full_address' => $fullAddress, // full address only
+                'status' => 'active'
+            ]);
+
 
         return response()->json(['message' => 'Address saved successfully.']);
     }
@@ -159,7 +160,25 @@ class B2BAddressController extends Controller
         ]);
 
         $address = B2BAddress::where('user_id', Auth::id())->findOrFail($id);
-        $address->update($request->only(['barangay', 'street', 'city', 'delivery_address', 'delivery_address_lat', 'delivery_address_lng']));
+        
+        $fullAddress = collect([
+            $request->street,
+            $request->barangay,
+            $request->city,
+            $request->province,
+            $request->zip_code
+        ])->filter()->implode(', '); // DO NOT include address_notes
+
+        $address->update([
+            'street' => $request->street,
+            'barangay' => $request->barangay,
+            'city' => $request->city,
+            'province' => $request->province,
+            'zip_code' => $request->zip_code,
+            'address_notes' => $request->address_notes, // keep separate
+            'full_address' => $fullAddress
+        ]);
+
 
         return redirect()->route('address.index')->with('success', 'Address updated successfully.');
     }

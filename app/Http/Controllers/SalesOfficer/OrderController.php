@@ -59,8 +59,11 @@ class OrderController extends Controller
     public function sales_invoice(Request $request)
     {
         if ($request->ajax()) {
-            $status = array('so_created', 'delivery_in_progress', 'delivered');
-            $query = PurchaseRequest::with(['customer', 'items.product'])->whereIn('status', $status)->latest();
+        $status = ['delivered'];
+        $query = PurchaseRequest::with(['customer', 'items.product'])
+                    ->whereIn('status', $status)
+                    ->latest();
+
 
             return DataTables::of($query)
                 ->addColumn('customer_name', function ($pr) {
