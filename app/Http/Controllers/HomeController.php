@@ -57,13 +57,15 @@ class HomeController extends Controller
         $totalPOSubmittedPR = 0;
         $totalSalesOrderPR = 0;
         $totalDeliveredPR = 0;
+        $totalemailorder = PaidPayment::where('status', 'paid')->sum('paid_amount');
+        $totalcashsales = 0;
 
         $totalPendingPRChange = 0;
         $totalPOSubmittedPRChange = 0;
         $totalSalesOrderPRChange = 0;
         $totalDeliveredPRChange = 0;
 
-        $totalpaynow = 0;
+        $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
         $totalpaylater = 0;
         $creditpayment = CreditPayment::where('status', 'paid')->sum('paid_amount');
         $creditpartialpayment = CreditPartialPayment::where('status', 'paid')->sum('paid_amount');
@@ -100,7 +102,7 @@ class HomeController extends Controller
                 ->count();
 
 
-            $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
+            $totalcashsales = $totalpaynow +$totalemailorder;
             $totalpaylater = $creditpayment + $creditpartialpayment;
 
 
@@ -203,6 +205,8 @@ class HomeController extends Controller
             'totalSalesOrderPRChange',
             'totalDeliveredPRChange',
             'totalpaynow',
+            'totalcashsales',
+            'totalemailorder',
             'totalpaylater'
         ));
     }

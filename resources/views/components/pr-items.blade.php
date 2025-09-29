@@ -133,7 +133,7 @@
         @endif
     </div>
 
-    <div class="col-md-8 p-3">
+    <div class="col-md-8 p-3" style = >
         <div class="table-responsive">
             <table class="table table-striped">
                 <thead>

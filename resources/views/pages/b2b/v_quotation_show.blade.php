@@ -80,20 +80,6 @@
 
                     @endphp
 
-                    <div class="text-right" style="margin-top: 10px;margin-bottom: 10px;">
-
-                        <a href="{{ route('b2b.quotation.download', ['id' => $quotation->id]) }}" class="btn btn-primary">
-                            <i class="fa fa-file-pdf"></i> Download PDF
-                        </a>
-
-                        <button type="button" class="btn btn-warning" id="submitQuotationBtn" data-id="{{ $quotation->id }}" data-totalpayment="{{ $total }}">
-                            <i class="fa fa-check"></i> Accept
-                        </button>
-
-                        <button type="button" class="btn btn-success cancel-pr-btn" data-id="{{ $quotation->id }}">
-                            <i class="fa fa-xmark"></i> Cancel
-                        </button>
-                    </div>
 
                     <table class="table table-bordered" style="min-width: 600px;margin-top: 10px;margin-bottom:10px;font-size:12px;">
                         <thead>
@@ -163,7 +149,20 @@
                     </div>
 
                 </div>
+                <div class="text-right" style="margin-top: 10px;margin-bottom: 60px; display: flex; justify-content: relative; gap:3px">
+                    
+                        <a href="{{ route('b2b.quotation.download', ['id' => $quotation->id]) }}" class="btn btn-primary">
+                            <i class="fa fa-file-pdf"></i> Download PDF
+                        </a>
 
+                        <button type="button" class="btn btn-warning" id="submitQuotationBtn" data-id="{{ $quotation->id }}" data-totalpayment="{{ $total }}">
+                            <i class="fa fa-check"></i> Accept
+                        </button>
+
+                        <button type="button" class="btn btn-success cancel-pr-btn" data-id="{{ $quotation->id }}">
+                            <i class="fa fa-xmark"></i> Cancel
+                        </button>
+                </div>
 
             </div>
         </div>

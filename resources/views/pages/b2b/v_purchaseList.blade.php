@@ -85,7 +85,7 @@
                 @endforeach
             </tbody>
         </table>
-
+        <div style="height: 60px;"></div>
         @elseif ($hasPending)
         <div class="d-flex flex-column align-items-center justify-content-center text-center" style="margin: 40px 0;">
             <i class="fa fa-spinner fa-spin text-primary" style="font-size:50px;margin-bottom:20px;"></i>

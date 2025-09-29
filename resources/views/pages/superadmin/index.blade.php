@@ -33,7 +33,7 @@
                             <div class="d-flex justify-content-between align-items-baseline">
                                 <h6 class="card-title mb-0">Total Cash Sales</h6>
                             </div>
-                            <h3 class="mb-2 mt-2">{{ number_format($totalpaynow,2) }}</h3>
+                            <h3 class="mb-2 mt-2">{{ number_format($totalcashsales,2) }}</h3>
 
                         </div>
                     </div>
