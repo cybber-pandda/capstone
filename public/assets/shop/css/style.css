@@ -469,9 +469,6 @@ textarea.input {
   /* ensure text behaves well */
 }
 
-.header-links li a:hover {
-  color: #D10024;
-}
 
 .header-links li i {
   color: #D10024;
@@ -1126,7 +1123,7 @@ textarea.input {
   border: 2px solid transparent;
   height: 40px;
   padding: 0 30px;
-  background-color: #ef233c;
+  background-color: #FC6319;
   color: #FFF;
   text-transform: uppercase;
   font-weight: 700;

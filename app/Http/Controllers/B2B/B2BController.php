@@ -138,6 +138,14 @@ class B2BController extends Controller
             $businessPermitFileName = 'permit_' . $user->id . '_' . time() . '.' . $businessPermitFile->getClientOriginalExtension();
             $businessPermitFile->move($uploadPath, $businessPermitFileName);
             $businessPermitPath = 'assets/upload/requirements/' . $businessPermitFileName;
+            
+            $b2b = B2BDetail::where('user_id', $user->id)->first();
+
+            $status = $b2b->status ?? null; // keep old status if not rejected
+
+            if ($status === 'rejected') {
+                $status = null; // or null if you prefer
+            }
 
             // Create or update B2B details
             B2BDetail::updateOrCreate(
@@ -150,6 +158,7 @@ class B2BController extends Controller
                     'contact_number' => $request->contact_number,
                     'contact_person' => $request->contact_person,
                     'contact_person_number' => $request->contact_person_number,
+                    'status' => $status
                 ]
             );
 

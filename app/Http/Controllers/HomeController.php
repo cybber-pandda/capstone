@@ -57,7 +57,6 @@ class HomeController extends Controller
         $totalPOSubmittedPR = 0;
         $totalSalesOrderPR = 0;
         $totalDeliveredPR = 0;
-        $totalemailorder = PaidPayment::where('status', 'paid')->sum('paid_amount');
         $totalcashsales = 0;
 
         $totalPendingPRChange = 0;
@@ -69,6 +68,12 @@ class HomeController extends Controller
         $totalpaylater = 0;
         $creditpayment = CreditPayment::where('status', 'paid')->sum('paid_amount');
         $creditpartialpayment = CreditPartialPayment::where('status', 'paid')->sum('paid_amount');
+
+
+        $totalmanualorder = ManualEmailOrder::where('status', 'approve')->get()->sum(function ($pr) {
+        $items = json_decode($pr->purchase_request, true) ?? [];
+        return collect($items)->sum(fn($item) => ((int)($item['qty'] ?? 0)) * ((float)($item['price'] ?? 0)));
+    });
 
         $role = $user->role ?? null;
 
@@ -102,8 +107,11 @@ class HomeController extends Controller
                 ->count();
 
 
-            $totalcashsales = $totalpaynow +$totalemailorder;
-            $totalpaylater = $creditpayment + $creditpartialpayment;
+            $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
+            $totalemailorder = PaidPayment::where('status', 'paid')->sum('paid_amount');
+            $totalcashsales = $totalpaynow + $totalmanualorder;
+
+
 
 
             // Percentage changes
@@ -165,6 +173,8 @@ class HomeController extends Controller
 
             $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
             $totalpaylater = $creditpayment + $creditpartialpayment;
+
+            $totalcashsales = $totalpaynow + $totalmanualorder;
         }
 
         if ($role === 'deliveryrider') {
@@ -186,29 +196,29 @@ class HomeController extends Controller
             }
         }
 
-        return view($view, compact(
-            'page',
-            'data',
-            'deliveries',
-            'totalB2B',
-            'totalSalesOfficer',
-            'totalDeliveryRider',
-            'b2bChange',
-            'riderChange',
-            'salesChange',
-            'totalPendingPR',
-            'totalPOSubmittedPR',
-            'totalSalesOrderPR',
-            'totalDeliveredPR',
-            'totalPendingPRChange',
-            'totalPOSubmittedPRChange',
-            'totalSalesOrderPRChange',
-            'totalDeliveredPRChange',
-            'totalpaynow',
-            'totalcashsales',
-            'totalemailorder',
-            'totalpaylater'
-        ));
+            return view($view, compact(
+                'page',
+                'data',
+                'deliveries',
+                'totalB2B',
+                'totalSalesOfficer',
+                'totalDeliveryRider',
+                'b2bChange',
+                'riderChange',
+                'salesChange',
+                'totalPendingPR',
+                'totalPOSubmittedPR',
+                'totalSalesOrderPR',
+                'totalDeliveredPR',
+                'totalPendingPRChange',
+                'totalPOSubmittedPRChange',
+                'totalSalesOrderPRChange',
+                'totalDeliveredPRChange',
+                'totalpaynow',
+                'totalcashsales', // <-- updated
+                'totalpaylater'
+            ));
+
     }
 
     public function salesRevenueData(Request $request)
@@ -398,11 +408,10 @@ class HomeController extends Controller
     // Keep deliveryFee if you still want to display it, but DO NOT include in totals
     $deliveryFee = $purchaseRequests->sum(fn($pr) => $pr->delivery_fee ?? 0);
 
-    // VAT Exclusive = items subtotal (exclude delivery fee)
-    $vatExclusive = $subtotal;
+        // Include delivery fee
+        $vatExclusive = $subtotal + $deliveryFee; // subtotal + delivery
+        $total = $subtotal + $vatAmount + $deliveryFee; // subtotal + vat + delivery
 
-    // Total = subtotal + vat (exclude delivery)
-    $total = $subtotal + $vatAmount;
 
     return view('pages.summary_sales', compact(
         'page',

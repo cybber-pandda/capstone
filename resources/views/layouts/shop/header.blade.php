@@ -4,9 +4,9 @@
     <div id="top-header">
         <div class="container">
             <ul class="header-links pull-left  desktop-only">
-                <li><a href="#"><i class="fa fa-phone"></i> {{ $companySettings->company_phone ?? '' }}</a></li>
-                <li><a href="#"><i class="fa fa-envelope-o"></i> {{ $companySettings->company_email ?? '' }}</a></li>
-                <li><a href="#"><i class="fa fa-map-marker"></i> {{ $companySettings->company_address ?? '' }}</a></li>
+                <li><span style = "color:white; cursor:default"><i class="fa fa-phone"></i> {{ $companySettings->company_phone ?? '' }}</span></li>
+                <li><span style = "color:white; cursor:default"><i class="fa fa-envelope-o"></i> {{ $companySettings->company_email ?? '' }}</span></li>
+                <li><span style = "color:white; cursor:default"><i class="fa fa-map-marker"></i> {{ $companySettings->company_address ?? '' }}</span></li>
             </ul>
             <ul class="header-links pull-right">
                 @auth

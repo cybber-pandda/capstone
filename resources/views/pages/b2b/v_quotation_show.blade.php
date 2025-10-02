@@ -77,15 +77,24 @@
                     $show_note = false;
 
                     if (!is_null($b2bDate)) {
-                    $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+                        $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+
                     } elseif ($quotation->status !== 'pending') {
-                    if ($isLargeOrder) {
-                    $delivery_date = now()->addDays(2)->format('F j, Y') . ' to ' . now()->addDays(3)->format('F j, Y');
-                    $show_note = true;
-                    } else {
-                    $delivery_date = now()->format('F j, Y');
+                        if ($isLargeOrder) {
+                            // Large orders: +2 to +3 days
+                            $start = now()->addDays(2)->format('F j, Y');
+                            $end   = now()->addDays(3)->format('F j, Y');
+                            $delivery_date = $start . ' to ' . $end;
+                        
+                        } else {
+                            // Normal order: today to tomorrow
+                            $start = now()->format('F j, Y');
+                            $end   = now()->addDay()->format('F j, Y');
+                            $delivery_date = $start . ' to ' . $end;
+                        }
+                        $show_note = true;
                     }
-                    }
+
 
                     @endphp
 

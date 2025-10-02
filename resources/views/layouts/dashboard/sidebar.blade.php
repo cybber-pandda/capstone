@@ -1,8 +1,8 @@
 <!-- partial:partials/_sidebar.html -->
 <nav class="sidebar">
-    <div class="sidebar-header" style="background-color:#FC6319;">
+    <div class="sidebar-header" style="background-color:white;">
         <a href="#" class="sidebar-brand">
-            Tantuco<span class="text-white">CTC</span>
+            Tantuco<span class="text-black">CTC</span>
         </a>
         <div class="sidebar-toggler">
             <span></span>
