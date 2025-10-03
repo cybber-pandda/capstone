@@ -6,7 +6,7 @@
         <div class="section-title d-flex justify-content-between align-items-center">
             <h3 class="title">{{ $page }}</h3>
         </div>
-        <div><button class="btn btn-primary btn-sm" id="addAddressBtn" style="margin-top:-30px;padding:5px;">Add Address</button></div>
+        <div><button class="btn btn-primary btn-sm" id="addAddressBtn" style="margin-top:-30px;padding:5px;background-color:#6571ff;border-color:#6571ff;">Add Address</button></div>
 
         <table id="b2bAddressTable" class="table-2">
             <thead>
@@ -151,7 +151,7 @@
         const city = $('input[name="city"]').val();
         const province = $('input[name="province"]').val();
         const zip = $('input[name="zip_code"]').val();
-        const address_notes = $('input[name="address_notes"]').val();
+        const address_notes = $('textarea[name="address_notes"]').val();
         const fullAddress = `${street}, ${barangay}, ${city}, ${province}, ${zip}`;
 
         $.get('/b2b/geocode', {

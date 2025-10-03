@@ -29,10 +29,11 @@
                     style="max-width: 300px;">
             </div>
             <div>
-                <a href="{{ route('home') }}" class="btn btn-primary">
+                <a href="{{ route('home') }}" class="btn btn-sm btn-add-item">
                     <i class="fa fa-plus"></i> Add Item
                 </a>
-                <button class="btn btn-info" id="submitPR" data-prids="{{ $prIdsJson }}">
+
+                <button class="btn btn-sm btn-submit-request" id="submitPR" data-prids="{{ $prIdsJson }}">
                     Submit Request
                 </button>
             </div>
@@ -77,7 +78,11 @@
                     <td data-label="Date:">{{ $item->created_at->toDateTimeString() }}</td>
                     <td>
                         <center>
-                            <button class="btn btn-danger btn-sm btn-remove-item">Remove</button>
+                            <button class="btn btn-sm btn-remove-item" 
+                                    style="background-color:#08101e; border-color:#08101e; color:#fff;">
+                                Remove
+                            </button>
+
                         </center>
                     </td>
                 </tr>
@@ -158,8 +163,8 @@
                 text: 'Do you really want to remove this item?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
+                confirmButtonColor: '#6571ff',
+                cancelButtonColor: '#000a7a',
                 confirmButtonText: 'Yes, remove it!',
                 cancelButtonText: 'Cancel'
             }).then((result) => {

@@ -1,6 +1,6 @@
 <!-- partial:partials/_sidebar.html -->
 <nav class="sidebar">
-    <div class="sidebar-header" style="background-color:#FC6319;">
+    <div class="sidebar-header" style="background-color:#c4c8ff;">
         <a href="#" class="sidebar-brand">
             Tantuco<span class="text-white">CTC</span>
         </a>

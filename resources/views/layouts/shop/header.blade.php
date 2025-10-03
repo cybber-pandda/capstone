@@ -3,10 +3,10 @@
     <!-- TOP HEADER -->
     <div id="top-header">
         <div class="container">
-            <ul class="header-links pull-left  desktop-only">
-                <li><a href="#"><i class="fa fa-phone"></i> {{ $companySettings->company_phone ?? '' }}</a></li>
-                <li><a href="#"><i class="fa fa-envelope-o"></i> {{ $companySettings->company_email ?? '' }}</a></li>
-                <li><a href="#"><i class="fa fa-map-marker"></i> {{ $companySettings->company_address ?? '' }}</a></li>
+            <ul class="header-links pull-left desktop-only no-link">
+                <li><a><i class="fa fa-phone"></i> {{ $companySettings->company_phone ?? '' }}</a></li>
+                <li><a><i class="fa fa-envelope-o"></i> {{ $companySettings->company_email ?? '' }}</a></li>
+                <li><a><i class="fa fa-map-marker"></i> {{ $companySettings->company_address ?? '' }}</a></li>
             </ul>
             <ul class="header-links pull-right">
                 @auth
@@ -62,7 +62,7 @@
                 <!-- LOGO -->
                 <div class="col-md-4">
                     <div class="header-logo">
-                        <a href="#" class="logo">
+                        <a href="{{ route('home') }}" class="logo">
                             <img src="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}" alt="" width="70">
                         </a>
                     </div>
@@ -117,7 +117,7 @@
                         </div>
 
                         <div class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true">
+                            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true" style="cursor: pointer;">
                                 <i class="fa-solid fa-box"></i>
                                 <span>PR</span>
                                 @if($pendingRequestCount > 0)

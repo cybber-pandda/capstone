@@ -3,86 +3,75 @@
 @section('content')
 <form method="POST" action="{{ route('login') }}">
     @csrf
-    <div class="card shadow-lg p-3">
-        <div class="row align-items-center">
 
-            <!-- Email Address -->
-            <div class="input-group col-lg-12 mb-4">
-                <div class="input-group-prepend">
-                    <span class="input-group-text bg-white px-4 border-md border-right-0  @error('identifier') border-danger @enderror">
-                        <i class="fa fa-envelope text-muted"></i>
-                    </span>
-                </div>
-                <input class="form-control bg-white border-left-0 border-md @error('identifier') is-invalid @enderror" name="identifier" id="identifier" value="{{ old('identifier') }}" placeholder="{{ __('Username or Email') }}">
-                @error('identifier')
-                <span class="invalid-feedback d-block" role="alert">{{ $message }}</span>
-                @enderror
+    <div class="card-body p-0"> 
+        <!-- DONE-->
+        <div class="input-group mb-4">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-white px-4 border-md border-right-0 @error('identifier') border-danger @enderror">
+                    <i class="fa fa-envelope text-muted"></i>
+                </span>
             </div>
+            <input class="form-control bg-white border-left-0 border-md @error('identifier') is-invalid @enderror" 
+                   name="identifier" id="identifier" 
+                   value="{{ old('identifier') }}" 
+                   placeholder="{{ __('Username or Email') }}">
+            @error('identifier')
+            <span class="invalid-feedback d-block" role="alert">{{ $message }}</span>
+            @enderror
+        </div>
 
-            <!-- Password -->
-            <div class="input-group col-lg-12 mb-2">
-                <div class="input-group-prepend">
-                    <span class="input-group-text bg-white px-4 border-md border-right-0  @error('password') border-danger @enderror">
-                        <i class="fa fa-lock text-muted"></i>
-                    </span>
-                </div>
-                <input id="password" type="password" name="password" placeholder="Password" class="form-control bg-white border-left-0 border-md @error('password') is-invalid border-right-0 @enderror">
-                <div class="input-group-append">
-                    <span class="input-group-text bg-white border-md border-left-0 toggle-password @error('password') border-danger-left @enderror" data-target="#password" style="cursor: pointer;">
-                        <i class="fa fa-eye"></i>
-                    </span>
-                </div>
-                @error('password')
-                <span class="invalid-feedback d-block" role="alert">{{ $message }}</span>
-                @enderror
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <span class="input-group-text bg-white px-4 border-md border-right-0 @error('password') border-danger @enderror">
+                    <i class="fa fa-lock text-muted"></i>
+                </span>
             </div>
-
-            <!-- Checkbox -->
-            <div class="mb-4 ml-3 w-100" style="display:flex;justify-content:start">
-                <!-- <div class="form-check custom-checkbox">
-                    <input type="checkbox" class="form-check-input" name="remember" id="rememberme" {{ old('remember') ? 'checked' : '' }} />
-                    <label class="form-check-label text-muted" for="rememberme">{{ __('Remember Password (Optional)') }}</label>
-                </div> -->
-                <div>
-                    @if (Route::has('password.request'))
-                    <a class="text-inherit fs-5 mr-3" href="{{ route('password.request') }}">
-                        {{ __("Forgot your password?") }}
-                    </a>
-                    @endif
-                </div>
+            <input id="password" type="password" name="password" placeholder="Password" 
+                   class="form-control bg-white border-left-0 border-md @error('password') is-invalid border-right-0 @enderror">
+            <div class="input-group-append">
+                <span class="input-group-text bg-white border-md border-left-0 toggle-password @error('password') border-danger-left @enderror" 
+                      data-target="#password" style="cursor: pointer;">
+                    <i class="fa fa-eye"></i>
+                </span>
             </div>
+            @error('password')
+            <span class="invalid-feedback d-block" role="alert">{{ $message }}</span>
+            @enderror
+        </div>
 
-            <!-- Submit Button -->
-            <div class="form-group col-lg-12 mx-auto mb-0">
-                <button type="submit" class="btn btn-primary btn-block py-2">
-                    <span class="font-weight-bold">Login account</span>
-                </button>
-            </div>
-
-            <!-- Divider Text -->
-            <div class="form-group col-lg-12 mx-auto d-flex align-items-center my-4">
-                <div class="border-bottom w-100 ml-5"></div>
-                <span class="px-2 small text-muted font-weight-bold text-muted">OR</span>
-                <div class="border-bottom w-100 mr-5"></div>
-            </div>
-
-            <!-- Social Login -->
-            <div class="form-group col-lg-12 mx-auto">
-                <a href="{{ route('google.redirect') }}" class="btn btn-primary btn-block py-2 btn-facebook">
-                    <i class="fa fa-google mr-2"></i>
-                    <span class="font-weight-bold">Login with Google</span>
+        <div class="mb-4 d-flex justify-content-start">
+            @if (Route::has('password.request'))
+                <a class="fs-5 mr-3 link-orange" href="{{ route('password.request') }}">
+                    {{ __("Forgot your password?") }}
                 </a>
-                <a href="#" class="btn btn-primary btn-block py-2 btn-twitter d-none">
-                    <i class="fa fa-facebook-f mr-2"></i>
-                    <span class="font-weight-bold">Login with facebook</span>
-                </a>
-            </div>
+            @endif
+        </div>
 
-            <!-- Already Registered -->
-            <div class="text-center w-100">
-                <p class="text-muted font-weight-bold">Don't have an account yet? <a href="{{ route('register') }}" class="text-primary ml-2">Register</a></p>
-            </div>
+        <div class="form-group mb-0">
+            <button type="submit" class="btn btn-twitter btn-block py-2">
+                <span class="font-weight-bold">Login Account</span>
+            </button>
+        </div>
 
+        <div class="form-group d-flex align-items-center my-4 px-3">
+            <div class="border-bottom w-100"></div>
+            <span class="px-2 small text-muted font-weight-bold text-muted">OR</span>
+            <div class="border-bottom w-100"></div>
+        </div>
+
+        <div class="form-group">
+            <a href="{{ route('google.redirect') }}" class="btn btn-primary btn-block py-2 btn-facebook">
+                <i class="fa fa-google mr-2"></i>
+                <span class="font-weight-bold">Login with Google</span>
+            </a>
+        </div>
+
+        <div class="text-center w-100">
+            <p class="text-muted font-weight-bold">
+                Don't have an account yet? 
+                <a href="{{ route('register') }}" class="fs-5 mr-3 link-orange">Register</a>
+            </p>
         </div>
     </div>
 </form>

@@ -1,6 +1,6 @@
 <!-- partial:partials/_navbar.html -->
 <div class="horizontal-menu">
-    <nav class="navbar top-navbar" style="background-color:#FC6319;">
+    <nav class="navbar top-navbar" style="background-color:#c4c8ff;">
         <div class="container">
             <div class="navbar-content">
 

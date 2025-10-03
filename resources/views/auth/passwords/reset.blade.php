@@ -5,13 +5,12 @@
     @csrf
 
     <input type="hidden" name="token" value="{{ $token }}">
-
-    <div class="card shadow-lg p-3">
+        <!-- DONE-->
         <div class="row">
 
             <div>
                 <h3 class="ml-3">Reset Password</h3>
-                <p class="ml-3 mb-3">Enter you're new password.</p>
+                <p class="ml-3 mb-3">Enter your new password.</p>
             </div>
 
             <!-- Email Address -->
@@ -60,7 +59,7 @@
 
             <!-- Submit Button -->
             <div class="form-group col-lg-12 mx-auto mb-0">
-                <button type="button" class="btn btn-primary btn-block py-2" id="resetAccount">
+                <button type="button" class="btn btn-twitter btn-block py-2" id="resetAccount">
                     <span class="font-weight-bold">{{ __('Reset Password') }}</span>
                 </button>
             </div>

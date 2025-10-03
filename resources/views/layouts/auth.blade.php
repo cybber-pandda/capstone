@@ -5,140 +5,243 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
-    <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $page }} | {{ config('app.name', 'Laravel') }}</title>
+    <title>{{ $page ?? 'Auth' }} | {{ config('app.name', 'Laravel') }}</title>
 
-    <link rel="icon" type="image/png" href="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}">
+    <link rel="icon" type="image/png" href="{{ asset($companySettings->company_logo ?? 'assets/dashboard/images/noimage.png') }}">
 
-    <!-- Bootstrap -->
     <link type="text/css" rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
     <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
     <link type="text/css" rel="stylesheet" href="{{ asset('assets/css/modified.css') }}" />
 
     <style>
-        /*
-        *
-        * ==========================================
-        * CUSTOM UTIL CLASSES
-        * ==========================================
-        *
-        */
+    /* DONE */
+    /* General Page */
+    body {
+        min-height: 100vh; 
+        background-color: #ffffff;
+    }
 
-        .border-md {
-            border-width: 2px;
+    /* Branding & Buttons */
+    .btn-twitter {
+        background: #6571ff;
+        border: none;
+        color: #fff;
+    }
+    .btn-twitter:hover,
+    .btn-twitter:focus {
+        background: #4d5ad1; /* darker shade of #6571ff */
+        color: #fff;
+    }
+
+    .btn-facebook {
+        background: #232323;
+        border: none;
+        color: #fff;
+    }
+    .btn-facebook:hover,
+    .btn-facebook:focus {
+        background: #000;
+        color: #fff;
+    }
+
+    .link-orange {
+        color: #6571ff;
+        text-decoration: none;
+    }
+    .link-orange:hover {
+        color: #4d5ad1;
+    }
+
+    /* Forms */
+    .form-control:not(select) {
+        padding: 1.5rem 0.5rem;
+    }
+    select.form-control {
+        height: 52px;
+        padding-left: 0.5rem;
+    }
+    .form-control::placeholder {
+        color: #ccc;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .form-control:focus {
+        box-shadow: none;
+    }
+
+    /* Tabs (Register modal: Terms & Privacy) */
+    #termsTabs .nav-link {
+        color: #6c757d;
+        border: none;
+        border-radius: 0;
+    }
+    #termsTabs .nav-link.active {
+        color: #6571ff;
+        border-bottom: 2px solid #6571ff;
+        background-color: transparent;
+    }
+
+    /* Blue button (used in modal footer) */
+    .btn-orange {
+        color: #fff;
+        background-color: #6571ff;
+        border-color: #6571ff;
+    }
+    .btn-orange:hover {
+        background-color: #4d5ad1;
+        border-color: #4250c0;
+        color: #fff;
+    }
+    .btn-orange:focus,
+    .btn-orange:active {
+        background-color: #4250c0;
+        border-color: #3b49b3;
+        box-shadow: 0 0 0 0.25rem rgba(101, 113, 255, 0.5);
+        color: #fff;
+    }
+    .btn-orange:disabled {
+        background-color: #6571ff;
+        border-color: #6571ff;
+        opacity: 0.65;
+        color: #fff;
+    }
+    
+    /* Make login card 95% width on mobile */
+    @media (max-width: 767.98px) {
+        .row.mt-4.mt-md-5.shadow-lg.rounded.overflow-hidden {
+            width: 95% !important;
+            margin: auto;
         }
+    }
 
-        .btn-facebook {
-            background: #405D9D;
-            border: none;
+.otp-input-fields {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
+  flex-wrap: nowrap; /* always one row */
+}
+
+.otp-input-fields input {
+  width: 45px;
+  font-size: 22px;
+  text-align: center;
+  border: none;
+  border-bottom: 2px solid #ccc; /* underscore */
+  outline: none;
+  background: transparent;
+  font-weight: bold;
+  transition: border-color 0.2s ease-in-out;
+}
+
+/* Highlight active field */
+.otp-input-fields input:focus {
+  border-bottom: 2px solid #6571ff; /* your main color */
+}
+
+/* Smaller screens */
+@media (max-width: 480px) {
+  .otp-input-fields input {
+    width: 35px;
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 360px) {
+  .otp-input-fields input {
+    width: 30px;
+    font-size: 16px;
+  }
+}
+
+
+    @media (max-width: 768px) {
+        .otp__digit {
+            width: 45px;
+            height: 50px;
+            font-size: 1.3rem;
         }
+    }
 
-        .btn-facebook:hover,
-        .btn-facebook:focus {
-            background: #314879;
+    @media (max-width: 400px) {
+        .otp__digit {
+            width: 38px;
+            height: 45px;
+            font-size: 1.1rem;
         }
+    }
 
-        .btn-twitter {
-            background: #42AEEC;
-            border: none;
+    @media (max-width: 576px) {
+        .input-group .form-control {
+            font-size: 14px;
+            padding: 8px;
         }
-
-        .btn-twitter:hover,
-        .btn-twitter:focus {
-            background: #1799e4;
+        .input-group-text {
+            padding: 6px 10px;
+            font-size: 14px;
         }
+    }
 
-        /*
-        *
-        * ==========================================
-        * FOR DEMO PURPOSES
-        * ==========================================
-        *
-        */
+    /* 🔹 Custom Swal styling */
+    .swal-custom-popup {
+        border-radius: 12px !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15) !important;
+        font-family: "Segoe UI", Roboto, sans-serif;
+    }
 
-        body {
-            min-height: 100vh;
-        }
+    .swal-custom-title {
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        color: #333 !important;
+    }
 
-        .form-control:not(select) {
-            padding: 1.5rem 0.5rem;
-        }
+    .swal-custom-button {
+        border-radius: 8px !important;
+        padding: 8px 18px !important;
+        font-weight: 500 !important;
+    }
 
-        select.form-control {
-            height: 52px;
-            padding-left: 0.5rem;
-        }
-
-        .form-control::placeholder {
-            color: #ccc;
-            font-weight: bold;
-            font-size: 0.9rem;
-        }
-
-        .form-control:focus {
-            box-shadow: none;
-        }
-
-        @media (min-width: 768px) {
-            .row.desktop-mt {
-                margin-top: 5rem !important;
-            }
-        }
-
-        .input-group-text.border-danger {
-            border-top: 2px solid #dc3545;
-            border-bottom: 2px solid #dc3545;
-            border-left: 2px solid #dc3545;
-            border-right: none;
-        }
-
-        .input-group-text.border-danger-left {
-            border-top: 2px solid #dc3545;
-            border-bottom: 2px solid #dc3545;
-            border-right: 2px solid #dc3545;
-            border-left: none;
-        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 </head>
 
-<body style="background-color:#FC6319;">
-    <!-- Navbar-->
-    <header class="header">
-        <nav class="navbar navbar-expand-lg navbar-light">
-            <div class="container">
-                <!-- Navbar Brand -->
-                <a href="#" class="navbar-brand">
-                    <img src="{{ asset($companySettings->company_logo  ?? 'assets/dashboard/images/noimage.png'  ) }}" alt="" width="70">
-                </a>
-            </div>
-        </nav>
-    </header>
+<body class="d-flex flex-column align-items-center justify-content-center">
+<div class="container" style = "margin-bottom: 45px;">
+    <div class="row mt-4 mt-md-5 shadow-lg rounded overflow-hidden">
 
-    <div class="container">
-        <div class="row align-items-center py-2 ">
-            <div class="col-md-5 pr-lg-5 mb-2 mb-md-0">
-                <img src="{{ asset('assets/shop/img/tools.webp') }}" alt="hardware shop illustration" class="img-fluid d-none d-md-block mb-0">
-                <h2>Welcome to <b>Tantuco</b><span class="lead">CTC</span></h2>
-                <p>Access Top-Quality Hardware</p>
-                <p class="font-italic text-white mb-0">Register to explore top-quality hardware tools, parts, and supplies for all your business and DIY needs.</p>
-                <p class="font-italic text-white">Brought to you by <strong>TantucoCTC</strong></p>
+        <!-- Left Branding Column (Desktop Only) -->
+        <div class="col-md-6 d-none d-md-flex flex-column justify-content-center align-items-center text-center p-4 text-white"
+             style="background:#6571ff;">
+            <img src="{{ asset($companySettings->company_logo ?? 'assets/dashboard/images/noimage.png') }}" 
+                 alt="Company Logo" 
+                 class="img-fluid mb-3 bg-white p-2 rounded-circle" 
+                 width="140">
+
+            <h2 class="mb-2">Welcome to <b>Tantuco</b><span class="lead">CTC</span></h2>
+            <p class="h5">Access Top-Quality Hardware</p>
+            <p class="mb-1 px-3 px-sm-5">Register to explore top-quality hardware tools, parts, and supplies for all your business and DIY needs.</p>
+            <p>Brought to you by <strong>TantucoCTC</strong></p>
+        </div>
+
+        <!-- Right Column (Form, Vertically Centered) -->
+        <div class="col-12 col-md-6 bg-white d-flex flex-column justify-content-center p-4">
+
+            <!-- Mobile Branding (Visible on Small Screens Only) -->
+            <div class="text-center mb-4 d-md-none">
+                <img src="{{ asset($companySettings->company_logo ?? 'assets/dashboard/images/noimage.png') }}" 
+                     alt="Company Logo" 
+                     class="img-fluid mb-2 bg-white p-2 rounded-circle" 
+                     width="100">
+                <h4 class="mb-0 mt-2 text-dark"><strong>TantucoCTC</strong></h4>
             </div>
 
-
-            <!-- Registeration Form -->
-            <div class="col-md-7 col-lg-6 ml-auto">
-                @yield('content')
-            </div>
+            @yield('content')
         </div>
     </div>
-
-
-
+</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"></script>
@@ -156,7 +259,5 @@
     </script>
 
     @stack('scripts')
-
 </body>
-
 </html>

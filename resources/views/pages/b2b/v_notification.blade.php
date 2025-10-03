@@ -8,11 +8,14 @@
             <h3 class="title">{{ $page }}</h3>
         </div>
 
-        <div class="mb-3">
-            <button id="markAllAsReadBtn" class="btn btn-success btn-sm">
-                Mark Selected as Read
-            </button>
-        </div>
+            <div class="mb-3">
+                <button id="markAllAsReadBtn" 
+                        class="btn btn-sm" 
+                        style="background-color:#6571ff; border-color:#6571ff; color:#fff;">
+                    Mark Selected as Read
+                </button>
+            </div>
+
 
         @component('components.table', [
         'id' => 'notificationTable',

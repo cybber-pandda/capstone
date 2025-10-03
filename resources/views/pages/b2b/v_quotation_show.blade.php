@@ -160,17 +160,26 @@
                 </div>
                 <div class="text-right" style="margin-top: 10px;margin-bottom: 60px; display: flex; justify-content: relative; gap:3px">
                     
-                        <a href="{{ route('b2b.quotation.download', ['id' => $quotation->id]) }}" class="btn btn-primary">
-                            <i class="fa fa-file-pdf"></i> Download PDF
-                        </a>
+                    <a href="{{ route('b2b.quotation.download', ['id' => $quotation->id]) }}" 
+                    class="btn btn-download-pdf">
+                        <i class="fa fa-file-pdf"></i> Download PDF
+                    </a>
 
-                        <button type="button" class="btn btn-warning" id="submitQuotationBtn" data-id="{{ $quotation->id }}" data-totalpayment="{{ $total }}">
-                            <i class="fa fa-check"></i> Accept
-                        </button>
 
-                        <button type="button" class="btn btn-success cancel-pr-btn" data-id="{{ $quotation->id }}">
-                            <i class="fa fa-xmark"></i> Cancel
-                        </button>
+                    <button type="button" 
+                            class="btn btn-accept-quotation" 
+                            id="submitQuotationBtn" 
+                            data-id="{{ $quotation->id }}" 
+                            data-totalpayment="{{ $total }}">
+                        <i class="fa fa-check"></i> Accept
+                    </button>
+
+                    <button type="button" 
+                            class="btn btn-cancel-quotation cancel-pr-btn" 
+                            data-id="{{ $quotation->id }}">
+                        <i class="fa fa-xmark"></i> Cancel
+                    </button>
+
                 </div>
 
             </div>

@@ -4,9 +4,6 @@
 
 <div class="mt-0 desktop-mt align-items-center">
 
-    <!-- Card -->
-    <div class="card shadow-lg">
-        <!-- Card body -->
         <div class="card-body p-5">
             <div class="mb-4">
 
@@ -52,7 +49,6 @@
             </div>
         </div>
     </div>
-</div>
 
 @endsection
 
