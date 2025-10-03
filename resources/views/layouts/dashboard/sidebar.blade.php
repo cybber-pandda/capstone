@@ -2,7 +2,7 @@
 <nav class="sidebar">
     <div class="sidebar-header" style="background-color:#c4c8ff;">
         <a href="#" class="sidebar-brand">
-            Tantuco<span class="text-white">CTC</span>
+            Tantuco<span class="text-black">CTC</span>
         </a>
         <div class="sidebar-toggler">
             <span></span>
