@@ -63,40 +63,46 @@
                 <div style="overflow-x: auto; width: 100%;">
 
                     @php
-                    $subtotal = $quotation->items->sum('subtotal');
-                    $vatRate = $quotation->vat ?? 0;
-                    $vat = $subtotal * ($vatRate / 100);
-                    $delivery_fee = $quotation->delivery_fee ?? 0;
-                    $total = $subtotal + $vat + $delivery_fee;
-                    $vatableSales = $subtotal;
-                    $amountPaid = 0.00;
+                        $subtotal = $quotation->items->sum('subtotal');
+                        $vatRate = $quotation->vat ?? 0;
+                        $vat = $subtotal * ($vatRate / 100);
+                        $delivery_fee = $quotation->delivery_fee ?? 0;
+                        $total = $subtotal + $vat + $delivery_fee;
+                        $vatableSales = $subtotal;
+                        $amountPaid = 0.00;
 
-                    $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
-                    $b2bDate = $quotation->b2b_delivery_date;
-                    $delivery_date = null;
-                    $show_note = false;
+                        $b2bDate = $quotation->b2b_delivery_date;
+                        $delivery_date = null;
+                        $show_note = false;
 
-                    if (!is_null($b2bDate)) {
-                        $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
-
-                    } elseif ($quotation->status !== 'pending') {
-                        if ($isLargeOrder) {
-                            // Large orders: +2 to +3 days
+                        if (!is_null($b2bDate)) {
+                            // User chose a delivery date
+                            $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+                        } elseif ($quotation->status !== 'pending') {
+                            // No date chosen → default 2 to 7 days
                             $start = now()->addDays(2)->format('F j, Y');
-                            $end   = now()->addDays(3)->format('F j, Y');
+                            $end   = now()->addDays(7)->format('F j, Y');
                             $delivery_date = $start . ' to ' . $end;
-                        
-                        } else {
-                            // Normal order: today to tomorrow
-                            $start = now()->format('F j, Y');
-                            $end   = now()->addDay()->format('F j, Y');
-                            $delivery_date = $start . ' to ' . $end;
+                            $show_note = true;
                         }
-                        $show_note = true;
-                    }
 
-
+                        /*
+                        // OLD CODE with quantity condition
+                        elseif ($quotation->status !== 'pending') {
+                            if ($isLargeOrder) {
+                                $start = now()->addDays(7)->format('F j, Y');
+                                $end   = now()->addDays(14)->format('F j, Y');
+                                $delivery_date = $start . ' to ' . $end;
+                            } else {
+                                $start = now()->addDays(2)->format('F j, Y');
+                                $end   = now()->addDays(7)->format('F j, Y');
+                                $delivery_date = $start . ' to ' . $end;
+                            }
+                            $show_note = true;
+                        }
+                        */
                     @endphp
+
 
 
                     <table class="table table-bordered" style="min-width: 600px;margin-top: 10px;margin-bottom:10px;font-size:12px;">

@@ -24,10 +24,10 @@
         <div
             style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
             <div>
-                <label style="font-weight: normal;">Expected Delivery Date (optional)</label>
+                <label style="font-weight: normal;">Schedule Delivery (optional)</label>
                 <input class="form-control" type="date" id="expectedDeliveryDate" name="expectedDeliveryDate" .
                     style="max-width: 300px;">
-            </div>
+            </div>  
             <div>
                 <a href="{{ route('home') }}" class="btn btn-sm btn-add-item">
                     <i class="fa fa-plus"></i> Add Item
@@ -68,8 +68,8 @@
                         <center>
                             <div class="input-group" style="max-width: 130px;display: flex; align-items: center;">
                                 <button class="btn btn-sm btn-outline-secondary qty-decrease">−</button>
-                                <input type="text" class="form-control form-control-sm text-center item-qty"
-                                    value="{{ $item->quantity }}" readonly>
+                                <input type="number" class="form-control form-control-sm text-center item-qty"
+                                    value="{{ $item->quantity }}" min="1">
                                 <button class="btn btn-sm btn-outline-secondary qty-increase">+</button>
                             </div>
                         </center>
@@ -152,7 +152,26 @@
 
             updateQuantity(itemId, quantity, qtyInput);
         });
+        // ✅ Allow manual typing in the quantity box
+        $('.item-qty').on('change', function() {
+            let row = $(this).closest('tr');
+            let itemId = row.data('id');
+            let qtyInput = $(this);
+            let quantity = parseInt(qtyInput.val());
 
+            if (isNaN(quantity) || quantity < 1) {
+                quantity = 1;
+                qtyInput.val(quantity);
+            }
+
+            updateQuantity(itemId, quantity, qtyInput);
+        });
+        // ✅ Prevent invalid characters (e, E, +, -, .) in number input
+        $(document).on('keydown', '.item-qty', function(e) {
+            if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-' || e.key === '.') {
+                e.preventDefault();
+            }
+        });
         // Remove Item
         $('.btn-remove-item').click(function() {
             let row = $(this).closest('tr');
@@ -311,7 +330,21 @@
             });
         }
 
+        $('#expectedDeliveryDate').on('change', function() {
+            let selectedDate = new Date(this.value);
+            let today = new Date();
+            today.setHours(0,0,0,0); // normalize to midnight
+            let diffDays = Math.ceil((selectedDate - today) / (1000 * 60 * 60 * 24));
 
+            if (diffDays < 4) { // Example: less than 3 days warning
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Notice',
+                    text: 'Choosing an earlier delivery date may result in higher delivery costs.',
+                    confirmButtonText: 'Okay'
+                });
+            }
+        });
     });
 </script>
 @endpush

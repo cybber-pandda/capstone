@@ -981,8 +981,17 @@ textarea.input {
 .product .product-img .product-label>span.new {
   background-color: #6571ff;
   border-color: #6571ff;
-  color: #FFF;
+  color: #000000;
 }
+
+.product-label .new {
+    background-color: #000a7a!important; /* green background */
+    color: white !important;             /* white text */
+    padding: 3px 8px; 
+    border-radius: 4px;
+    font-weight: bold;
+}
+
 
 .product .product-body {
   position: relative;
@@ -2514,6 +2523,18 @@ textarea.input {
 }
 .swal2-cancel:hover {
     background-color: #0f1a33 !important;
+}
+
+/* For Chrome, Safari, Edge, Opera */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+    -webkit-appearance: none; 
+    margin: 0; 
+}
+
+/* For Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
 }
 
 

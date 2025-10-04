@@ -115,6 +115,7 @@
         let selectedCategory = '';
         let searchQuery = '';
 
+        // -- keep fetchProducts as-is but ensure it sends search + category --
         function fetchProducts(url = "{{ route('home') }}") {
             $.ajax({
                 url: url,
@@ -125,6 +126,8 @@
                 },
                 success: function(response) {
                     $('#product-list').html(response.html);
+                    // scroll to top of product list (optional)
+                    // $('html, body').animate({ scrollTop: $('#product-list').offset().top - 100 }, 200);
                 },
                 error: function(xhr) {
                     console.error('Error fetching products:', xhr);
@@ -132,27 +135,13 @@
             });
         }
 
-        $(document).on('click', '.pending-requirements-btn', function(e) {
-            e.preventDefault();
-
-            $(document).ready(function() {
-                Swal.fire({
-                    title: "Pending Verification",
-                    text: "Your B2B account is pending approval.",
-                    icon: "info",
-                    confirmButtonColor: "#3085d6",
-                    confirmButtonText: "OK"
-                });
-            });
-
-        });
-
+        // SEARCH button click (explicit search)
         $(document).on('click', '#search-btn', function(e) {
             e.preventDefault();
-            searchQuery = $('#search_value').val();
+            searchQuery = $('#search_value').val().trim();
+            // fetch with whatever selectedCategory is (if input is empty, searchQuery becomes '')
             fetchProducts();
         });
-
         // $(document).on('click', '.category-btn', function(e) {
         //     e.preventDefault();
 
@@ -167,21 +156,51 @@
         //     fetchProducts();
         // }); 
 
-        $(document).on('click', '.category-btn', function() {
+        // If user clears the input, auto-reset (fetch "all").
+        // Only trigger fetch when the input becomes empty to avoid requests while typing.
+        // Live search with debounce (400ms delay)
+        $('#search_value').on('input', debounce(function() {
+            searchQuery = $(this).val().trim();
+
+            if (searchQuery !== '') {
+                fetchProducts();
+            } else {
+                // If the input is cleared, reset to all products
+                searchQuery = '';
+                fetchProducts();
+            }
+        }, 400));
+
+
+        // Category button click — ALWAYS recalculates searchQuery from input before fetching.
+        // This ensures clicking "All" (category id = '') will show all items when the search box is empty.
+        $(document).on('click', '.category-btn', function(e) {
+            e.preventDefault();
             selectedCategory = $(this).data('id');
 
             $('.category-btn').removeClass('active');
             $(this).addClass('active');
 
+            // read the current search box value (so category respects whether user cleared it)
+            searchQuery = $('#search_value').val().trim();
+
             fetchProducts();
         });
 
-
+        // Pagination links (works with server-generated pagination links)
         $(document).on('click', '.pagination a', function(e) {
             e.preventDefault();
             const url = $(this).attr('href');
             fetchProducts(url);
         });
+        // Debounce helper: waits until user stops typing
+        function debounce(fn, delay) {
+            let timer;
+            return function() {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, arguments), delay);
+            };
+        }
 
         $(document).on('click', '.quick-view', function () {
             var productId = $(this).data('id');

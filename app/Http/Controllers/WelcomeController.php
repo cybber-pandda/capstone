@@ -29,7 +29,10 @@ class WelcomeController extends Controller
             ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'discount', 'discounted_price', 'created_at', 'expiry_date']);
 
         if ($request->filled('search')) {
-            $products->where('name', 'like', '%' . $request->search . '%');
+            $products->where(function($query) use ($request) {
+                $query->where('name', 'like', '%' . $request->search . '%')
+                    ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
         }
 
         if ($request->filled('category_id')) {

@@ -125,8 +125,13 @@ class HomeController extends Controller
             $products = Product::with('inventories', 'category', 'productImages')
                 ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'discount', 'discounted_price', 'created_at', 'expiry_date']);
 
-            if ($request->filled('search')) {
-                $products->where('name', 'like', '%' . $request->search . '%');
+            $search = trim($request->input('search', ''));
+
+            if (!empty($search)) {
+                $products->where(function($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
+                });
             }
 
             if ($request->filled('category_id')) {

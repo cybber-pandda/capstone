@@ -119,21 +119,51 @@
             });
         }
 
+        // SEARCH button click (explicit search)
         $(document).on('click', '#search-btn', function(e) {
             e.preventDefault();
-            searchQuery = $('#search_value').val();
+            searchQuery = $('#search_value').val().trim();
             fetchProducts();
         });
 
-        $(document).on('click', '.category-btn', function() {
+        // Live search with debounce (400ms delay)
+        $('#search_value').on('input', debounce(function() {
+            searchQuery = $(this).val().trim();
+
+            if (searchQuery !== '') {
+                fetchProducts();
+            } else {
+                // If the input is cleared, reset to all products
+                searchQuery = '';
+                fetchProducts();
+            }
+        }, 400));
+
+        // Debounce helper: waits until user stops typing
+        function debounce(fn, delay) {
+            let timer;
+            return function() {
+                clearTimeout(timer);
+                timer = setTimeout(() => fn.apply(this, arguments), delay);
+            };
+        }
+
+
+        // Category button click — ALWAYS recalculates searchQuery from input before fetching.
+        // This ensures clicking "All" (category id = '') will show all items when the search box is empty.
+        $(document).on('click', '.category-btn', function(e) {
+            e.preventDefault();
             selectedCategory = $(this).data('id');
 
             $('.category-btn').removeClass('active');
             $(this).addClass('active');
 
+            // read the current search box value (so category respects whether user cleared it)
+            searchQuery = $('#search_value').val().trim();
+
             fetchProducts();
         });
-
+        
         $(document).on('click', '.pagination a', function(e) {
             e.preventDefault();
             const url = $(this).attr('href');
