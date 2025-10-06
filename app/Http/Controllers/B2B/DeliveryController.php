@@ -69,7 +69,7 @@ class DeliveryController extends Controller
                     $status = $order->delivery->status ?? 'unknown';
 
                     $messages = [
-                        'pending' => 'Waiting for admin to assign a rider',
+                        'pending' => 'To assign rider',
                         'assigned' => 'Rider assigned',
                         'on_the_way' => 'Out for delivery',
                         'delivered' => 'Delivered',
@@ -87,7 +87,7 @@ class DeliveryController extends Controller
                     $badgeText = $messages[$status] ?? ucfirst($status);
                     $badgeClass = $badgeColors[$status] ?? 'secondary';
 
-                    return '<span class="badge bg-' . $badgeClass . '">' . $badgeText . '</span>';
+                    return '<span class="text-' . $badgeClass . '" style="font-weight:bold;font-size:11px;">' . $badgeText . '</span>';
                 })
                 ->addColumn('rating', function ($order) {
                     $rating = $order->delivery->rating->rating ?? null;

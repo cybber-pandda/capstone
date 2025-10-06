@@ -1,12 +1,12 @@
 <!-- HEADER -->
 <header>
     <!-- TOP HEADER -->
-    <div id="top-header">
+    <div id="top-header" class="top-header-row">
         <div class="container">
             <ul class="header-links pull-left desktop-only no-link">
                 <li><a><i class="fa fa-phone"></i> {{ $companySettings->company_phone ?? '' }}</a></li>
-                <li><a><i class="fa fa-envelope-o"></i> {{ $companySettings->company_email ?? '' }}</a></li>
-                <li><a><i class="fa fa-map-marker"></i> {{ $companySettings->company_address ?? '' }}</a></li>
+                <li class="removeAddressinTablet"><a><i class="fa fa-envelope-o"></i> {{ $companySettings->company_email ?? '' }}</a></li>
+                <li class="removeEmailinTablet"><a><i class="fa fa-map-marker"></i> {{ $companySettings->company_address ?? '' }}</a></li>
             </ul>
             <ul class="header-links pull-right">
                 @auth
@@ -58,7 +58,7 @@
         <!-- container -->
         <div class="container">
             <!-- row -->
-            <div class="row" id="hideHeaderFormobile">
+            <div class="row header-row" id="hideHeaderFormobile">
                 <!-- LOGO -->
                 <div class="col-md-4">
                     <div class="header-logo">

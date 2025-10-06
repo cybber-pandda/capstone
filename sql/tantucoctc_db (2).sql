@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 06, 2025 at 03:58 PM
+-- Generation Time: Oct 06, 2025 at 01:26 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -36,12 +36,20 @@ CREATE TABLE `b2b_address` (
   `province` varchar(255) DEFAULT NULL,
   `zip_code` varchar(255) DEFAULT NULL,
   `full_address` text DEFAULT NULL,
+  `address_notes` text DEFAULT NULL,
   `delivery_address_lat` decimal(10,7) DEFAULT NULL,
   `delivery_address_lng` decimal(10,7) DEFAULT NULL,
   `status` enum('inactive','active') NOT NULL DEFAULT 'inactive',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `b2b_address`
+--
+
+INSERT INTO `b2b_address` (`id`, `user_id`, `street`, `barangay`, `city`, `province`, `zip_code`, `full_address`, `address_notes`, `delivery_address_lat`, `delivery_address_lng`, `status`, `created_at`, `updated_at`) VALUES
+(1, 4, 'Tuliao St.', 'Atulayan Sur', 'Tuguegarao City', 'Cagayan', '3600', 'Tuliao St., Atulayan Sur, Tuguegarao City, Cagayan, 3600', NULL, 17.6333100, 121.7189366, 'active', '2025-10-05 14:18:48', '2025-10-05 14:18:48');
 
 -- --------------------------------------------------------
 
@@ -63,6 +71,13 @@ CREATE TABLE `b2b_details` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `b2b_details`
+--
+
+INSERT INTO `b2b_details` (`id`, `user_id`, `certificate_registration`, `business_permit`, `business_name`, `tin_number`, `contact_number`, `contact_person`, `contact_person_number`, `status`, `created_at`, `updated_at`) VALUES
+(1, 4, 'assets/upload/requirements/certificate_4_1759671987.pdf', 'assets/upload/requirements/permit_4_1759671987.pdf', 'Ace Hardware', '000-11100-111', '09453813159', 'Renza Cabrera Bancud', '09453813159', 'approved', '2025-10-05 13:46:27', '2025-10-05 13:46:27');
 
 -- --------------------------------------------------------
 
@@ -143,7 +158,7 @@ CREATE TABLE `company_settings` (
 --
 
 INSERT INTO `company_settings` (`id`, `company_logo`, `company_email`, `company_phone`, `company_tel`, `company_telefax`, `company_address`, `company_vat_reg`, `created_at`, `updated_at`) VALUES
-(1, 'assets/upload/1752061775_TantucoCTC_Logo.png', 'tantucoconstruction@gmail.com', '(042)525-8888', '(042) 525-8888 / 717-02551', '(042) 525-8188', 'Barangay Balubal, Sariaya, 4322, Quezon Province', '005-345-069-000', NULL, '2025-07-09 11:49:35');
+(1, 'assets/upload/1759400911_Group 1000004820.png', 'tantucoconstruction@gmail.com', '(042)525-8888', '(042) 525-8888 / 717-02551', '(042) 525-8188', 'Barangay Balubal, Sariaya, 4322, Quezon Province', '005-345-069-000', NULL, '2025-07-09 11:49:35');
 
 -- --------------------------------------------------------
 
@@ -214,6 +229,13 @@ CREATE TABLE `deliveries` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `deliveries`
+--
+
+INSERT INTO `deliveries` (`id`, `order_id`, `delivery_rider_id`, `quantity`, `tracking_number`, `status`, `delivery_date`, `proof_delivery`, `delivery_remarks`, `sales_invoice_flg`, `delivery_latitude`, `delivery_longitude`, `created_at`, `updated_at`) VALUES
+(1, 1, 2, 10, '3C38AC8A-FFC0-4CF9-84EC-B8200C6C85DF', 'on_the_way', NULL, NULL, NULL, 0, 13.9655000, 121.5348000, '2025-10-05 15:09:11', '2025-10-05 16:18:41');
 
 -- --------------------------------------------------------
 
@@ -295,8 +317,10 @@ INSERT INTO `inventories` (`id`, `product_id`, `type`, `quantity`, `reason`, `cr
 (9, 8, 'in', 200, 'restock', '2025-08-19 11:12:24', '2025-08-19 11:12:24'),
 (10, 9, 'in', 300, 'restock', '2025-08-19 11:12:39', '2025-08-19 11:12:39'),
 (11, 12, 'in', 200, 'restock', '2025-08-19 11:12:55', '2025-08-19 11:12:55'),
-(12, 1, 'out', 4, 'sold', '2025-09-06 03:42:34', '2025-09-06 03:42:34'),
-(13, 1, 'out', 4, 'sold', '2025-09-06 03:46:04', '2025-09-06 03:46:04');
+(12, 1, 'out', 988, 'sold', '2025-09-06 03:42:34', '2025-09-06 03:42:34'),
+(13, 1, 'out', 4, 'sold', '2025-09-06 03:46:04', '2025-09-06 03:46:04'),
+(14, 1, 'out', 3, 'sold', '2025-09-27 04:28:47', '2025-09-27 04:28:47'),
+(15, 1, 'out', 1, 'sold', '2025-09-27 04:35:08', '2025-09-27 04:35:08');
 
 -- --------------------------------------------------------
 
@@ -308,24 +332,17 @@ CREATE TABLE `manual_email_order` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `customer_name` varchar(255) DEFAULT NULL,
   `customer_type` varchar(20) DEFAULT NULL,
-  `customer_email` varchar(255) NOT NULL,
+  `customer_email` varchar(255) DEFAULT NULL,
   `customer_address` varchar(255) DEFAULT NULL,
   `customer_phone_number` varchar(255) DEFAULT NULL,
   `order_date` date DEFAULT NULL,
   `purchase_request` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`purchase_request`)),
   `remarks` text DEFAULT NULL,
+  `delivery_fee` int(11) DEFAULT 0,
   `status` enum('pending','waiting','approve','rejected') NOT NULL DEFAULT 'pending',
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `manual_email_order`
---
-
-INSERT INTO `manual_email_order` (`id`, `customer_name`, `customer_type`, `customer_email`, `customer_address`, `customer_phone_number`, `order_date`, `purchase_request`, `remarks`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Charry Bancud', 'Manual Order', 'bancudzo3@gmail.com', 'Bancud St.', '09558431011', '2025-09-06', '[{\"category_id\":\"1\",\"product_id\":\"1\",\"qty\":\"4\",\"price\":\"260.00\"}]', 'sgsgssgs', 'approve', '2025-09-06 03:34:50', '2025-09-06 03:46:04'),
-(2, 'Renzo Cabrera Bancud', 'Walk-In', 'bancudzo3@gmail.com', 'Bancud St. Atulayan Norte', '09453813158', '2025-09-06', '[{\"category_id\":\"2\",\"product_id\":\"3\",\"qty\":\"3\",\"price\":\"175.00\"}]', 'Test', 'approve', '2025-09-06 03:40:59', '2025-09-06 03:40:59');
 
 -- --------------------------------------------------------
 
@@ -447,7 +464,27 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `message`, `read_at`, `cre
 (32, 3, 'purchase_request', 'A new purchase request has been updated by Ben Tulfo. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-04 15:37:17', '2025-09-04 15:37:17'),
 (33, 1, 'purchase_request', 'PO #4 submitted by Ben Tulfo with (Pay Later) - Total: ₱0.00', '2025-09-06 08:34:03', '2025-09-04 15:40:31', '2025-09-06 08:34:03'),
 (34, 1, 'purchase_request', 'PO #4 submitted by Ben Tulfo with (Pay Later) - Total: ₱0.00', '2025-09-06 08:34:03', '2025-09-04 15:47:54', '2025-09-06 08:34:03'),
-(35, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-06 12:54:18', '2025-09-06 12:54:18');
+(35, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-06 12:54:18', '2025-09-06 12:54:18'),
+(36, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-07 09:51:42', '2025-09-07 09:51:42'),
+(37, 1, 'purchase_request', 'A PO (ID: 1) was submitted by John B2B with (Pay Now). <a href=\"http://127.0.0.1:8000/home?1\" class=\'d-none\'>Visit Link</a>', NULL, '2025-09-07 09:52:53', '2025-09-07 09:52:53'),
+(38, 4, 'order', 'Your submitted PO has been processed. A sales order #REF 1-68BD5779423DF was created. <br><a href=\"http://127.0.0.1:8000/b2b/quotations/review?1\">Visit Link</a>', NULL, '2025-09-07 09:59:21', '2025-09-07 09:59:21'),
+(39, 2, 'assignment', 'You have been assigned to deliver order #REF 1-68BD5779423DF. <br><a href=\"http://127.0.0.1:8000/home\">Visit Link</a>', NULL, '2025-09-07 09:59:34', '2025-09-07 09:59:34'),
+(40, 4, 'delivery', 'Your order #REF 1-68BD5779423DF is now assigned for delivery. <br><a href=\"http://127.0.0.1:8000/b2b/delivery\">Visit Link</a>', NULL, '2025-09-07 09:59:34', '2025-09-07 09:59:34'),
+(41, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-07 10:01:19', '2025-09-07 10:01:19'),
+(42, 1, 'purchase_request', 'PO #2 submitted by John B2B with (Pay Later) - Total: ₱0.00', NULL, '2025-09-07 10:01:55', '2025-09-07 10:01:55'),
+(43, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-27 04:05:07', '2025-09-27 04:05:07'),
+(44, 1, 'purchase_request', 'PO #1 submitted by John B2B with (Pay Later) - Total: ₱0.00', NULL, '2025-09-27 04:06:02', '2025-09-27 04:06:02'),
+(45, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-09-27 04:21:59', '2025-09-27 04:21:59'),
+(46, 1, 'purchase_request', 'A PO (ID: 2) was submitted by John B2B with (Pay Now). <a href=\"http://127.0.0.1:8000/home?2\" class=\'d-none\'>Visit Link</a>', NULL, '2025-09-27 04:22:41', '2025-09-27 04:22:41'),
+(47, 4, 'order', 'Your submitted PO has been processed. A sales order #REF 1-68D76AC11005E was created. <br><a href=\"http://127.0.0.1:8000/b2b/quotations/review?1\">Visit Link</a>', NULL, '2025-09-27 04:40:33', '2025-09-27 04:40:33'),
+(48, 2, 'assignment', 'You have been assigned to deliver order #REF 1-68D76AC11005E. <br><a href=\"http://127.0.0.1:8000/home\">Visit Link</a>', NULL, '2025-09-27 04:40:47', '2025-09-27 04:40:47'),
+(49, 4, 'delivery', 'Your order #REF 1-68D76AC11005E is now assigned for delivery. <br><a href=\"http://127.0.0.1:8000/b2b/delivery\">Visit Link</a>', NULL, '2025-09-27 04:40:47', '2025-09-27 04:40:47'),
+(50, 3, 'purchase_request', 'A new purchase request has been updated by John B2B. <br><a href=\"http://127.0.0.1:8000/salesofficer/purchase-requests/all\">Visit</a>', NULL, '2025-10-05 14:32:48', '2025-10-05 14:32:48'),
+(51, 1, 'purchase_request', 'A PO (ID: 1) was submitted by John B2B with (Pay Now). <a href=\"http://127.0.0.1:8000/home?1\" class=\'d-none\'>Visit Link</a>', NULL, '2025-10-05 15:04:45', '2025-10-05 15:04:45'),
+(52, 4, 'order', 'Your submitted PO has been processed. A sales order #REF 1-68E28A17C861A was created. <br><a href=\"http://127.0.0.1:8000/b2b/quotations/review?1\">Visit Link</a>', NULL, '2025-10-05 15:09:11', '2025-10-05 15:09:11'),
+(53, 2, 'assignment', 'You have been assigned to deliver order #REF 1-68E28A17C861A. <br><a href=\"http://127.0.0.1:8000/home\">Visit Link</a>', NULL, '2025-10-05 15:09:24', '2025-10-05 15:09:24'),
+(54, 4, 'delivery', 'Your order #REF 1-68E28A17C861A is now assigned for delivery. <br><a href=\"http://127.0.0.1:8000/b2b/delivery\">Visit Link</a>', NULL, '2025-10-05 15:09:24', '2025-10-05 15:09:24'),
+(55, 4, 'delivery', 'Your order #REF 1-68E28A17 is now on the way. <br><a href=\"http://127.0.0.1:8000/b2b/delivery/track/1\">Visit Link</a>', NULL, '2025-10-05 16:18:41', '2025-10-05 16:18:41');
 
 -- --------------------------------------------------------
 
@@ -466,6 +503,13 @@ CREATE TABLE `orders` (
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`id`, `user_id`, `order_number`, `total_amount`, `b2b_address_id`, `ordered_at`, `created_at`, `updated_at`) VALUES
+(1, 4, 'REF 1-68E28A17', 180.00, 1, '2025-10-05 15:09:11', '2025-10-05 15:09:11', '2025-10-05 15:09:11');
+
 -- --------------------------------------------------------
 
 --
@@ -482,6 +526,13 @@ CREATE TABLE `order_items` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `product_id`, `quantity`, `price`, `subtotal`, `created_at`, `updated_at`) VALUES
+(1, 1, 2, 10, 18.00, 180.00, '2025-10-05 15:09:11', '2025-10-05 15:09:11');
 
 -- --------------------------------------------------------
 
@@ -570,18 +621,18 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `category_id`, `name`, `sku`, `description`, `price`, `discount`, `discounted_price`, `expiry_date`, `maximum_stock`, `critical_stock_level`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 1, 'Cement (40kg bag)', 'SKU-685BCEE4C5E58', 'Portland type 1 cement ideal for general construction use', 260.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:26:44', '2025-08-19 10:29:22', NULL),
-(2, 1, 'Concrete Hollow Block 6”', 'SKU-685BCF19EE185', 'Standard 6-inch hollow block for wall partitions', 18.00, 0, 0.00, NULL, 600, 15, '2025-06-24 18:27:37', '2025-08-19 10:42:33', NULL),
-(3, 2, '10mm Rebar (Steel Bar)', 'SKU-685BCF7725412', '10mm diameter steel reinforcement bar for slabs and columns', 175.00, 0, 0.00, NULL, 500, 10, '2025-06-24 18:29:11', '2025-08-19 10:42:13', NULL),
-(4, 3, 'Plywood (1/4” x 4’ x 8’)', 'SKU-685BCF9C6B631', 'Commercial plywood used for temporary walls and ceiling work', 495.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:29:48', '2025-08-19 10:44:15', NULL),
-(5, 4, 'GL Sheet (Corrugated, 8ft)', 'SKU-685BCFCA3C81A', 'Galvanized iron sheet for roofing and siding', 320.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:30:34', '2025-08-19 10:43:12', NULL),
-(6, 5, '1” PVC Pipe (10ft)', 'SKU-685BCFF824CAD', 'Polyvinyl chloride pipe for water supply systems', 120.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:31:20', '2025-08-19 10:42:02', NULL),
-(7, 6, 'Electrical Tape (Black', 'SKU-685BD014DFD3C', 'Insulating tape for electrical wiring', 25.00, 0, 0.00, NULL, 300, 5, '2025-06-24 18:31:48', '2025-08-19 10:42:58', NULL),
-(8, 7, 'Paint – White Latex (4L)', 'SKU-685BD06953EF9', 'Water-based paint for interior walls and ceilings', 560.00, 0, 0.00, NULL, 500, 10, '2025-06-24 18:33:13', '2025-08-19 10:43:21', NULL),
-(9, 8, 'Door Knob (Entrance Set)', 'SKU-685BD0943711E', 'Heavy-duty cylindrical door knob with lockset', 620.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:33:56', '2025-08-19 10:42:42', NULL),
-(10, 9, '1” Paint Brush', 'SKU-685BD0B953CE5', 'Standard 1-inch brush used for painting and touch-ups', 35.00, 2, 34.30, NULL, 1000, 20, '2025-06-24 18:34:33', '2025-08-23 07:33:37', NULL),
-(11, 1, 'sdfdsf', 'SKU-686A5E1E39DBB', 'dgdfgdfg', 4435.00, 0, 0.00, '2025-07-23', 0, 0, '2025-07-06 03:29:34', '2025-07-06 03:30:29', '2025-07-06 03:30:29'),
-(12, 9, 'The Saw', 'SKU-689050706A4D3', 'This is the saw episodes tools.', 100.00, 0, 0.00, NULL, 500, 10, '2025-08-04 14:17:20', '2025-08-19 10:44:27', NULL);
+(1, 1, 'Cement (40kg bag)', 'SKU-000001', 'Portland type 1 cement ideal for general construction use', 260.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:26:44', '2025-08-19 10:29:22', NULL),
+(2, 1, 'Concrete Hollow Block 6”', 'SKU-000002', 'Standard 6-inch hollow block for wall partitions', 18.00, 0, 0.00, NULL, 600, 15, '2025-06-24 18:27:37', '2025-08-19 10:42:33', NULL),
+(3, 2, '10mm Rebar (Steel Bar)', 'SKU-000003', '10mm diameter steel reinforcement bar for slabs and columns', 175.00, 0, 0.00, NULL, 500, 10, '2025-06-24 18:29:11', '2025-08-19 10:42:13', NULL),
+(4, 3, 'Plywood (1/4” x 4’ x 8’)', 'SKU-000004', 'Commercial plywood used for temporary walls and ceiling work', 495.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:29:48', '2025-08-19 10:44:15', NULL),
+(5, 4, 'GL Sheet (Corrugated, 8ft)', 'SKU-000005', 'Galvanized iron sheet for roofing and siding', 320.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:30:34', '2025-08-19 10:43:12', NULL),
+(6, 5, '1” PVC Pipe (10ft)', 'SKU-000006', 'Polyvinyl chloride pipe for water supply systems', 120.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:31:20', '2025-08-19 10:42:02', NULL),
+(7, 6, 'Electrical Tape (Black', 'SKU-000007', 'Insulating tape for electrical wiring', 25.00, 0, 0.00, NULL, 300, 5, '2025-06-24 18:31:48', '2025-08-19 10:42:58', NULL),
+(8, 7, 'Paint – White Latex (4L)', 'SKU-000008', 'Water-based paint for interior walls and ceilings', 560.00, 0, 0.00, NULL, 500, 10, '2025-06-24 18:33:13', '2025-08-19 10:43:21', NULL),
+(9, 8, 'Door Knob (Entrance Set)', 'SKU-000009', 'Heavy-duty cylindrical door knob with lockset', 620.00, 0, 0.00, NULL, 1000, 20, '2025-06-24 18:33:56', '2025-08-19 10:42:42', NULL),
+(10, 9, '1” Paint Brush', 'SKU-000010', 'Standard 1-inch brush used for painting and touch-ups', 35.00, 2, 34.30, NULL, 1000, 20, '2025-06-24 18:34:33', '2025-08-23 07:33:37', NULL),
+(11, 1, 'sdfdsf', 'SKU-000011', 'dgdfgdfg', 4435.00, 0, 0.00, '2025-07-23', 0, 0, '2025-07-06 03:29:34', '2025-07-06 03:30:29', '2025-07-06 03:30:29'),
+(12, 9, 'The Saw', 'SKU-000012', 'This is the saw episodes tools.', 100.00, 0, 0.00, NULL, 500, 10, '2025-08-04 14:17:20', '2025-08-19 10:44:27', NULL);
 
 -- --------------------------------------------------------
 
@@ -663,6 +714,13 @@ CREATE TABLE `purchase_requests` (
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `purchase_requests`
+--
+
+INSERT INTO `purchase_requests` (`id`, `transaction_uuid`, `customer_id`, `prepared_by_id`, `status`, `vat`, `b2b_delivery_date`, `delivery_fee`, `credit`, `credit_amount`, `credit_payment_type`, `payment_method`, `cod_flg`, `pr_remarks`, `pr_remarks_cancel`, `date_issued`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, NULL, 4, NULL, 'delivery_in_progress', 12, NULL, NULL, 0, NULL, NULL, 'pay_now', 1, NULL, NULL, NULL, '2025-10-05 14:32:41', '2025-10-05 15:09:24', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -678,6 +736,13 @@ CREATE TABLE `purchase_request_items` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `purchase_request_items`
+--
+
+INSERT INTO `purchase_request_items` (`id`, `purchase_request_id`, `product_id`, `quantity`, `subtotal`, `created_at`, `updated_at`) VALUES
+(1, 1, 2, 10, 180.00, '2025-10-05 14:32:48', '2025-10-05 14:32:48');
 
 -- --------------------------------------------------------
 
@@ -780,8 +845,8 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `profile`, `username`, `email`, `email_verified_at`, `password`, `force_password_change`, `created_by_admin`, `role`, `otp_code`, `otp_expire`, `status`, `about`, `credit_limit`, `remember_token`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 'John Superadmin', NULL, 'superadmin', 'superadmin@example.com', '2025-07-09 11:33:35', '$2y$10$fpHuUdg4vFV0l.s4fzQFp.AkYcvwwJb1pGIknFNmAg.kKHv.omTNy', 0, 0, 'superadmin', '733006', '2025-07-09 11:42:49', 1, NULL, NULL, NULL, '2025-07-09 11:29:00', '2025-07-09 11:33:35', NULL),
 (2, 'John DeliveryRider', 'assets/upload/profiles/1755589579_image 5.png', 'deliveryrider', 'deliveryrider@example.com', '2025-07-09 23:49:40', '$2y$10$0LUNUv/HDZ5kbz35U3Akju8ygpt79fMey.U3kXrt.Y2BgXGbsaOUi', 0, 0, 'deliveryrider', '237579', '2025-07-09 23:59:16', 1, NULL, NULL, NULL, '2025-07-09 11:29:00', '2025-08-19 15:46:19', NULL),
-(3, 'John SalesOfficer', NULL, 'salesofficer', 'assistantsales@example.com', '2025-07-09 23:09:39', '$2y$10$lQBpIfaVKcZOhUkfNKqNCef1tDZ968unqOvi6OAZvxq1DkbhIX3AW', 0, 0, 'salesofficer', '121212', '2025-07-09 23:18:37', 1, NULL, NULL, NULL, '2025-07-09 11:29:00', '2025-08-19 17:40:48', NULL),
-(4, 'John B2B', 'assets/upload/profiles/1752172600_68700838af669.jpg', 'b2b', 'b2b@example.com', '2025-07-09 23:05:05', '$2y$10$fpHuUdg4vFV0l.s4fzQFp.AkYcvwwJb1pGIknFNmAg.kKHv.omTNy', 0, 0, 'b2b', '960918', '2025-07-09 23:14:10', 1, 'Im Seller', 272544.00, NULL, '2025-07-09 11:29:00', '2025-08-20 14:18:06', NULL),
+(3, 'John SalesOfficer', NULL, 'salesofficer', 'assistantsales@example.com', '2025-07-09 23:09:39', '$2y$10$lQBpIfaVKcZOhUkfNKqNCef1tDZ968unqOvi6OAZvxq1DkbhIX3AW', 0, 0, 'salesofficer', '121212', '2025-07-09 23:18:37', 1, NULL, 300000.00, NULL, '2025-07-09 11:29:00', '2025-08-19 17:40:48', NULL),
+(4, 'John B2B', 'assets/upload/profiles/1752172600_68700838af669.jpg', 'b2b', 'b2b@example.com', '2025-07-09 23:05:05', '$2y$10$fpHuUdg4vFV0l.s4fzQFp.AkYcvwwJb1pGIknFNmAg.kKHv.omTNy', 0, 0, 'b2b', '960918', '2025-07-09 23:14:10', 1, 'Im Seller', 269632.00, NULL, '2025-07-09 11:29:00', '2025-09-27 04:06:02', NULL),
 (8, 'Ben Tulfo', 'assets/upload/profiles/1752172600_68700838af669.jpg', 'b2btwo', 'b2btwo@example.com', '2025-07-09 23:05:05', '$2y$10$fpHuUdg4vFV0l.s4fzQFp.AkYcvwwJb1pGIknFNmAg.kKHv.omTNy', 0, 0, 'b2b', '960918', '2025-07-09 23:14:10', 1, 'Im Seller', 21741.44, NULL, '2025-07-09 11:29:00', '2025-09-04 16:06:26', NULL),
 (9, 'Renzo Bancud', 'https://lh3.googleusercontent.com/a/ACg8ocIMVsDeQxvDOZw0Z_Oeb1f1n2EloZbk4YLh489ujI9TLmb_ME8=s96-c', 'Renzo Bancud', 'bancudzo3@gmail.com', '2025-08-30 12:17:59', '$2y$10$qi/hxdZIQVBsYG0ZLCYBLOHr.AcC6l1Y8XggAIHHDsHKciXCatGYm', 0, 0, 'b2b', NULL, NULL, 1, NULL, 300000.00, NULL, '2025-08-30 12:17:59', '2025-08-30 12:17:59', NULL);
 
@@ -801,6 +866,33 @@ CREATE TABLE `user_logs` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `user_logs`
+--
+
+INSERT INTO `user_logs` (`id`, `user_id`, `event`, `ip_address`, `user_agent`, `logged_at`, `created_at`, `updated_at`) VALUES
+(1, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0', '2025-09-27 06:31:04', NULL, NULL),
+(2, 3, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0', '2025-09-27 06:31:44', NULL, NULL),
+(3, 3, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0', '2025-09-27 06:55:42', NULL, NULL),
+(4, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 13:46:32', NULL, NULL),
+(5, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 13:46:39', NULL, NULL),
+(6, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 14:30:36', NULL, NULL),
+(7, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 14:30:44', NULL, NULL),
+(8, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:05:28', NULL, NULL),
+(9, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:05:50', NULL, NULL),
+(10, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:05:57', NULL, NULL),
+(11, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:08:09', NULL, NULL),
+(12, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:08:40', NULL, NULL),
+(13, 1, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:08:51', NULL, NULL),
+(14, 1, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:09:30', NULL, NULL),
+(15, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:09:37', NULL, NULL),
+(16, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:19:46', NULL, NULL),
+(17, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 15:20:16', NULL, NULL),
+(18, 4, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 16:18:23', NULL, NULL),
+(19, 2, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 16:18:33', NULL, NULL),
+(20, 2, 'logout', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 16:19:11', NULL, NULL),
+(21, 4, 'login', '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0', '2025-10-05 16:19:42', NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -1041,13 +1133,13 @@ ALTER TABLE `user_logs`
 -- AUTO_INCREMENT for table `b2b_address`
 --
 ALTER TABLE `b2b_address`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `b2b_details`
 --
 ALTER TABLE `b2b_details`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `banks`
@@ -1083,7 +1175,7 @@ ALTER TABLE `credit_payments`
 -- AUTO_INCREMENT for table `deliveries`
 --
 ALTER TABLE `deliveries`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `delivery_histories`
@@ -1107,13 +1199,13 @@ ALTER TABLE `failed_jobs`
 -- AUTO_INCREMENT for table `inventories`
 --
 ALTER TABLE `inventories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `manual_email_order`
 --
 ALTER TABLE `manual_email_order`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -1131,19 +1223,19 @@ ALTER TABLE `migrations`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `paid_payments`
@@ -1179,13 +1271,13 @@ ALTER TABLE `product_ratings`
 -- AUTO_INCREMENT for table `purchase_requests`
 --
 ALTER TABLE `purchase_requests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `purchase_request_items`
 --
 ALTER TABLE `purchase_request_items`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `purchase_request_refunds`
@@ -1215,7 +1307,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `user_logs`
 --
 ALTER TABLE `user_logs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- Constraints for dumped tables

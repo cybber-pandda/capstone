@@ -4,7 +4,7 @@
         <div class="container">
             <div class="navbar-content">
 
-                <a href="#" class="navbar-brand d-none d-lg-flex">
+                <a href="#" class="navbar-brand d-lg-flex">
                     Tantuco<span>CTC</span>
                 </a>
 

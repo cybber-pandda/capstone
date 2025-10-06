@@ -18,42 +18,39 @@
 
         <div class="tab-content" style="padding-top:15px;">
             <div class="tab-pane fade in active" id="return">
-
-                @component('components.table', [
-                'id' => 'returnTable',
-                'thead' => '
-                <tr>
-                    <th>Image</th>
-                    <th>SKU</th>
-                    <th>Name</th>
-                    <th>Quantity</th>
-                    <th>Reason</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                </tr>'
-                ])
-                @endcomponent
-
+                <table class="table-2" style="font-size: 11px;width:100%" id='returnTable'>
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>SKU</th>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
 
             <div class="tab-pane fade" id="refund">
-
-                @component('components.table', [
-                'id' => 'refundTable',
-                'thead' => '
-                <tr>
-                    <th>Image</th>
-                    <th>SKU</th>
-                    <th>Name</th>
-                    <th>Quantity</th>
-                    <th>Amount</th>
-                    <th>Method</th>
-                    <th>Reference</th>
-                    <th>Status</th>
-                    <th>Date</th>
-                </tr>'
-                ])
-                @endcomponent
+                <table class="table-2" style="font-size: 11px;width:100%" id='refundTable'>
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>SKU</th>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Reference</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
 
             </div>
 
@@ -75,6 +72,7 @@
 <script>
     function loadTable(id, type) {
         let columns = [];
+        let createdRowFn = null; // placeholder for row customization
 
         if (type === 'return') {
             columns = [{
@@ -101,6 +99,18 @@
                     data: 'date'
                 }
             ];
+
+            // Add createdRow labels for return table
+            createdRowFn = function(row, data, dataIndex) {
+                $('td', row).eq(0).attr('data-label', 'Image:');
+                $('td', row).eq(1).attr('data-label', 'SKU:');
+                $('td', row).eq(2).attr('data-label', 'Name:');
+                $('td', row).eq(3).attr('data-label', 'Quantity:');
+                $('td', row).eq(4).attr('data-label', 'Reason:');
+                $('td', row).eq(5).attr('data-label', 'Status:');
+                $('td', row).eq(6).attr('data-label', 'Date:');
+            };
+
         } else if (type === 'refund') {
             columns = [{
                     data: 'image',
@@ -132,10 +142,27 @@
                     data: 'date'
                 }
             ];
+
+            // Add createdRow labels for refund table
+            createdRowFn = function(row, data, dataIndex) {
+                $('td', row).eq(0).attr('data-label', 'Image:');
+                $('td', row).eq(1).attr('data-label', 'SKU:');
+                $('td', row).eq(2).attr('data-label', 'Name:');
+                $('td', row).eq(3).attr('data-label', 'Quantity:');
+                $('td', row).eq(4).attr('data-label', 'Amount:');
+                $('td', row).eq(5).attr('data-label', 'Method:');
+                $('td', row).eq(6).attr('data-label', 'Reference:');
+                $('td', row).eq(7).attr('data-label', 'Status:');
+                $('td', row).eq(8).attr('data-label', 'Date:');
+            };
+
         } else if (type === 'cancelled') {
             columns = [{
                 data: 'message'
             }];
+            createdRowFn = function(row, data, dataIndex) {
+                $('td', row).eq(0).attr('data-label', 'Message:');
+            };
         }
 
         $('#' + id).DataTable({

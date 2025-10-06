@@ -52,9 +52,69 @@
             .section-title {
                 display: none;
             }
+
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                /* Remove this: overflow: hidden; */
+                overflow-x: hidden;
+                /* only hide horizontal scroll */
+                padding-top: 50px !important;
+            }
+        }
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            /* vertical alignment */
+            justify-content: space-between;
+            /* space out logo, search, nav */
+            flex-wrap: nowrap;
+            /* keep everything in one row */
         }
     </style>
     @endif
+
+    @if(!Route::is('welcome'))
+    <style>
+        .header-row {
+            display: flex;
+            align-items: center;
+            /* vertical alignment */
+            justify-content: space-between;
+            /* space out logo, search, nav */
+            flex-wrap: nowrap;
+            /* keep everything in one row */
+        }
+
+        .header-row .header-logo,
+        .header-row .header-search,
+        .header-row .header-ctn {
+            flex: 1;
+            /* equal width sections */
+        }
+
+        .header-row .header-search {
+            margin: 0 10px;
+            /* spacing between sections */
+        }
+
+        .header-row .header-ctn {
+            text-align: right;
+            /* nav icons to the right */
+        }
+
+        @media (max-width: 767px) {
+            .header-row .header-search input {
+                width: 100%;
+                /* shrink search bar on mobile */
+            }
+        }
+    </style>
+    @endif
+
+
 
     <style>
         @media (max-width: 767.98px) {
@@ -66,7 +126,7 @@
                 /* Remove this: overflow: hidden; */
                 overflow-x: hidden;
                 /* only hide horizontal scroll */
-                padding-top: 50px;
+                padding-top: 10px;
             }
 
             header {
@@ -81,7 +141,7 @@
                 border-bottom: 1px solid #ddd;
                 /* optional separator */
             }
-            
+
 
             .section-scrollable {
                 height: auto;
@@ -360,6 +420,13 @@
         }
 
         @media screen and (max-width: 600px) {
+
+            #b2bAddressTable_paginate{
+               display:flex !important;
+               justify-content:center !important;
+               margin-bottom:70px !important;
+            }
+
             .table-2 {
                 border: 0;
             }
@@ -401,6 +468,91 @@
 
             .table-2 td:last-child {
                 border-bottom: 0;
+            }
+        }
+
+        /* Apply only for iPad Pro portrait/landscape */
+        @media (min-width: 1024px) and (max-width: 1366px) {
+            .dropdown-menu {
+                left: -90px !important;
+            }
+        }
+
+
+        /* iPad Mini 768px and iPad Air 820px */
+        @media (min-width: 768px) and (max-width: 820px) {
+            
+            /* top header container */
+            #top-header .container {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: nowrap;
+            }
+
+            /* left and right ul */
+            #top-header .header-links {
+                float: none !important;
+                /* cancel bootstrap floats */
+                display: flex !important;
+                align-items: center;
+                flex-wrap: nowrap;
+                margin: 0;
+                padding: 0;
+            }
+
+            /* li spacing */
+            #top-header .header-links li {
+                margin-right: 15px;
+                display: flex;
+                align-items: center;
+            }
+
+            /* hide address to save space */
+            .removeAddressinTablet {
+                display: none !important;
+            }
+
+            .removeEmailinTablet {
+                display: none !important;
+            }
+
+            /* nested div inside right ul */
+            #top-header .user-dropdown>div {
+                display: flex !important;
+                align-items: center;
+            }
+
+            /* dropdown menu fix */
+            #top-header .header-links .dropdown-menu {
+                position: absolute;
+            }
+
+            /* override Bootstrap col stacking */
+            #top-header .header-links.pull-left,
+            #top-header .header-links.pull-right {
+                width: auto !important;
+                /* allow flex to control width */
+            }
+        }
+
+        /* Default height for desktop */
+        #map.responsive-map {
+            height: 470px;
+        }
+
+        /* Smaller height for mobile devices */
+        @media (max-width: 768px) {
+            #map.responsive-map {
+                height: 60vh;
+                /* 60% of viewport height */
+            }
+        }
+
+        @media (max-width: 480px) {
+            #map.responsive-map {
+                height: 50vh;
+                /* 50% of viewport height for very small screens */
             }
         }
     </style>

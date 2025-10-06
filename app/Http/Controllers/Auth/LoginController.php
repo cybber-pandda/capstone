@@ -28,10 +28,19 @@ class LoginController extends Controller
 
     public function showLoginForm()
     {
+
+        if (auth()->check()) {
+            return redirect()->route('home');
+        }
+
         $page = 'Sign In';
         $companysettings = DB::table('company_settings')->first();
 
-        return view('auth.login', compact('page', 'companysettings'));
+         return response()
+        ->view('auth.login', compact('page', 'companysettings'))
+        ->header('Cache-Control','no-cache, no-store, max-age=0, must-revalidate')
+        ->header('Pragma','no-cache')
+        ->header('Expires','Sat, 01 Jan 1990 00:00:00 GMT');
     }
 
     public function ajaxLogin(Request $request)

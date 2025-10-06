@@ -27,7 +27,7 @@
                 <label style="font-weight: normal;">Schedule Delivery (optional)</label>
                 <input class="form-control" type="date" id="expectedDeliveryDate" name="expectedDeliveryDate" .
                     style="max-width: 300px;">
-            </div>  
+            </div>
             <div>
                 <a href="{{ route('home') }}" class="btn btn-sm btn-add-item">
                     <i class="fa fa-plus"></i> Add Item
@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <table class="table-2">
+        <table class="table-2" style="font-size: 11px;">
             <thead>
                 <tr>
                     <th>Image</th>
@@ -78,8 +78,8 @@
                     <td data-label="Date:">{{ $item->created_at->toDateTimeString() }}</td>
                     <td>
                         <center>
-                            <button class="btn btn-sm btn-remove-item" 
-                                    style="background-color:#08101e; border-color:#08101e; color:#fff;">
+                            <button class="btn btn-sm btn-remove-item"
+                                style="background-color:#08101e; border-color:#08101e; color:#fff;">
                                 Remove
                             </button>
 
@@ -333,7 +333,7 @@
         $('#expectedDeliveryDate').on('change', function() {
             let selectedDate = new Date(this.value);
             let today = new Date();
-            today.setHours(0,0,0,0); // normalize to midnight
+            today.setHours(0, 0, 0, 0); // normalize to midnight
             let diffDays = Math.ceil((selectedDate - today) / (1000 * 60 * 60 * 24));
 
             if (diffDays < 4) { // Example: less than 3 days warning
@@ -344,6 +344,31 @@
                     confirmButtonText: 'Okay'
                 });
             }
+        });
+    });
+
+    $(document).ready(function() {
+        // Truncate SKU and Product Name to 2 words
+        $('td[data-label="SKU:"], td[data-label="Product:"]').each(function() {
+            const fullText = $(this).text().trim();
+            const words = fullText.split(' ');
+
+            if (words.length > 1) {
+                const truncated = words.slice(0, 1).join(' ') + '...';
+                $(this).text(truncated);
+            }
+
+            // Save full text as data attribute for alert
+            $(this).attr('data-fulltext', fullText);
+
+            // Make it clickable
+            $(this).css('cursor', 'pointer');
+        });
+
+        // Click to view full text
+        $('td[data-label="SKU:"], td[data-label="Product:"]').click(function() {
+            const fullText = $(this).data('fulltext');
+            alert(fullText);
         });
     });
 </script>

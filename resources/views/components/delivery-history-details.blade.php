@@ -1,7 +1,7 @@
 <h5>Order #{{ $order->order_number }}</h5>
 <p class="mb-2"><strong>Customer:</strong> {{ $order->user->name ?? 'N/A' }}</p>
 
-<table class="table table-sm">
+<table class="table table-sm table-2">
     <thead>
         <tr>
             <th>Product</th>
@@ -13,10 +13,10 @@
     <tbody>
         @foreach($order->items as $item)
         <tr>
-            <td>{{ $item->product->name ?? 'N/A' }}</td>
-            <td>{{ $item->quantity }}</td>
-            <td>₱{{ number_format($item->product->price ?? 0, 2) }}</td>
-            <td>₱{{ number_format($item->quantity * ($item->product->price ?? 0), 2) }}</td>
+            <td data-label="Product:">{{ $item->product->name ?? 'N/A' }}</td>
+            <td data-label="Qty:">{{ $item->quantity }}</td>
+            <td data-label="Price:">₱{{ number_format($item->product->price ?? 0, 2) }}</td>
+            <td data-label="Subtotal:">₱{{ number_format($item->quantity * ($item->product->price ?? 0), 2) }}</td>
         </tr>
         @endforeach
     </tbody>

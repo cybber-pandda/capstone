@@ -64,14 +64,14 @@ class QuotationController extends Controller
                 ->addColumn('action', function ($pr) {
                     switch ($pr->status) {
                         case 'po_submitted':
-                            return '<span class="badge bg-info text-dark p-2">PO Submitted</span>';
+                            return '<span style="color:blue;font-weight:bold;">PO Submitted</span>';
                         case 'so_created':
-                            return '<span class="badge bg-info text-dark p-2">SO Created</span>';
+                            return '<span style="color:blue;font-weight:bold;">SO Created</span>';
                         case 'reject_quotation':
                             return '
                             <div style="display: flex; flex-direction: column;">
-                                <span class="badge bg-danger text-white p-2">
-                                    Quotation Rejected
+                                <span style="color:red;font-weight:bold;">
+                                    Rejected
                                 </span>
                                 <div style="margin-top: 10px; font-size: 14px;">
                                     <strong>Remarks:</strong><br>
@@ -81,8 +81,8 @@ class QuotationController extends Controller
                         case 'cancelled':
                             return '
                             <div style="display: flex; flex-direction: column;">
-                                <span class="badge bg-danger text-white p-2">
-                                    Quotation Cancelled
+                                <span style="color:red;font-weight:bold;">
+                                    Cancelled
                                 </span>
                                 <div style="margin-top: 10px; font-size: 14px;">
                                     <strong>Remarks:</strong><br>
