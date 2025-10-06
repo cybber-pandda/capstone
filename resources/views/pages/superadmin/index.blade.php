@@ -58,62 +58,60 @@
     <div class="row">
         <div class="col-12 col-xl-12 stretch-card">
             <div class="row flex-grow-1">
-                {{-- Total Customers --}}
-                <div class="col-md-4 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Customers</h6>
-                            </div>
-                            <h3 class="mb-2">{{ number_format($totalB2B) }}</h3>
-                            <div class="d-flex align-items-baseline">
-                                <p class="mb-0 {{ $b2bChange >= 0 ? 'text-success' : 'text-danger' }}">
-                                    <span>{{ $b2bChange >= 0 ? '+' : '' }}{{ number_format($b2bChange, 1) }}%</span>
-                                    <i data-lucide="{{ $b2bChange >= 0 ? 'arrow-up' : 'arrow-down' }}"
-                                        class="icon-sm mb-1"></i>
-                                </p>
-                            </div>
+            {{-- Total Customers --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <h6 class="card-title mb-0">Total Customers</h6>
+                        </div>
+                        <h3 class="mb-2">{{ number_format($totalB2BAllTime) }}</h3>
+                        <div class="d-flex align-items-baseline">
+                            <p class="mb-0 {{ $b2bChange >= 0 ? 'text-success' : 'text-danger' }}">
+                                <span>{{ $b2bChange >= 0 ? '+' : '' }}{{ number_format($b2bChange, 1) }}%</span>
+                                <i data-lucide="{{ $b2bChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
+                            </p>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- Total Sales Officer --}}
-                <div class="col-md-4 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Assistant Sales Officer</h6>
-                            </div>
-                            <h3 class="mb-2">{{ number_format($totalSalesOfficer) }}</h3>
-                            <div class="d-flex align-items-baseline">
-                                <p class="mb-0 {{ $salesChange >= 0 ? 'text-success' : 'text-danger' }}">
-                                    <span>{{ $salesChange >= 0 ? '+' : '' }}{{ number_format($salesChange, 1) }}%</span>
-                                    <i data-lucide="{{ $salesChange >= 0 ? 'arrow-up' : 'arrow-down' }}"
-                                        class="icon-sm mb-1"></i>
-                                </p>
-                            </div>
+            {{-- Total Sales Officer --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <h6 class="card-title mb-0">Total Assistant Sales Officer</h6>
+                        </div>
+                        <h3 class="mb-2">{{ number_format($totalSalesOfficerAllTime) }}</h3>
+                        <div class="d-flex align-items-baseline">
+                            <p class="mb-0 {{ $salesChange >= 0 ? 'text-success' : 'text-danger' }}">
+                                <span>{{ $salesChange >= 0 ? '+' : '' }}{{ number_format($salesChange, 1) }}%</span>
+                                <i data-lucide="{{ $salesChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
+                            </p>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                {{-- Total Delivery Rider --}}
-                <div class="col-md-4 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Delivery Driver</h6>
-                            </div>
-                            <h3 class="mb-2">{{ number_format($totalDeliveryRider) }}</h3>
-                            <div class="d-flex align-items-baseline">
-                                <p class="mb-0 {{ $riderChange >= 0 ? 'text-success' : 'text-danger' }}">
-                                    <span>{{ $riderChange >= 0 ? '+' : '' }}{{ number_format($riderChange, 1) }}%</span>
-                                    <i data-lucide="{{ $riderChange >= 0 ? 'arrow-up' : 'arrow-down' }}"
-                                        class="icon-sm mb-1"></i>
-                                </p>
-                            </div>
+            {{-- Total Delivery Rider --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <h6 class="card-title mb-0">Total Delivery Driver</h6>
+                        </div>
+                        <h3 class="mb-2">{{ number_format($totalDeliveryRiderAllTime) }}</h3>
+                        <div class="d-flex align-items-baseline">
+                            <p class="mb-0 {{ $riderChange >= 0 ? 'text-success' : 'text-danger' }}">
+                                <span>{{ $riderChange >= 0 ? '+' : '' }}{{ number_format($riderChange, 1) }}%</span>
+                                <i data-lucide="{{ $riderChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
+                            </p>
                         </div>
                     </div>
                 </div>
+            </div>
+
 
             </div>
         </div>

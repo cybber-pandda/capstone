@@ -38,7 +38,7 @@
                     </button>
                 </div>
 
-                <input type="number" id="qty-{{ $product->id }}" class="qty-input form-control" placeholder="Enter purchase qty.">
+                <input type="text" class="form-control form-control-sm text-center item-qty" id="qty-{{ $product->id }}" placeholder="Enter purchase qty."/>
             </div>
 
             <div class="add-to-cart">
@@ -89,4 +89,11 @@
     <p>No products available.</p>
 </div>
 @endif
-
+<script>
+document.querySelectorAll('.item-qty').forEach(input => {
+    // On input, remove all non-digit characters
+    input.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+    });
+});
+</script>

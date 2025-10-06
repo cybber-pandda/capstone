@@ -159,6 +159,9 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
 
         Route::get('/delivery/product/rate/{order_number}', [App\Http\Controllers\B2B\DeliveryController::class, 'rate_product_page'])->name('delivery.product.rate');
         Route::post('/delivery/product/rate/{product}', [App\Http\Controllers\B2B\DeliveryController::class, 'submit_product_rating'])->name('delivery.product.rate.submit');
+        Route::post('/delivery/product/rate/all/{orderId}', [App\Http\Controllers\B2B\DeliveryController::class, 'submit_all_product_ratings'])->name('delivery.product.rate.submit.all');
+        Route::post('delivery/{order}/rate-all', [App\Http\Controllers\B2B\DeliveryController::class, 'submit_all_ratings'])->name('delivery.all.ratings.submit');
+
 
         Route::get('/purchase', [App\Http\Controllers\B2B\PurchaseController::class, 'index'])->name('purchase.index');
         Route::post('/purchase/return', [App\Http\Controllers\B2B\PurchaseController::class, 'requestReturn']);

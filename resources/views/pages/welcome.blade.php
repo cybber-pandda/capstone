@@ -189,12 +189,13 @@
                     if (product.discount > 0 && product.discounted_price) {
                         $('#modal-price').html(
                             `<span class="text-muted" style="text-decoration:line-through;">₱${parseFloat(product.price).toFixed(2)}</span> 
-                            <span class="text-danger">₱${parseFloat(product.discounted_price).toFixed(2)}</span>
-                            <small class="text-success">(-${product.discount}%)</small>`
+                            <span style="color:#6571ff ; font-weight:bold;">₱${parseFloat(product.discounted_price).toFixed(2)}</span>
+                            <small class="text-success">(-${parseInt(product.discount, 10)}%)</small>`
                         );
                     } else {
                         $('#modal-price').html(`₱${parseFloat(product.price).toFixed(2)}`);
                     }
+
 
                     // Average Rating
                     var stars = '';

@@ -42,6 +42,10 @@ class HomeController extends Controller
         $page = 'TantucoCTC';
         $user = User::getCurrentUser();
 
+        $totalB2BAllTime = 0;
+        $totalSalesOfficerAllTime = 0;
+        $totalDeliveryRiderAllTime = 0;
+
         $data = null;
         $deliveries = [];
 
@@ -83,42 +87,42 @@ class HomeController extends Controller
             'superadmin' => 'pages.superadmin.index',
             default => 'pages.welcome',
         };
+        //ito
+            if ($role === 'superadmin') {
+                $today = Carbon::today();
 
-        if ($role === 'superadmin') {
-            // Current month
-            $totalB2B = User::where('role', 'b2b')->count();
-            $totalDeliveryRider = User::where('role', 'deliveryrider')->count();
-            $totalSalesOfficer = User::where('role', 'salesofficer')->count();
+                // -------------------------------
+                // All-time totals
+                // -------------------------------
+                $totalB2BAllTime = User::where('role', 'b2b')->count();
+                $totalDeliveryRiderAllTime = User::where('role', 'deliveryrider')->count();
+                $totalSalesOfficerAllTime = User::where('role', 'salesofficer')->count();
 
-            // Last month range
-            $startLastMonth = Carbon::now()->subMonth()->startOfMonth();
-            $endLastMonth = Carbon::now()->subMonth()->endOfMonth();
+                // -------------------------------
+                // Today's new users
+                // -------------------------------
+                $totalB2BToday = User::where('role', 'b2b')->whereDate('created_at', $today)->count();
+                $totalDeliveryRiderToday = User::where('role', 'deliveryrider')->whereDate('created_at', $today)->count();
+                $totalSalesOfficerToday = User::where('role', 'salesofficer')->whereDate('created_at', $today)->count();
 
-            $prevB2B = User::where('role', 'b2b')
-                ->whereBetween('created_at', [$startLastMonth, $endLastMonth])
-                ->count();
+                // -------------------------------
+                // Daily percentage based on all-time total
+                // -------------------------------
+                $b2bChange = $totalB2BAllTime > 0 ? ($totalB2BToday / $totalB2BAllTime) * 100 : 0;
+                $riderChange = $totalDeliveryRiderAllTime > 0 ? ($totalDeliveryRiderToday / $totalDeliveryRiderAllTime) * 100 : 0;
+                $salesChange = $totalSalesOfficerAllTime > 0 ? ($totalSalesOfficerToday / $totalSalesOfficerAllTime) * 100 : 0;
 
-            $prevDeliveryRider = User::where('role', 'deliveryrider')
-                ->whereBetween('created_at', [$startLastMonth, $endLastMonth])
-                ->count();
-
-            $prevSalesOfficer = User::where('role', 'salesofficer')
-                ->whereBetween('created_at', [$startLastMonth, $endLastMonth])
-                ->count();
-
-
+            // -------------------------------
+            // Payments / cash sales
+            // -------------------------------
             $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
-            $totalemailorder = PaidPayment::where('status', 'paid')->sum('paid_amount');
+            $totalmanualorder = ManualEmailOrder::where('status', 'approve')->get()->sum(function ($pr) {
+                $items = json_decode($pr->purchase_request, true) ?? [];
+                return collect($items)->sum(fn($item) => ((int)($item['qty'] ?? 0)) * ((float)($item['price'] ?? 0)));
+            });
             $totalcashsales = $totalpaynow + $totalmanualorder;
-
-
-
-
-            // Percentage changes
-            $b2bChange = $prevB2B > 0 ? (($totalB2B - $prevB2B) / $prevB2B) * 100 : 0;
-            $riderChange = $prevDeliveryRider > 0 ? (($totalDeliveryRider - $prevDeliveryRider) / $prevDeliveryRider) * 100 : 0;
-            $salesChange = $prevSalesOfficer > 0 ? (($totalSalesOfficer - $prevSalesOfficer) / $prevSalesOfficer) * 100 : 0;
         }
+
 
         if ($role === 'b2b') {
 
@@ -201,28 +205,32 @@ class HomeController extends Controller
             }
         }
 
-            return view($view, compact(
-                'page',
-                'data',
-                'deliveries',
-                'totalB2B',
-                'totalSalesOfficer',
-                'totalDeliveryRider',
-                'b2bChange',
-                'riderChange',
-                'salesChange',
-                'totalPendingPR',
-                'totalPOSubmittedPR',
-                'totalSalesOrderPR',
-                'totalDeliveredPR',
-                'totalPendingPRChange',
-                'totalPOSubmittedPRChange',
-                'totalSalesOrderPRChange',
-                'totalDeliveredPRChange',
-                'totalpaynow',
-                'totalcashsales', // <-- updated
-                'totalpaylater'
-            ));
+        return view($view, compact(
+            'page',
+            'data',
+            'deliveries',
+            'totalB2B',
+            'totalSalesOfficer',
+            'totalDeliveryRider',
+            'b2bChange',
+            'riderChange',
+            'salesChange',
+            'totalB2BAllTime',           //ito
+            'totalSalesOfficerAllTime',  //ito
+            'totalDeliveryRiderAllTime', //ito
+            'totalPendingPR',
+            'totalPOSubmittedPR',
+            'totalSalesOrderPR',
+            'totalDeliveredPR',
+            'totalPendingPRChange',
+            'totalPOSubmittedPRChange',
+            'totalSalesOrderPRChange',
+            'totalDeliveredPRChange',
+            'totalpaynow',
+            'totalcashsales',
+            'totalpaylater'
+        ));
+
 
     }
 
