@@ -7,9 +7,9 @@
             <h3 class="title">{{ $page }}</h3>
         </div>
 
-        <ul class="nav nav-tabs" role="tablist">
+        <ul class="nav nav-tabs" role="tablist" style="font-size: 12px;">
             <li role="presentation" class="active">
-                <a href="#straight" aria-controls="straight" role="tab" data-toggle="tab">Straight Credit Payment</a>
+                <a href="#straight" aria-controls="straight" role="tab" data-toggle="tab">Straight Payment</a>
             </li>
             <li role="presentation">
                 <a href="#partial" aria-controls="partial" role="tab" data-toggle="tab">Partial Payment</a>
@@ -19,35 +19,37 @@
         <div class="tab-content" style="margin-top: 15px;">
             {{-- Straight Payment Table --}}
             <div role="tabpanel" class="tab-pane active" id="straight">
-                @component('components.table', [
-                'id' => 'straightCreditTable',
-                'thead' => '
-                <tr>
-                    <th>Credit Amount</th>
-                    <th>Paid Amount</th>
-                    <th>Due Date</th>
-                    <th>Paid Date</th>
-                    <th>Status</th>
-                    <!-- <th>Remaining Balance</th> -->
-                    <th></th>
-                </tr>'
-                ])
-                @endcomponent
+                <table class="table-2" style="font-size: 11px;" id='straightCreditTable'>
+                    <thead>
+                        <tr>
+                            <th>Credit Amount</th>
+                            <th>Paid Amount</th>
+                            <th>Due Date</th>
+                            <th>Paid Date</th>
+                            <th>Status</th>
+                            <!-- <th>Remaining Balance</th> -->
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
 
             {{-- Partial Payment Table --}}
             <div role="tabpanel" class="tab-pane" id="partial">
-                @component('components.table', [
-                'id' => 'partialCreditTable',
-                'thead' => '
-                <tr>
-                    <th>Total Amount</th>
-                    <th>Due Date</th>
-                    <th>Status</th>
-                    <th></th>
-                </tr>'
-                ])
-                @endcomponent
+                <table class="table-2"
+                    style="font-size: 11px; width:100%"
+                    id='partialCreditTable'>
+                    <thead>
+                        <tr>
+                            <th>Total Amount</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -252,7 +254,16 @@
                     orderable: false,
                     searchable: false
                 }
-            ]
+            ],
+            createdRow: function(row, data, dataIndex) {
+                $('td', row).eq(0).attr('data-label', 'Credit Amount:');
+                $('td', row).eq(1).attr('data-label', 'Paid Amount:');
+                $('td', row).eq(2).attr('data-label', 'Due Date:');
+                $('td', row).eq(3).attr('data-label', 'Paid Date:');
+                $('td', row).eq(4).attr('data-label', 'Status:');
+                $('td', row).eq(5).attr('data-label', 'Action:');
+
+            }
         });
 
         // Partial credit DataTable
@@ -281,7 +292,14 @@
                     orderable: false,
                     searchable: false
                 }
-            ]
+            ],
+            createdRow: function(row, data, dataIndex) {
+                $('td', row).eq(0).attr('data-label', 'Total Amount:');
+                $('td', row).eq(1).attr('data-label', 'Due Date:');
+                $('td', row).eq(2).attr('data-label', 'Status:');
+                $('td', row).eq(3).attr('data-label', 'Action:');
+
+            }
         });
 
         // Tab switch reloads the relevant table
@@ -309,8 +327,8 @@
                     $('#credit_payment_id').val(id);
                     $('#credit_payment_type').val('straight');
                     $('#credit_amount').text($(this).data('creditamount'));
-                     $('#paid_amount').val(
-                       $(this).data('creditamount')
+                    $('#paid_amount').val(
+                        $(this).data('creditamount')
                     );
                     $('#paymentModal').modal('show');
                 }
@@ -319,7 +337,7 @@
         });
 
 
-        $("#paid_amount").on("input", function () {
+        $("#paid_amount").on("input", function() {
             let value = $(this).val();
 
             // Keep only numbers and dots
@@ -328,7 +346,7 @@
             // Allow only one dot
             let parts = value.split(".");
             if (parts.length > 2) {
-                value = parts[0] + "." + parts.slice(1).join(""); 
+                value = parts[0] + "." + parts.slice(1).join("");
             }
 
             $(this).val(value);
@@ -346,43 +364,50 @@
                 serverSide: true,
                 ajax: {
                     url: "{{ route('b2b.purchase.partial-payments') }}",
-                    data: { credit_id: creditId }
+                    data: {
+                        credit_id: creditId
+                    }
                 },
-                columns: [
-                    { 
+                columns: [{
                         data: "id",
                         render: function(data) {
                             return `INV-${String(data).padStart(5, '0')}`;
                         }
                     },
-                    { data: "paid_amount" },
-                    { 
-                        data: "due_date", 
+                    {
+                        data: "paid_amount"
+                    },
+                    {
+                        data: "due_date",
                         render: function(data) {
                             if (!data) return '-';
                             let dateObj = new Date(data);
-                            return dateObj.toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric' 
+                            return dateObj.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
                             });
                         }
                     },
-                    { data: "amount_to_pay" },
-                    { 
+                    {
+                        data: "amount_to_pay"
+                    },
+                    {
                         data: "paid_date",
                         render: function(data) {
                             if (!data) return '-';
                             let dateObj = new Date(data);
-                            return dateObj.toLocaleDateString('en-US', { 
-                                year: 'numeric', 
-                                month: 'short', 
-                                day: 'numeric' 
+                            return dateObj.toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
                             });
                         }
                     },
-                    { data: "status" },
-                    { 
+                    {
+                        data: "status"
+                    },
+                    {
                         data: "proof_payment",
                         orderable: false,
                         searchable: false,
@@ -397,7 +422,7 @@
                         data: null,
                         orderable: false,
                         searchable: false,
-                        render: function (data, type, row) {
+                        render: function(data, type, row) {
                             // Default disabled
                             let disabled = 'disabled';
 
@@ -414,11 +439,11 @@
                             }
 
                             let hiddenClass = row.status === 'paid';
-                            
-                            if(hiddenClass) {
-                            return '--';
+
+                            if (hiddenClass) {
+                                return '--';
                             } else {
-                            return `
+                                return `
                                 <button class="btn btn-primary btn-sm payment-btn" data-id="${row.id}" data-creditamount="${row.amount_to_pay}" >
                                     Pay Now
                                 </button>
@@ -436,7 +461,7 @@
 
         $(document).on('click', '.payment-btn', function() {
             const id = $(this).data('id');
-            
+
             Swal.fire({
                 title: 'Submit and Pay?',
                 text: "You're about to submit a Credit Payment. Choose your payment type.",
@@ -451,7 +476,7 @@
                     $('#partialPaymentsModal').modal('hide');
                     $('#credit_amount').text($(this).data('creditamount'));
                     $('#paid_amount').val(
-                       $(this).data('creditamount')
+                        $(this).data('creditamount')
                     );
                     $('#paymentModal').modal('show');
                 }
@@ -485,7 +510,7 @@
                 success: function(response) {
 
                     $('#submitPaymentBtn').prop("disabled", false);
-                    
+
                     $('#paymentModal').modal('hide');
                     Swal.fire({
                         icon: 'success',
@@ -496,9 +521,9 @@
                     });
                 },
                 error: function(xhr) {
-                    
+
                     $('#submitPaymentBtn').prop("disabled", false);
-                
+
                     if (xhr.status === 422) {
                         // Validation errors
                         let errors = xhr.responseJSON.errors;

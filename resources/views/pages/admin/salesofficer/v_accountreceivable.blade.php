@@ -167,7 +167,7 @@
                 <div id="partialPaymentBox" class="d-none">
                     <h5 class="text-uppercase">Partial Payment List</h5>
 
-                    <table class="table table-striped table-sm mt-3 mb-3" id="partialPRTable">
+                    <table class="table table-striped table-sm mt-3 mb-3 table-2" id="partialPRTable">
                         <thead>
                             <tr>
                                 <th>Invoice No.</th>

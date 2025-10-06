@@ -67,7 +67,7 @@ class ProductManagementController extends Controller
             'images.*' => 'image|mimes:png,jpg,webp|max:2048',
         ]);
 
-        $validated['sku'] = strtoupper(uniqid('SKU-'));
+        $validated['sku'] = strtoupper('SKU-' . substr(uniqid(), -6));
 
         if (!empty($validated['discount'])) {
             if ($validated['discount'] > 100) {

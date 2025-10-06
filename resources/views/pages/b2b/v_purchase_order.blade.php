@@ -34,11 +34,18 @@
                     <td data-label="QTY:">{{ $pr->items->sum('quantity') }}</td>
                     <td data-label="Grand Total:">₱{{ number_format($total, 2) }}</td>
                     <td data-label="Status:">
-                        <span class="badge 
-                                    @if($pr->status === 'delivered') badge-success 
-                                    @elseif($pr->status === 'pending') badge-warning 
-                                    @else badge-secondary @endif">
-                            {{ ucfirst($pr->status) }}
+                        @php
+                        $statusClass = match($pr->status) {
+                        'delivered' => 'text-success',
+                        'pending' => 'text-warning',
+                        default => 'text-secondary',
+                        };
+
+                        $statusText = $pr->status === 'Delivery_in_progress' ? 'Ongoing Delivery' : ucfirst($pr->status);
+                        @endphp
+
+                        <span class="{{ $statusClass }}" style="font-weight:bold; font-size:10px;">
+                            {{ $statusText }}
                         </span>
                     </td>
                     <td data-label="Date Created:">{{ $pr->created_at->format('Y-m-d H:i') }}</td>

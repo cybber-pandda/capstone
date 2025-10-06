@@ -45,13 +45,13 @@ class PurchaseController extends Controller
                    
                     if ($pr->status === 'delivered') {
                         if ($showReturn) {
-                            $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">Return</button>';
+                            $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">  <i class="fa fa-check" aria-hidden="true"></i></button>';
                         } else {
                             $actions[] = '-';
                         }
 
                         if ($showRefund) {
-                            $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">Refund</button>';
+                            $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">  <i class="fa fa-times" aria-hidden="true"></i></button>';
                         } else {
                             $actions[] = '-';
                         }

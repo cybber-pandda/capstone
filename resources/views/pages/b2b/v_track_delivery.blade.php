@@ -16,7 +16,7 @@
                     </div>
                 </div>
             </div>
-            <div id="map" style="height: 470px;"></div>
+            <div id="map" class="responsive-map"></div>
         </div>
     </div>
 @endsection

@@ -46,6 +46,91 @@
         .swal2-loader {
             display: none !important;
         }
+
+         .table-2 {
+            border: 1px solid #ccc;
+            border-collapse: collapse;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .table-2 caption {
+            font-size: 1.5em;
+            margin: .5em 0 .75em;
+        }
+
+        .table-2 tr {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            padding: .35em;
+        }
+
+        .table-2 th,
+        .table-2 td {
+            padding: .625em;
+            /* text-align: center; */
+        }
+
+        .table-2 th {
+            font-size: .85em;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        @media screen and (max-width: 600px) {
+            .table-2 {
+                border: 0;
+            }
+
+            .table-2 caption {
+                font-size: 1.3em;
+            }
+
+            .table-2 thead {
+                border: none;
+                clip: rect(0 0 0 0);
+                height: 1px;
+                margin: -1px;
+                overflow: hidden;
+                padding: 0;
+                position: absolute;
+                width: 1px;
+            }
+
+            .table-2 tr {
+                border-bottom: 3px solid #ddd;
+                display: block;
+                margin-bottom: .625em;
+            }
+
+            .table-2 td {
+                border-bottom: 1px solid #ddd;
+                display: block;
+                font-size: .8em;
+                text-align: right;
+            }
+
+            .table-2 td::before {
+                content: attr(data-label);
+                float: left;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+
+            .table-2 td:last-child {
+                border-bottom: 0;
+            }
+
+            @media (max-width: 767px) {
+                ul.delivery-list {
+                    list-style: none;
+                    padding-left: 0;
+                    margin-left: 0;
+                }
+            }
+        }
     </style>
     
 </head>

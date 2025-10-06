@@ -31,6 +31,7 @@
                 ])
                 @endcomponent
             @endcomponent
+            
         </div>
     </div>
 

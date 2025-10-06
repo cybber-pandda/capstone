@@ -68,6 +68,12 @@ $(document).ready(function () {
         },
     });
 
+    table.on('draw.dt responsive-display responsive-resize', function () {
+        if (typeof lucide !== "undefined") {
+            lucide.createIcons();
+        }
+    });
+
     $(document).on("click", ".approve-order", function () {
         let id = $(this).data("id");
 

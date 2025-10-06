@@ -140,7 +140,7 @@ class TrackingController extends Controller
                 $total += $item->quantity * ($item->product->price ?? 0);
             }
 
-            $orderNumber = 'REF' . ' ' . $pr->id . '-' . strtoupper(uniqid());
+            $orderNumber = "REF{$pr->id}-" . strtoupper(substr(uniqid(), 0, 6));
 
             // Create the Order
             $order = Order::create([

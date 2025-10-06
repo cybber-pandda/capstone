@@ -195,6 +195,15 @@
                     searchable: false
                 }
             ],
+
+            createdRow: function(row, data, dataIndex) {
+                $('td', row).eq(0).attr('data-label', 'ID#:');
+                $('td', row).eq(1).attr('data-label', 'Total Items:');
+                $('td', row).eq(2).attr('data-label', 'Grand Total:');
+                $('td', row).eq(3).attr('data-label', 'Date Created:');
+                $('td', row).eq(4).attr('data-label', 'Action:');
+
+            },
             drawCallback: function() {
                 if (typeof lucide !== "undefined") {
                     lucide.createIcons();
