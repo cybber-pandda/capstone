@@ -53,9 +53,9 @@ class DeliveryController extends Controller
                 'items.product',
                 'delivery.deliveryUser'
             ])
-                ->where('user_id', $userId)
-                ->has('delivery')
-                ->latest();
+            ->where('user_id', $userId)
+            ->has('delivery')
+            ->latest();
 
             return datatables()->of($query)
                 ->addColumn('order_number', fn($order) => $order->order_number ?? 'N/A')
@@ -74,7 +74,6 @@ class DeliveryController extends Controller
                     if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
                         $purchaseRequestId = $matches[1];
                         $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
-
                         if ($purchaseRequest) {
                             $vatRate = $purchaseRequest->vat ?? 0;
                             $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
@@ -88,7 +87,6 @@ class DeliveryController extends Controller
                 })
                 ->addColumn('status', function ($order) {
                     $status = $order->delivery->status ?? 'unknown';
-
                     $messages = [
                         'pending' => 'To assign rider',
                         'assigned' => 'Rider assigned',
@@ -96,7 +94,6 @@ class DeliveryController extends Controller
                         'delivered' => 'Delivered',
                         'cancelled' => 'Cancelled',
                     ];
-
                     $badgeColors = [
                         'pending' => 'warning',
                         'assigned' => 'info',
@@ -104,7 +101,6 @@ class DeliveryController extends Controller
                         'delivered' => 'success',
                         'cancelled' => 'danger',
                     ];
-
                     $badgeText = $messages[$status] ?? ucfirst($status);
                     $badgeClass = $badgeColors[$status] ?? 'secondary';
 
@@ -112,21 +108,15 @@ class DeliveryController extends Controller
                 })
                 ->addColumn('rating', function ($order) {
                     $rating = $order->delivery->rating->rating ?? null;
-
-                    if (!$rating)
-                        return '<i>No rating yet.</i>';
-
-                    return 'Rating: ' . str_repeat('<i class="fa fa-star text-warning"></i>', $rating) .
-                        str_repeat('<i class="fa fa-star-o text-muted"></i>', 5 - $rating);
+                    if (!$rating) return '<i>No rating yet.</i>';
+                    return 'Rating: ' . str_repeat('<i class="fa fa-star text-warning"></i>', $rating) 
+                        . str_repeat('<i class="fa fa-star-o text-muted"></i>', 5 - $rating);
                 })
                 ->addColumn('action', function ($order) {
                     $status = $order->delivery->status ?? 'unknown';
-
                     $trackBtn = '';
                     if ($status === 'on_the_way') {
-                        $trackBtn = '<a href="' . route('b2b.delivery.track.index', $order->delivery->id) . '" class="btn btn-sm btn-primary ms-2">
-                        Track
-                    </a>';
+                        $trackBtn = '<a href="' . route('b2b.delivery.track.index', $order->delivery->id) . '" class="btn btn-sm btn-primary ms-2"> Track </a>';
                     }
 
                     $hasRiderRating = !empty($order->delivery->rating);
@@ -136,45 +126,27 @@ class DeliveryController extends Controller
 
                     $proofBtn = '';
                     $invoiceBtn = '';
-                    $deliveryReceiptBtn = ''; 
+                    $deliveryReceiptBtn = '';
                     $ratingBtn = '';
 
                     if ($order->delivery->sales_invoice_flg == 1) {
-                        $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;font-size:10.5px;">
-                                        <i class="fa fa-file-text" aria-hidden="true"></i>
-                                       </a>';
+                        $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-file-text" aria-hidden="true"></i> </a>';
                     }
 
                     if ($status === 'delivered' && $order->delivery->proof_delivery) {
-                        $proofBtn = '<button class="btn btn-sm btn-info view-proof-btn" 
-                                        data-proof="' . asset($order->delivery->proof_delivery) . '" style="margin-right:5px;font-size:10.5px;">
-                                        <i class="fa fa-file-image" aria-hidden="true"></i>
-                                    </button>';
-
-                        $deliveryReceiptBtn = '<a href="' . route('b2b.delivery.receipt', $order->delivery->id) . '" class="btn btn-sm btn-danger" style="margin-right:5px;font-size:10.5px;">
-                                        <i class="fa fa-clipboard" aria-hidden="true"></i>
-                                       </a>';
+                        $proofBtn = '<button class="btn btn-sm btn-info view-proof-btn" data-proof="' . asset($order->delivery->proof_delivery) . '" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-file-image" aria-hidden="true"></i> </button>';
+                        $deliveryReceiptBtn = '<a href="' . route('b2b.delivery.receipt', $order->delivery->id) . '" class="btn btn-sm btn-danger" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-clipboard" aria-hidden="true"></i> </a>';
 
                         if ($hasRiderRating && $hasProductRating) {
-                            $ratingBtn = '<button class="btn btn-sm btn-secondary" disabled style="margin-right:5px;background:gray;opacity:0.6;color:black;">
-                                            Rated
-                                        </button>';
+                            $ratingBtn = '<button class="btn btn-sm btn-secondary" disabled style="margin-right:5px;background:gray;opacity:0.6;color:black;"> Rated </button>';
                         } else {
-                            $ratingBtn = '<a href="' . route('b2b.delivery.rider.rate', $order->delivery->id) . '" class="btn btn-warning btn-sm" style="font-size:10.5px;">
-                                                <i class="fa fa-car" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i>
-                                            </a>  
-                                            
-                                            <a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" class="btn btn-success btn-sm" style="font-size:10.5px;">
-                                              <i class="fa fa-shopping-cart" aria-hidden="true"></i></i><i class="fa fa-star" aria-hidden="true"></i>
-                                            </a>
-                                            
-                                            ';
+                            $ratingBtn = '<a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" class="btn btn-warning btn-sm" style="font-size:10.5px;"> <i class="fa fa-car" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i> </a> 
+                            <a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" class="btn btn-success btn-sm" style="font-size:10.5px;"> <i class="fa fa-shopping-cart" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i> </a>';
                         }
                     }
 
                     return $trackBtn . $proofBtn . $invoiceBtn . $deliveryReceiptBtn . $ratingBtn;
                 })
-
                 ->rawColumns(['status', 'action', 'rating'])
                 ->make(true);
         }
@@ -189,7 +161,6 @@ class DeliveryController extends Controller
 
     public function track_delivery($id)
     {
-
         $delivery = Delivery::with(['order.b2bAddress'])->findOrFail($id);
         $customerLat = $delivery->order->b2bAddress->delivery_address_lat ?? null;
         $customerLng = $delivery->order->b2bAddress->delivery_address_lng ?? null;
@@ -199,43 +170,17 @@ class DeliveryController extends Controller
         return view('pages.b2b.v_track_delivery', [
             'page' => 'Track Delivery',
             'delivery' => $delivery,
-            'deliveryManLat' => $deliveryManLat,
-            'deliveryManLng' => $deliveryManLng,
+            'deliveryManLat'=> $deliveryManLat,
+            'deliveryManLng'=> $deliveryManLng,
             'customerLat' => $customerLat,
             'customerLng' => $customerLng,
         ]);
     }
 
-    // public function view_invoice($id)
-    // {
-    //     $invoiceData = Delivery::with([
-    //         'order.b2bAddress',
-    //         'order.user',
-    //         'order.items.product'
-    //     ])->findOrFail($id);
-
-    //     $companySettings = CompanySetting::first();
-    //     $page = 'Invoice';
-    //     $isPdf = false;
-
-    //     // Attempt to extract PR ID from order number and get PR
-    //     $purchaseRequest = null;
-    //     if ($invoiceData->order?->order_number) {
-    //         if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
-    //             $purchaseRequestId = $matches[1];
-    //             $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
-    //         }
-    //     }
-
-    //     return view('pages.invoice', compact('invoiceData', 'page', 'companySettings', 'isPdf', 'purchaseRequest'));
-    // }
-
     public function view_invoice($id)
     {
         $invoiceData = Delivery::with([
-            'order.b2bAddress',
-            'order.user',
-            'order.items.product'
+            'order.b2bAddress', 'order.user', 'order.items.product'
         ])->findOrFail($id);
 
         $page = 'Invoice';
@@ -246,15 +191,12 @@ class DeliveryController extends Controller
         $salesOfficer = null;
         $quotation = null;
         $paidPR = null;
-
         $superadmin = User::where('role', 'superadmin')->first();
-
         $companySettings = CompanySetting::first();
 
         if ($invoiceData->order?->order_number) {
             if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
                 $purchaseRequestId = $matches[1];
-
                 $quotation = PurchaseRequest::with(['customer', 'items.product'])
                     ->where('customer_id', auth()->id())
                     ->findOrFail($purchaseRequestId);
@@ -274,29 +216,16 @@ class DeliveryController extends Controller
             }
         }
 
-
-
         return view('pages.invoice', compact(
-            'invoiceData',
-            'quotation',
-            'page',
-            'companySettings',
-            'isPdf',
-            'banks',
-            'b2bReqDetails',
-            'b2bAddress',
-            'salesOfficer',
-            'superadmin',
-            'paidPR'
+            'invoiceData', 'quotation', 'page', 'companySettings', 'isPdf', 'banks',
+            'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin', 'paidPR'
         ));
     }
 
     public function view_receipt($id)
     {
         $invoiceData = Delivery::with([
-            'order.b2bAddress',
-            'order.user',
-            'order.items.product'
+            'order.b2bAddress', 'order.user', 'order.items.product'
         ])->findOrFail($id);
 
         $page = 'Invoice';
@@ -307,15 +236,12 @@ class DeliveryController extends Controller
         $salesOfficer = null;
         $quotation = null;
         $paidPR = null;
-
         $superadmin = User::where('role', 'superadmin')->first();
-
         $companySettings = CompanySetting::first();
 
         if ($invoiceData->order?->order_number) {
             if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
                 $purchaseRequestId = $matches[1];
-
                 $quotation = PurchaseRequest::with(['customer', 'items.product'])
                     ->where('customer_id', auth()->id())
                     ->findOrFail($purchaseRequestId);
@@ -335,29 +261,16 @@ class DeliveryController extends Controller
             }
         }
 
-
-
         return view('pages.receipt', compact(
-            'invoiceData',
-            'quotation',
-            'page',
-            'companySettings',
-            'isPdf',
-            'banks',
-            'b2bReqDetails',
-            'b2bAddress',
-            'salesOfficer',
-            'superadmin',
-            'paidPR'
+            'invoiceData', 'quotation', 'page', 'companySettings', 'isPdf', 'banks',
+            'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin', 'paidPR'
         ));
     }
 
     public function downloadInvoice($id)
     {
         $invoiceData = Delivery::with([
-            'order.b2bAddress',
-            'order.user',
-            'order.items.product'
+            'order.b2bAddress', 'order.user', 'order.items.product'
         ])->findOrFail($id);
 
         $page = 'Invoice';
@@ -367,9 +280,7 @@ class DeliveryController extends Controller
         $b2bAddress = null;
         $salesOfficer = null;
         $quotation = null;
-
         $superadmin = User::where('role', 'superadmin')->first();
-
         $companySettings = CompanySetting::first();
 
         // Extract PR from order number
@@ -377,7 +288,6 @@ class DeliveryController extends Controller
         if ($invoiceData->order?->order_number) {
             if (preg_match('/REF (\d+)-/', $invoiceData->order->order_number, $matches)) {
                 $purchaseRequestId = $matches[1];
-
                 $quotation = PurchaseRequest::with(['customer', 'items.product'])
                     ->where('customer_id', auth()->id())
                     ->findOrFail($purchaseRequestId);
@@ -396,19 +306,9 @@ class DeliveryController extends Controller
         }
 
         $pdf = Pdf::loadView('pages.invoice', compact(
-            'invoiceData',
-            'page',
-            'companySettings',
-            'isPdf',
-            'purchaseRequest',
-            'quotation',
-            'banks',
-            'b2bReqDetails',
-            'b2bAddress',
-            'salesOfficer',
-            'superadmin'
-        ))
-            ->setPaper('A4', 'portrait');
+            'invoiceData', 'page', 'companySettings', 'isPdf', 'purchaseRequest', 'quotation', 'banks',
+            'b2bReqDetails', 'b2bAddress', 'salesOfficer', 'superadmin'
+        ))->setPaper('A4', 'portrait');
 
         return $pdf->download("invoice-{$invoiceData->order?->order_number}.pdf");
     }
@@ -416,12 +316,6 @@ class DeliveryController extends Controller
     public function rate_page($id)
     {
         $delivery = Delivery::with('deliveryUser', 'rating')->findOrFail($id);
-
-        // if ($delivery->rating) {
-        //     return redirect()
-        //         ->route('b2b.delivery.index')
-        //         ->with('toast_back', 'You have already rated this delivery.');
-        // }
 
         return view('pages.b2b.v_rating', [
             'delivery' => $delivery,
@@ -450,45 +344,35 @@ class DeliveryController extends Controller
         return redirect()->route('b2b.delivery.index')->with('success', 'Thank you for your feedback!');
     }
 
-    public function rate_product_page($orderNumber)
-    {
+public function rate_product_page($orderNumber)
+{
+    $order = null;
+    $delivery = null;
 
-        $order = null;
+    if (preg_match('/REF (\d+)-/', $orderNumber, $matches)) {
+        $purchaseRequestId = $matches[1];
+        $order = PurchaseRequest::with('items.product')->where('id', $purchaseRequestId)->first();
 
-        if (preg_match('/REF (\d+)-/', $orderNumber, $matches)) {
-            $purchaseRequestId = $matches[1];
-            $order = PurchaseRequest::with('items.product')->where('id', $purchaseRequestId)->first();
-        }
-
-        return view('pages.b2b.v_productrating', [
-            'order' => $order,
-            'page' => 'Rate Product',
-        ]);
+        // Find the corresponding Order
+        $realOrder = Order::where('order_number', 'like', 'REF ' . $purchaseRequestId . '-%')->first();
+        $delivery = $realOrder?->delivery;
     }
 
-    // public function submit_product_rating(Request $request, $productId)
-    // {
-    //     $request->validate([
-    //         'rating' => 'required|integer|min:1|max:5',
-    //         'feedback' => 'nullable|string|max:1000',
-    //     ]);
-
-    //     ProductRating::create([
-    //         'user_id' => auth()->id(),
-    //         'product_id' => $productId,
-    //         'rating' => $request->rating,
-    //         'review' => $request->feedback,
-    //     ]);
-
-    //     return redirect()->back()->with('success', 'Thanks for rating this product!');
-    // }
+    return view('pages.b2b.v_productrating', [
+        'order' => $order,
+        'delivery' => $delivery,
+        'page' => 'Rate Products & Driver Service',
+    ]);
+}
 
     public function submit_product_rating(Request $request, $productId)
     {
         $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
+            'rating' => 'nullable|integer|min:1|max:5',
             'feedback' => 'nullable|string|max:1000',
         ]);
+
+        $rating = $request->rating ?? 5; // default to 5 if not provided
 
         ProductRating::updateOrCreate(
             [
@@ -496,11 +380,60 @@ class DeliveryController extends Controller
                 'product_id' => $productId,
             ],
             [
-                'rating' => $request->rating,
+                'rating' => $rating,
                 'review' => $request->feedback,
             ]
         );
 
-        return redirect()->back()->with('success', 'Thanks for rating this product!');
+        return redirect()->route('b2b.delivery.index')->with('success', 'Thanks for rating this product!');
     }
+
+public function submit_all_ratings(Request $request, $orderId)
+{
+    // Validate inputs
+    $request->validate([
+        'rider_rating' => 'required|integer|min:1|max:5',
+        'rider_feedback' => 'nullable|string|max:1000',
+        'ratings' => 'nullable|array',
+        'ratings.*' => 'nullable|integer|min:1|max:5',
+        'feedbacks' => 'nullable|array',
+        'feedbacks.*' => 'nullable|string|max:1000',
+    ]);
+
+    // Get the PurchaseRequest and its items
+    $purchaseRequest = PurchaseRequest::with('items.product')->findOrFail($orderId);
+
+    // --- Save Rider Rating ---
+    // Find the corresponding Order
+    $order = Order::where('order_number', 'like', 'REF ' . $purchaseRequest->id . '-%')->first();
+
+    if ($order && $order->delivery && !$order->delivery->rating) {
+        $order->delivery->rating()->create([
+            'rating' => $request->rider_rating,
+            'feedback' => $request->rider_feedback,
+        ]);
+    }
+
+    // --- Save Product Ratings ---
+    foreach ($purchaseRequest->items as $item) {
+        $productId = $item->product_id;
+        $rating = $request->ratings[$productId] ?? 5;
+        $feedback = $request->feedbacks[$productId] ?? null;
+
+        ProductRating::updateOrCreate(
+            [
+                'user_id' => auth()->id(),
+                'product_id' => $productId,
+            ],
+            [
+                'rating' => $rating,
+                'review' => $feedback,
+            ]
+        );
+    }
+
+    return redirect()->route('b2b.delivery.index')
+        ->with('success', 'Thanks for rating the rider and all products!');
+}
+
 }
