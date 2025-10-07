@@ -30,7 +30,7 @@
 
 <!-- SECTION -->
 <div class="section section-scrollable">
-    <div class="container">
+    <div class="container mt-mobile">
     
         <!-- Product List -->
         <div class="row" id="product-list">
@@ -127,7 +127,8 @@
         });
 
         // Live search with debounce (400ms delay)
-        $('#search_value').on('input', debounce(function() {
+        //nag add ako ng search mobile
+        $('#search_value, #search_value_mobile').on('input', debounce(function() {
             searchQuery = $(this).val().trim();
 
             if (searchQuery !== '') {

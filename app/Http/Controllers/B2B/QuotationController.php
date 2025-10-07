@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\PurchaseRequest;
 use App\Models\PaidPayment;
@@ -20,6 +22,24 @@ class QuotationController extends Controller
 {
     public function review(Request $request)
     {
+        // 1️⃣ If user is NOT logged in → show login page
+    if (!Auth::check()) {
+        $page = 'Sign In';
+        $companysettings = DB::table('company_settings')->first();
+
+        return response()
+            ->view('auth.login', compact('page', 'companysettings'))
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+    }
+
+    // 2️⃣ If user is logged in → check their role
+    $user = Auth::user();
+
+    // Example role logic (adjust 'role' and role names to match your database)
+    
+   if ($user->role === 'b2b') {
         $userId = auth()->id();
 
         $hasAddress = B2BAddress::where('user_id', $userId)->exists();
@@ -109,6 +129,9 @@ class QuotationController extends Controller
             'page' => 'Sent Quotations',
             'hasAddress' => $hasAddress
         ]);
+    }
+    //for returning to the dashboard
+         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function show($id)

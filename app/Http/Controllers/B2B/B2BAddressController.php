@@ -15,32 +15,53 @@ class B2BAddressController extends Controller
 {
     public function index(Request $request)
     {
-        if ($request->ajax()) {
-            $addresses = B2BAddress::where('user_id', Auth::id())->latest();
+        // 1️⃣ If user is NOT logged in → show login page
+    if (!Auth::check()) {
+        $page = 'Sign In';
+        $companysettings = DB::table('company_settings')->first();
 
-            return DataTables::of($addresses)
-                ->addColumn('select', function ($address) {
-                    $checked = $address->status === 'active' ? 'checked' : '';
-                    return '<input type="radio" name="default_address" class="select-address" data-id="' . $address->id . '" ' . $checked . '>';
-                })
-                ->addColumn('full_address', function ($address) {
-                    return $address->street . ', ' . $address->barangay . ', ' . $address->city . ', ' . $address->province . ', ' . $address->zip_code;
-                })
-                ->addColumn('status', function ($address) {
-                    $status = $address->status === 'active' ? 'Default' : '--';
-                    return $status;
-                })
-                ->editColumn('created_at', function ($address) {
-                    return Carbon::parse($address->created_at)->format('Y-m-d H:i:s');
-                })
-                ->rawColumns(['select', 'full_address'])
-                ->make(true);
-        }
+        return response()
+            ->view('auth.login', compact('page', 'companysettings'))
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+    }
+
+    // 2️⃣ If user is logged in → check their role
+    $user = Auth::user();
+
+    // Example role logic (adjust 'role' and role names to match your database)
+    
+   if ($user->role === 'b2b') {
+
+    // 3️⃣ For B2B customer → handle DataTable AJAX
+    if ($request->ajax()) {
+        $addresses = B2BAddress::where('user_id', $user->id)->latest();
+
+        return DataTables::of($addresses)
+            ->addColumn('select', function ($address) {
+                $checked = $address->status === 'active' ? 'checked' : '';
+                return '<input type="radio" name="default_address" class="select-address" data-id="' . $address->id . '" ' . $checked . '>';
+            })
+            ->addColumn('full_address', function ($address) {
+                return $address->street . ', ' . $address->barangay . ', ' . $address->city . ', ' . $address->province . ', ' . $address->zip_code;
+            })
+            ->addColumn('status', function ($address) {
+                return $address->status === 'active' ? 'Default' : '--';
+            })
+            ->editColumn('created_at', function ($address) {
+                return Carbon::parse($address->created_at)->format('Y-m-d H:i:s');
+            })
+            ->rawColumns(['select', 'full_address'])
+            ->make(true);
+    }
 
 
         return view('pages.b2b.v_address', [
             'page' => 'My Addresses',
-        ]);
+        ]);}
+        //for returning to the dashboard
+         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function geoCode(Request $request)

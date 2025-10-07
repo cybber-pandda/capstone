@@ -2303,6 +2303,9 @@ textarea.input {
   .section-tab-nav li {
     margin-top: 10px;
   }
+  .mt-mobile {
+      margin-top: 80px !important;
+    }
 }
 
 @media only screen and (max-width: 480px) {
@@ -2314,11 +2317,13 @@ textarea.input {
     float: none;
     margin-top: 10px;
   }
-
   .store-pagination {
     float: none;
     margin-top: 10px;
   }
+  .mt-mobile {
+      margin-top: 80px !important;
+    }
 }
 
 /* Mobile-first: Stack pagination buttons */
@@ -2536,5 +2541,4 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
     -moz-appearance: textfield;
 }
-
 

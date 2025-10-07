@@ -4,6 +4,7 @@ namespace App\Http\Controllers\B2B;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestItem;
 use App\Models\PurchaseRequestReturn;
@@ -15,6 +16,24 @@ class PurchaseController extends Controller
 {
     public function index(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+    if (!Auth::check()) {
+        $page = 'Sign In';
+        $companysettings = DB::table('company_settings')->first();
+
+        return response()
+            ->view('auth.login', compact('page', 'companysettings'))
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+    }
+
+    // 2️⃣ If user is logged in → check their role
+    $user = Auth::user();
+
+    // Example role logic (adjust 'role' and role names to match your database)
+    
+   if ($user->role === 'b2b') {
         if ($request->ajax()) {
             $userid = auth()->user()->id;
 
@@ -82,6 +101,9 @@ class PurchaseController extends Controller
         return view('pages.b2b.v_purchase', [
             'page' => 'My Purchase',
         ]);
+    }
+    //for returning to the dashboard
+         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
 
@@ -167,6 +189,24 @@ class PurchaseController extends Controller
 
     public function purchaseReturnRefund(Request $request)
     {
+        // 1️⃣ If user is NOT logged in → show login page
+    if (!Auth::check()) {
+        $page = 'Sign In';
+        $companysettings = DB::table('company_settings')->first();
+
+        return response()
+            ->view('auth.login', compact('page', 'companysettings'))
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+    }
+
+    // 2️⃣ If user is logged in → check their role
+    $user = Auth::user();
+
+    // Example role logic (adjust 'role' and role names to match your database)
+    
+   if ($user->role === 'b2b') {
         $type = $request->input('type');
 
         if ($request->ajax()) {
@@ -227,5 +267,8 @@ class PurchaseController extends Controller
         return view('pages.b2b.v_returnRefund', [
             'page' => 'Return & Refund',
         ]);
+    }
+    //for returning to the dashboard
+         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 }

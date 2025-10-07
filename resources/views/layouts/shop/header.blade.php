@@ -79,6 +79,9 @@
                                 <option value="1">Category 02</option>
                             </select> -->
                             <input class="input" placeholder="Search here" id="search_value">
+                            <!-- nag add ako ng search input para sa mobile -->
+                            <input class="input" placeholder="Search here" id="search_value_mobile" style = "display:none !important; @media (max-width: 767.98px) {
+                display: block !important;">
                             <button class="search-btn" id="search-btn">Search</button>
                         </form>
                     </div>

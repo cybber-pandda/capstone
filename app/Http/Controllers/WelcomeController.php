@@ -18,7 +18,7 @@ class WelcomeController extends Controller
     public function index(Request $request)
     {
         $page = "Welcome to TantucoCTC Hardware";
-
+        //for user auth
         if (Auth::check()) {
             return redirect()->route('home');
         }
@@ -46,8 +46,13 @@ class WelcomeController extends Controller
                 'html' => view('components.product-list', compact('data'))->render()
             ]);
         }
-
-        return view('pages.welcome', compact('page', 'categories', 'data'));
+        // for cache and returning the dashboard
+        return response()
+            ->view('pages.welcome', compact('page', 'categories', 'data'))
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        //return view('pages.welcome', compact('page', 'categories', 'data'));
     }
 
     public function product_details($id)
