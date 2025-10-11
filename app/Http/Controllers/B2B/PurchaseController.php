@@ -208,15 +208,22 @@ foreach ($purchaseRequests as $pr) {
 
     // 2️⃣ If user is logged in → check their role
     $user = Auth::user();
+    $customerId = $user->id; // ✅ Only show this customer's items
+    $type = $request->input('type');
 
     // Example role logic (adjust 'role' and role names to match your database)
     
    if ($user->role === 'b2b') {
         $type = $request->input('type');
-
+        
         if ($request->ajax()) {
             if ($type === 'return') {
-                $data = PurchaseRequestReturn::with(['product', 'purchaseRequestItem'])
+                // $data = PurchaseRequestReturn::with(['product', 'purchaseRequestItem'])
+                //fixed for showing to other customer
+                $data = PurchaseRequestReturn::with(['product', 'purchaseRequestItem.purchaseRequest'])
+                ->whereHas('purchaseRequestItem.purchaseRequest', function($q) use ($customerId) {
+                    $q->where('customer_id', $customerId); // ✅ only the logged-in customer
+                })
                     ->latest()
                     ->get()
                     ->map(function ($r) {
@@ -238,7 +245,12 @@ foreach ($purchaseRequests as $pr) {
             }
 
             if ($type === 'refund') {
-                $data = PurchaseRequestRefund::with(['product', 'purchaseRequestItem'])
+                // $data = PurchaseRequestRefund::with(['product', 'purchaseRequestItem'])
+                //new for auth for return and refund
+                $data = PurchaseRequestReturn::with(['product', 'purchaseRequestItem.purchaseRequest'])
+                    ->whereHas('purchaseRequestItem.purchaseRequest', function($q) use ($customerId) {
+                        $q->where('customer_id', $customerId); // ✅ only the logged-in customer
+                    })
                     ->latest()
                     ->get()
                     ->map(function ($r) {
