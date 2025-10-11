@@ -3,26 +3,37 @@
 @section('content')
 <div class="page-content container-xxl">
 
-    <div class="row">
-        @foreach ([
-        ['label' => 'Total Sales (VAT Inclusive)', 'value' => $total],
-        ['label' => 'VAT Amount', 'value' => $vatAmount],
+<div class="row">
+    @foreach ([
+        // Sales
         ['label' => 'VAT Exclusive Sales', 'value' => $vatExclusive],
-        ['label' => 'Total Amount', 'value' => $total],
-        ] as $stat)
-        <div class="col-md-3 grid-margin stretch-card">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title mb-0">{{ $stat['label'] }}</h6>
-                    <h3 class="mb-2">₱{{ number_format($stat['value'], 2) }}</h3>
-                    <div class="d-flex align-items-baseline">
-                        {{-- No percentage change for totals, but you can add one if needed --}}
-                    </div>
-                </div>
+        ['label' => 'Sales VAT', 'value' => $vatAmount],
+        ['label' => 'Sales (VAT Inclusive)', 'value' => $vatExclusive + $vatAmount],
+
+        // Delivery
+        ['label' => 'Delivery Fee (VAT Exclusive)', 'value' => $deliveryExclusive],
+        ['label' => 'Delivery VAT', 'value' => $deliveryVAT],
+        ['label' => 'Delivery Fee (VAT Inclusive)', 'value' => $deliveryFee],
+
+        // VAT Totals
+        ['label' => 'Total VAT', 'value' => $totalVAT],
+
+        // Grand Total
+        ['label' => 'Grand Total', 'value' => $total + $deliveryFee, 'highlight' => true],
+    ] as $stat)
+    <div class="col-md-3 grid-margin stretch-card">
+        <div class="card" 
+             @if(isset($stat['highlight']) && $stat['highlight']) 
+                 style="background-color: #6571ff; color: #ffffff; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2);" 
+             @endif>
+            <div class="card-body">
+                <h6 class="card-title mb-0">{{ $stat['label'] }}</h6>
+                <h3 class="mb-2">₱{{ number_format($stat['value'], 2) }}</h3>
             </div>
         </div>
-        @endforeach
     </div>
+    @endforeach
+</div>
 
     <div class="mt-3 mb-4">
         @if(!empty($companySettings) && $companySettings)
@@ -62,11 +73,12 @@
                 <th>TIN</th>
                 <!-- <th>Address</th> -->
                 <th>Items</th>
-                <!--th>Avg Price</th -->
-                <th>Subtotal</th>
-                <th>VAT</th>
                 <th>Total (Excl. VAT)</th>
+                <th>VAT Sales</th>
+                <!--th>Avg Price</th -->
+               <!-- <th>Subtotal</th> -->
                 <th>Total (Incl. VAT)</th>
+                <th>Grand Total</th>
             </tr>
             '
             ])
@@ -129,16 +141,16 @@
                 //   name: 'avg_price'
                 //},
                 {
-                    data: 'subtotal',
-                    name: 'subtotal'
+                   data: 'subtotal',
+                   name: 'subtotal'
                 },
                 {
                     data: 'vat_amount',
                     name: 'vat_amount'
                 },
                 {
-                    data: 'vat_exclusive',
-                    name: 'vat_exclusive'
+                    data: 'vat_inclusive',
+                    name: 'vat_inclusive'
                 },
                 {
                     data: 'grand_total',

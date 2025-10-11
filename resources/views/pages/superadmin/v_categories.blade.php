@@ -19,7 +19,7 @@
             'id' => 'categoryTable',
             'thead' => '
             <tr>
-                <th>Image</th>
+                {{-- <th>Image</th> --}}
                 <th>Name</th>
                 <th>Description</th>
                 <th>Date Created</th>
@@ -37,7 +37,7 @@
     <form id="categoryForm" action="{{ route('category-management.store') }}" method="POST">
 
         @component('components.input', ['label' => 'Name', 'type' => 'text', 'name' => 'name', 'attributes' => '' ]) @endcomponent
-        @component('components.input', ['label' => 'Image', 'type' => 'file', 'name' => 'image', 'attributes' => '' ]) @endcomponent
+    {{--@component('components.input', ['label' => 'Image', 'type' => 'file', 'name' => 'image', 'attributes' => '' ]) @endcomponent --}}
         @component('components.textarea', ['label' => 'Description', 'rows' => 7, 'name' => 'description', 'attributes' => '']) @endcomponent
 
     </form>

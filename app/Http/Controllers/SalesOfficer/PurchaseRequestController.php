@@ -99,7 +99,7 @@ class PurchaseRequestController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->discount > 0 ? $item->product->discounted_price : $item->product->price));
                     $vatRate = $pr->vat ?? 0; // VAT percentage
                     $vatAmount = $subtotal * ($vatRate / 100);
                     $deliveryFee = $pr->delivery_fee ?? 0;

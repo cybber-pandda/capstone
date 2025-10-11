@@ -68,7 +68,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified'])->group(function 
     Route::get('/b2b/requirements', [App\Http\Controllers\Superadmin\TrackingController::class, 'b2bRequirements'])->name('tracking.b2b.requirement');
     Route::post('/b2b/requirement/update-status', [App\Http\Controllers\Superadmin\TrackingController::class, 'updateStatus']);
 
-    /* Sales Officer */
+    /* Sales Officer */     
     Route::prefix('salesofficer')->name('salesofficer.')->group(function () {
         Route::get('/purchase-requests/all', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
         Route::get('/purchase-requests/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'show']);

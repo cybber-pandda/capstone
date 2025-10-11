@@ -65,17 +65,31 @@
                             <th class="text-end">Subtotal</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach ($quotation->items as $item)
-                        <tr>
-                            <td>{{ $item->product->sku }}</td>
-                            <td>{{ $item->product->name }}</td>
-                            <td class="text-center">{{ $item->quantity }}</td>
-                            <td class="text-end">₱{{ number_format($item->product->price, 2) }}</td>
-                            <td class="text-end">₱{{ number_format($item->quantity * $item->product->price, 2) }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
+                        <tbody>
+                            @foreach ($quotation->items as $item)
+                                <tr>
+                                    <td>{{ $item->product->sku }}</td>
+                                    <td>{{ $item->product->name }}</td>
+                                    <td class="text-center">{{ $item->quantity }}</td>
+                                    @php
+                                        $unitPrice = $item->product->discount == 0 
+                                            ? $item->product->price 
+                                            : $item->product->discounted_price;
+                                    @endphp
+
+                                    <td class="text-end">
+                                        ₱{{ number_format($unitPrice, 2) }}
+                                        @if($item->product->discount > 0)
+                                            <br><small class="text-success">({{ $item->product->discount }}% off)</small>
+                                        @endif
+                                    </td>
+
+                                    <td class="text-end">
+                                        ₱{{ number_format($item->quantity * $unitPrice, 2) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
 
                     @php
                     $subtotal = $quotation->items->sum('subtotal');

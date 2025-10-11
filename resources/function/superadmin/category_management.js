@@ -19,7 +19,7 @@ $(document).ready(function () {
         ajax: "/category-management",
         autoWidth: false,
         columns: [
-            { data: "image", name: "image", width: "15%" },
+            //{ data: "image", name: "image", width: "15%" }, tanggalin ari
             { data: "name", name: "name", width: "20%" },
             { data: "description", name: "description", width: "20%" },
             {

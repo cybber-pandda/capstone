@@ -105,13 +105,13 @@ class WelcomeController extends Controller
     {
         $products = Product::with('productImages')
             ->where('category_id', $categoryId)
-            ->select('id', 'name', 'price')
+            ->select('id', 'name', 'price', 'discounted_price')
             ->get()
             ->map(function ($product) {
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
-                    'price' => $product->price,
+                    'price' => ($product->discounted_price > 0) ? $product->discounted_price : $product->price,
                     'image' => $product->productImages->first()->image_path ?? null
                 ];
             });
@@ -121,30 +121,30 @@ class WelcomeController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'customer_type'          => 'required',
-            'customer_name'          => 'required|string|max:255',
-            'customer_address'       => 'required|string|max:255',
-            'customer_phone_number'  => ['required', 'regex:/^09\d{9}$/'],
-            'order_date'             => 'required|date',
-            'remarks'                => 'nullable|string|max:255',
-            'products'               => 'required|array|min:1',
-            'products.*.category_id' => 'required|integer',
-            'products.*.product_id'  => 'required|integer',
-            'products.*.qty'         => 'required|integer|min:1',
-            'products.*.price'       => 'required|numeric|min:0',
-        ], [
-            'customer_phone_number.required' => 'Please enter the customer phone number.',
-            'customer_phone_number.regex'    => 'Phone number must be 11 digits and start with 09.',
-            'products.required'                => 'Please add at least one product.',
-            'products.*.category_id.required'  => 'Please select a category for each product row.',
-            'products.*.product_id.required'   => 'Please select a product for each product row.',
-            'products.*.qty.required'          => 'Please enter quantity for each product row.',
-            'products.*.qty.min'               => 'Quantity must be at least 1 in each product row.',
-            'products.*.price.required'        => 'Please enter price for each product row.',
-            'products.*.price.min'             => 'Price cannot be negative in any product row.',
-        ]);
-
+$validated = $request->validate([
+    'customer_type'          => 'required',
+    'customer_name'          => 'required|string|max:255',
+    'customer_address'       => 'required|string|max:255',
+    'customer_phone_number'  => ['required', 'regex:/^09\d{9}$/'],
+    'order_date'             => 'required|date',
+    'remarks'                => 'nullable|string|max:255',
+    'products'               => 'required|array|min:1',
+    'products.*.category_id' => 'required|integer',
+    'products.*.product_id'  => 'required|integer',
+    'products.*.qty'         => 'required|integer|min:1',
+], [
+    'customer_phone_number.required' => 'Please enter the customer phone number.',
+    'customer_phone_number.regex'    => 'Phone number must be 11 digits and start with 09.',
+    'products.required'                => 'Please add at least one product.',
+    'products.*.category_id.required'  => 'Please select a category for each product row.',
+    'products.*.product_id.required'   => 'Please select a product for each product row.',
+    'products.*.qty.required'          => 'Please enter quantity for each product row.',
+    'products.*.qty.min'               => 'Quantity must be at least 1 in each product row.',
+]);
+        foreach ($validated['products'] as &$product) {
+            $dbProduct = Product::find($product['product_id']);
+            $product['price'] = ($dbProduct->discounted_price > 0) ? $dbProduct->discounted_price : $dbProduct->price;
+        }
         $status = $request->customer_type === 'walkin' ? 'approve' : 'pending';
         $customer_type = $request->customer_type === 'walkin' ? 'Walk-In' : 'Manual Order';
 

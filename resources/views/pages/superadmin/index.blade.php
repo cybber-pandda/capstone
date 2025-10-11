@@ -23,99 +23,85 @@
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-12 col-xl-12 stretch-card">
-            <div class="row flex-grow-1">
-                {{-- Total Paid Pay Now --}}
-                <div class="col-md-6 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Cash Sales</h6>
-                            </div>
-                            <h3 class="mb-2 mt-2">{{ number_format($totalcashsales,2) }}</h3>
+<div class="row">
+    <div class="col-12 col-xl-12 stretch-card">
+        <div class="row flex-grow-1">
 
-                        </div>
+            {{-- Total Cash Sales --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title mb-2">Total Cash Sales</h6>
+                        <h4 class="mb-0">₱{{ number_format($totalcashsales,2) }}</h4>
                     </div>
                 </div>
-
-                {{-- Total Paid Pay Later --}}
-                <div class="col-md-6 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Credit Sales</h6>
-                            </div>
-                            <h3 class="mb-2 mt-2">{{ number_format($totalpaylater,2) }}</h3>
-                        </div>
-                    </div>
-                </div>
-
             </div>
-        </div>
-    </div>
 
-    <div class="row">
-        <div class="col-12 col-xl-12 stretch-card">
-            <div class="row flex-grow-1">
+            {{-- Total Credit Sales --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title mb-2">Total Credit Sales</h6>
+                        <h4 class="mb-0">₱{{ number_format($totalpaylater,2) }}</h4>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Total Delivery Fee --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title mb-2">Total Delivery Fee</h6>
+                        <h4 class="mb-0">₱{{ number_format($totalDeliveryFeeAll, 2) }}</h4>
+                    </div>
+                </div>
+            </div>
+
             {{-- Total Customers --}}
             <div class="col-md-4 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-baseline">
-                            <h6 class="card-title mb-0">Total Customers</h6>
-                        </div>
-                        <h3 class="mb-2">{{ number_format($totalB2BAllTime) }}</h3>
-                        <div class="d-flex align-items-baseline">
-                            <p class="mb-0 {{ $b2bChange >= 0 ? 'text-success' : 'text-danger' }}">
-                                <span>{{ $b2bChange >= 0 ? '+' : '' }}{{ number_format($b2bChange, 1) }}%</span>
-                                <i data-lucide="{{ $b2bChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
-                            </p>
-                        </div>
+                    <div class="card-body text-center">
+                        <h6 class="card-title mb-2">Total Customers</h6>
+                        <h4 class="mb-0">{{ number_format($totalB2BAllTime) }}</h4>
+                        <p class="mb-0 {{ $b2bChange >= 0 ? 'text-success' : 'text-danger' }}">
+                            <span>{{ $b2bChange >= 0 ? '+' : '' }}{{ number_format($b2bChange, 1) }}%</span>
+                            <i data-lucide="{{ $b2bChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
+                        </p>
                     </div>
                 </div>
             </div>
 
-            {{-- Total Sales Officer --}}
+            {{-- Total Assistant Sales Officer --}}
             <div class="col-md-4 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-baseline">
-                            <h6 class="card-title mb-0">Total Assistant Sales Officer</h6>
-                        </div>
-                        <h3 class="mb-2">{{ number_format($totalSalesOfficerAllTime) }}</h3>
-                        <div class="d-flex align-items-baseline">
-                            <p class="mb-0 {{ $salesChange >= 0 ? 'text-success' : 'text-danger' }}">
-                                <span>{{ $salesChange >= 0 ? '+' : '' }}{{ number_format($salesChange, 1) }}%</span>
-                                <i data-lucide="{{ $salesChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
-                            </p>
-                        </div>
+                    <div class="card-body text-center">
+                        <h6 class="card-title mb-2">Total Assistant Sales Officer</h6>
+                        <h4 class="mb-0">{{ number_format($totalSalesOfficerAllTime) }}</h4>
+                        <p class="mb-0 {{ $salesChange >= 0 ? 'text-success' : 'text-danger' }}">
+                            <span>{{ $salesChange >= 0 ? '+' : '' }}{{ number_format($salesChange, 1) }}%</span>
+                            <i data-lucide="{{ $salesChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
+                        </p>
                     </div>
                 </div>
             </div>
 
-            {{-- Total Delivery Rider --}}
+            {{-- Total Delivery Driver --}}
             <div class="col-md-4 grid-margin stretch-card">
                 <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-baseline">
-                            <h6 class="card-title mb-0">Total Delivery Driver</h6>
-                        </div>
-                        <h3 class="mb-2">{{ number_format($totalDeliveryRiderAllTime) }}</h3>
-                        <div class="d-flex align-items-baseline">
-                            <p class="mb-0 {{ $riderChange >= 0 ? 'text-success' : 'text-danger' }}">
-                                <span>{{ $riderChange >= 0 ? '+' : '' }}{{ number_format($riderChange, 1) }}%</span>
-                                <i data-lucide="{{ $riderChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
-                            </p>
-                        </div>
+                    <div class="card-body text-center">
+                        <h6 class="card-title mb-2">Total Delivery Driver</h6>
+                        <h4 class="mb-0">{{ number_format($totalDeliveryRiderAllTime) }}</h4>
+                        <p class="mb-0 {{ $riderChange >= 0 ? 'text-success' : 'text-danger' }}">
+                            <span>{{ $riderChange >= 0 ? '+' : '' }}{{ number_format($riderChange, 1) }}%</span>
+                            <i data-lucide="{{ $riderChange >= 0 ? 'arrow-up' : 'arrow-down' }}" class="icon-sm mb-1"></i>
+                        </p>
                     </div>
                 </div>
             </div>
 
-
-            </div>
         </div>
     </div>
+</div>
 
     <div class="row">
         <div class="col-12 col-xl-12 grid-margin stretch-card">

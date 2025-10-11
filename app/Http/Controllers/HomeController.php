@@ -80,6 +80,28 @@ class HomeController extends Controller
     });
 
         $role = $user->role ?? null;
+        // -------------------------------
+        // Global totals (compute once)
+        // -------------------------------
+        $creditpayment = CreditPayment::where('status', 'paid')->sum('paid_amount');
+        $creditpartialpayment = CreditPartialPayment::where('status', 'paid')->sum('paid_amount');
+        $totalpaylater = $creditpayment + $creditpartialpayment;
+
+        $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
+
+        $totalmanualorder = ManualEmailOrder::where('status', 'approve')->get()->sum(function ($pr) {
+            $items = json_decode($pr->purchase_request, true) ?? [];
+            $itemsSubtotal = collect($items)->sum(fn($item) => ((int)($item['qty'] ?? 0)) * ((float)($item['price'] ?? 0)));
+            $itemsVAT = $itemsSubtotal * 0.12;
+            $deliveryFee = (float) ($pr->delivery_fee ?? 0);
+            return $itemsSubtotal + $itemsVAT + $deliveryFee;
+        });
+
+        $totalcashsales = $totalpaynow + $totalmanualorder;
+
+        $totalDeliveryFeeManual = ManualEmailOrder::where('status', 'approve')->sum('delivery_fee');
+        $totalDeliveryFeePR = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])->sum('delivery_fee');
+        $totalDeliveryFeeAll = $totalDeliveryFeeManual + $totalDeliveryFeePR;
 
         $view = match ($role) {
             'b2b' => 'pages.b2b.index',
@@ -87,7 +109,7 @@ class HomeController extends Controller
             'superadmin' => 'pages.superadmin.index',
             default => 'pages.welcome',
         };
-        //ito
+            //ito
             if ($role === 'superadmin') {
                 $today = Carbon::today();
 
@@ -111,16 +133,40 @@ class HomeController extends Controller
                 $b2bChange = $totalB2BAllTime > 0 ? ($totalB2BToday / $totalB2BAllTime) * 100 : 0;
                 $riderChange = $totalDeliveryRiderAllTime > 0 ? ($totalDeliveryRiderToday / $totalDeliveryRiderAllTime) * 100 : 0;
                 $salesChange = $totalSalesOfficerAllTime > 0 ? ($totalSalesOfficerToday / $totalSalesOfficerAllTime) * 100 : 0;
+                
 
-            // -------------------------------
-            // Payments / cash sales
-            // -------------------------------
-            $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
-            $totalmanualorder = ManualEmailOrder::where('status', 'approve')->get()->sum(function ($pr) {
-                $items = json_decode($pr->purchase_request, true) ?? [];
-                return collect($items)->sum(fn($item) => ((int)($item['qty'] ?? 0)) * ((float)($item['price'] ?? 0)));
-            });
-            $totalcashsales = $totalpaynow + $totalmanualorder;
+/*                $totalpaylater = $creditpayment + $creditpartialpayment;
+
+                // Pay now payments (already only paid)
+                $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
+
+                // Approved manual orders
+                $totalmanualorder = ManualEmailOrder::where('status', 'approve')->get()->sum(function ($pr) {
+                    $items = json_decode($pr->purchase_request, true) ?? [];
+
+                    // Items subtotal
+                    $itemsSubtotal = collect($items)->sum(fn($item) => ((int)($item['qty'] ?? 0)) * ((float)($item['price'] ?? 0)));
+
+                    // VAT on items (12%)
+                    $itemsVAT = $itemsSubtotal * 0.12;
+
+                    // Delivery fee inclusive
+                    $deliveryFee = (float) ($pr->delivery_fee ?? 0);
+
+                    // Total for this manual order
+                    return $itemsSubtotal + $itemsVAT + $deliveryFee;
+                });
+
+                // Total cash sales = pay now + approved manual orders
+                $totalcashsales = $totalpaynow + $totalmanualorder;
+
+
+             // Total delivery fee for approved manual orders - bagoo
+            $totalDeliveryFeeManual = ManualEmailOrder::where('status', 'approve')->sum('delivery_fee');
+            $totalDeliveryFeePR = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])->sum('delivery_fee');
+            $totalDeliveryFeeAll = $totalDeliveryFeeManual + $totalDeliveryFeePR; */
+
+            
         }
 
 
@@ -149,6 +195,37 @@ class HomeController extends Controller
                     'html' => view('components.product-list', compact('data'))->render()
                 ]);
             }
+
+/*                $totalpaylater = $creditpayment + $creditpartialpayment;
+
+                // Pay now payments (already only paid)
+                $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
+
+                // Approved manual orders
+                $totalmanualorder = ManualEmailOrder::where('status', 'approve')->get()->sum(function ($pr) {
+                    $items = json_decode($pr->purchase_request, true) ?? [];
+
+                    // Items subtotal
+                    $itemsSubtotal = collect($items)->sum(fn($item) => ((int)($item['qty'] ?? 0)) * ((float)($item['price'] ?? 0)));
+
+                    // VAT on items (12%)
+                    $itemsVAT = $itemsSubtotal * 0.12;
+
+                    // Delivery fee inclusive
+                    $deliveryFee = (float) ($pr->delivery_fee ?? 0);
+
+                    // Total for this manual order
+                    return $itemsSubtotal + $itemsVAT + $deliveryFee;
+                });
+
+                // Total cash sales = pay now + approved manual orders
+                $totalcashsales = $totalpaynow + $totalmanualorder;
+
+
+             // Total delivery fee for approved manual orders - bagoo
+            $totalDeliveryFeeManual = ManualEmailOrder::where('status', 'approve')->sum('delivery_fee');
+            $totalDeliveryFeePR = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])->sum('delivery_fee');
+            $totalDeliveryFeeAll = $totalDeliveryFeeManual + $totalDeliveryFeePR;  */
         }
 
         if ($role === 'salesofficer' || $role === 'deliveryrider') {
@@ -180,10 +257,34 @@ class HomeController extends Controller
             $totalSalesOrderPRChange = $prevSalesOrderPR > 0 ? (($totalSalesOrderPR - $prevSalesOrderPR) / $prevSalesOrderPR) * 100 : 0;
             $totalDeliveredPRChange = $prevDeliveredPR > 0 ? (($totalDeliveredPR - $prevDeliveredPR) / $prevDeliveredPR) * 100 : 0;
 
-            $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
-            $totalpaylater = $creditpayment + $creditpartialpayment;
+                // Pay now payments (already only paid)
+                $totalpaynow = PaidPayment::where('status', 'paid')->sum('paid_amount');
 
-            $totalcashsales = $totalpaynow + $totalmanualorder;
+                // Approved manual orders
+                $totalmanualorder = ManualEmailOrder::where('status', 'approve')->get()->sum(function ($pr) {
+                    $items = json_decode($pr->purchase_request, true) ?? [];
+
+                    // Items subtotal
+                    $itemsSubtotal = collect($items)->sum(fn($item) => ((int)($item['qty'] ?? 0)) * ((float)($item['price'] ?? 0)));
+
+                    // VAT on items (12%)
+                    $itemsVAT = $itemsSubtotal * 0.12;
+
+                    // Delivery fee inclusive
+                    $deliveryFee = (float) ($pr->delivery_fee ?? 0);
+
+                    // Total for this manual order
+                    return $itemsSubtotal + $itemsVAT + $deliveryFee;
+                });
+
+/*                // Total cash sales = pay now + approved manual orders
+                $totalcashsales = $totalpaynow + $totalmanualorder;
+
+
+             // Total delivery fee for approved manual orders - bagoo
+            $totalDeliveryFeeManual = ManualEmailOrder::where('status', 'approve')->sum('delivery_fee');
+            $totalDeliveryFeePR = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])->sum('delivery_fee');
+            $totalDeliveryFeeAll = $totalDeliveryFeeManual + $totalDeliveryFeePR; */
         }
 
         if ($role === 'deliveryrider') {
@@ -228,113 +329,179 @@ class HomeController extends Controller
             'totalDeliveredPRChange',
             'totalpaynow',
             'totalcashsales',
-            'totalpaylater'
+            'totalpaylater',
+            'totalDeliveryFeeAll' // <-- Add this ---- bago
         ));
 
 
     }
 
-    public function salesRevenueData(Request $request)
-    {
-        $filter = $request->input('filter', 'month');
-        $today = Carbon::today();
-        $startOfWeek = $today->copy()->startOfWeek();
-        $startOfMonth = $today->copy()->startOfMonth();
+public function salesRevenueData(Request $request)
+{
+    $filter = $request->input('filter', 'month');
+    $today = Carbon::today();
+    $startOfWeek = $today->copy()->startOfWeek();
+    $startOfMonth = $today->copy()->startOfMonth();
 
-        // Totals for cards
-        $dailyTotal = PurchaseRequest::where('status', 'delivered')
-            ->whereDate('created_at', $today)
-            ->with('items.product')
-            ->get()
-            ->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0)));
+    // Helper function for discount
+    $calcPrice = fn($price, $discount) => $price * (1 - ($discount / 100));
 
-        $weeklyTotal = PurchaseRequest::where('status', 'delivered')
-            ->whereBetween('created_at', [$startOfWeek, $today])
-            ->with('items.product')
-            ->get()
-            ->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0)));
+    // ============= 1. Normal PR-based totals with discount =============
+    $dailyPR = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])
+        ->whereDate('created_at', $today)
+        ->with('items.product')
+        ->get()
+        ->sum(fn($pr) => $pr->items->sum(fn($i) => $i->quantity * $calcPrice($i->product->price ?? 0, $i->product->discount ?? 0)));
 
-        $monthlyTotal = PurchaseRequest::where('status', 'delivered')
-            ->whereBetween('created_at', [$startOfMonth, $today])
-            ->with('items.product')
-            ->get()
-            ->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0)));
+    $weeklyPR = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])
+        ->whereBetween('created_at', [$startOfWeek, $today])
+        ->with('items.product')
+        ->get()
+        ->sum(fn($pr) => $pr->items->sum(fn($i) => $i->quantity * $calcPrice($i->product->price ?? 0, $i->product->discount ?? 0)));
 
-        $grouped = collect();
+    $monthlyPR = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])
+        ->whereBetween('created_at', [$startOfMonth, $today])
+        ->with('items.product')
+        ->get()
+        ->sum(fn($pr) => $pr->items->sum(fn($i) => $i->quantity * $calcPrice($i->product->price ?? 0, $i->product->discount ?? 0)));
 
-        if ($filter === 'day') {
+    // ============= 2. Manual Email Orders totals with discount =============
+    $calcManual = fn($pr) => collect(json_decode($pr->purchase_request, true) ?? [])->sum(function ($i) use ($calcPrice) {
+        $qty = (int)($i['qty'] ?? 0);
+        $price = (float)($i['price'] ?? 0);
+        $discount = (float)($i['discount'] ?? 0);
+        return $qty * $calcPrice($price, $discount);
+    });
+
+    $dailyManual = ManualEmailOrder::where('status', 'approve')
+        ->whereDate('created_at', $today)
+        ->get()
+        ->sum($calcManual);
+
+    $weeklyManual = ManualEmailOrder::where('status', 'approve')
+        ->whereBetween('created_at', [$startOfWeek, $today])
+        ->get()
+        ->sum($calcManual);
+
+    $monthlyManual = ManualEmailOrder::where('status', 'approve')
+        ->whereBetween('created_at', [$startOfMonth, $today])
+        ->get()
+        ->sum($calcManual);
+
+    // ============= 3. Combine Totals =============
+    $dailyTotal = $dailyPR + $dailyManual;
+    $weeklyTotal = $weeklyPR + $weeklyManual;
+    $monthlyTotal = $monthlyPR + $monthlyManual;
+
+    // ============= 4. Chart Data with discount applied =============
+    $grouped = collect();
+
+    switch ($filter) {
+        case 'day':
             for ($i = 6; $i >= 0; $i--) {
                 $key = now()->subDays($i)->format('Y-m-d');
-                $label = now()->subDays($i)->format('M d');
-                $grouped->put($key, ['label' => $label, 'value' => 0]);
+                $grouped->put($key, ['label' => now()->subDays($i)->format('M d'), 'value' => 0]);
             }
 
-            $rawData = PurchaseRequest::where('status', 'delivered')
+            $prData = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])
                 ->whereDate('created_at', '>=', now()->subDays(6))
                 ->with('items.product')
                 ->get()
                 ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y-m-d'))
-                ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
-        } elseif ($filter === 'week') {
+                ->map(fn($grp) => $grp->sum(fn($pr) => $pr->items->sum(fn($i) => $i->quantity * $calcPrice($i->product->price ?? 0, $i->product->discount ?? 0))));
+
+            $manualData = ManualEmailOrder::where('status', 'approve')
+                ->whereDate('created_at', '>=', now()->subDays(6))
+                ->get()
+                ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y-m-d'))
+                ->map(fn($grp) => $grp->sum($calcManual));
+
+            $rawData = $prData->mergeRecursive($manualData)->map(fn($v) => collect($v)->sum());
+            break;
+
+        case 'week':
             for ($i = 7; $i >= 0; $i--) {
                 $start = now()->subWeeks($i)->startOfWeek();
-                $label = $start->format('W Y');
-                $key = $label; // Week number and year
-                $grouped->put($key, ['label' => "Week {$start->format('W')}", 'value' => 0]);
+                $key = $start->format('W Y');
+                $grouped->put($key, ['label' => "Week " . $start->format('W'), 'value' => 0]);
             }
 
-            $rawData = PurchaseRequest::where('status', 'delivered')
+            $prData = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])
                 ->whereDate('created_at', '>=', now()->subWeeks(7)->startOfWeek())
                 ->with('items.product')
                 ->get()
                 ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->startOfWeek()->format('W Y'))
-                ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
-        } elseif ($filter === 'year') {
+                ->map(fn($grp) => $grp->sum(fn($pr) => $pr->items->sum(fn($i) => $i->quantity * $calcPrice($i->product->price ?? 0, $i->product->discount ?? 0))));
+
+            $manualData = ManualEmailOrder::where('status', 'approve')
+                ->whereDate('created_at', '>=', now()->subWeeks(7)->startOfWeek())
+                ->get()
+                ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->startOfWeek()->format('W Y'))
+                ->map(fn($grp) => $grp->sum($calcManual));
+
+            $rawData = $prData->mergeRecursive($manualData)->map(fn($v) => collect($v)->sum());
+            break;
+
+        case 'year':
             for ($i = 4; $i >= 0; $i--) {
                 $key = now()->subYears($i)->format('Y');
                 $grouped->put($key, ['label' => $key, 'value' => 0]);
             }
 
-            $rawData = PurchaseRequest::where('status', 'delivered')
+            $prData = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])
                 ->whereDate('created_at', '>=', now()->subYears(4)->startOfYear())
                 ->with('items.product')
                 ->get()
                 ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y'))
-                ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
-        } else { // default to month
+                ->map(fn($grp) => $grp->sum(fn($pr) => $pr->items->sum(fn($i) => $i->quantity * $calcPrice($i->product->price ?? 0, $i->product->discount ?? 0))));
+
+            $manualData = ManualEmailOrder::where('status', 'approve')
+                ->whereDate('created_at', '>=', now()->subYears(4)->startOfYear())
+                ->get()
+                ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y'))
+                ->map(fn($grp) => $grp->sum($calcManual));
+
+            $rawData = $prData->mergeRecursive($manualData)->map(fn($v) => collect($v)->sum());
+            break;
+
+        default: // month
             for ($i = 11; $i >= 0; $i--) {
                 $key = now()->subMonths($i)->format('Y-m');
-                $label = now()->subMonths($i)->format('M Y');
-                $grouped->put($key, ['label' => $label, 'value' => 0]);
+                $grouped->put($key, ['label' => now()->subMonths($i)->format('M Y'), 'value' => 0]);
             }
 
-            $rawData = PurchaseRequest::where('status', 'delivered')
+            $prData = PurchaseRequest::whereIn('status', ['delivered', 'invoice_sent'])
                 ->whereDate('created_at', '>=', now()->subMonths(12)->startOfMonth())
                 ->with('items.product')
                 ->get()
                 ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y-m'))
-                ->map(fn($group) => $group->sum(fn($pr) => $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0))));
-        }
+                ->map(fn($grp) => $grp->sum(fn($pr) => $pr->items->sum(fn($i) => $i->quantity * $calcPrice($i->product->price ?? 0, $i->product->discount ?? 0))));
 
-        // Merge actual values
-        $grouped = $grouped->map(function ($item, $key) use ($rawData) {
-            if ($rawData->has($key)) {
-                $item['value'] = $rawData[$key];
-            }
-            return $item;
-        });
+            $manualData = ManualEmailOrder::where('status', 'approve')
+                ->whereDate('created_at', '>=', now()->subMonths(12)->startOfMonth())
+                ->get()
+                ->groupBy(fn($pr) => Carbon::parse($pr->created_at)->format('Y-m'))
+                ->map(fn($grp) => $grp->sum($calcManual));
 
-        $chartCategories = $grouped->pluck('label')->values();
-        $chartValues = $grouped->pluck('value')->values();
-
-        return response()->json([
-            'daily' => $dailyTotal,
-            'weekly' => $weeklyTotal,
-            'monthly' => $monthlyTotal,
-            'chart_categories' => $chartCategories,
-            'chart_values' => $chartValues
-        ]);
+            $rawData = $prData->mergeRecursive($manualData)->map(fn($v) => collect($v)->sum());
+            break;
     }
+
+    // Merge chart values
+    $grouped = $grouped->map(function ($item, $key) use ($rawData) {
+        if ($rawData->has($key)) $item['value'] = $rawData[$key];
+        return $item;
+    });
+
+    return response()->json([
+        'daily' => $dailyTotal,
+        'weekly' => $weeklyTotal,
+        'monthly' => $monthlyTotal,
+        'chart_categories' => $grouped->pluck('label')->values(),
+        'chart_values' => $grouped->pluck('value')->values(),
+    ]);
+}
+
 
     public function inventoryPieData()
     {
@@ -399,51 +566,81 @@ class HomeController extends Controller
         return response()->json($months);
     }
 
-    public function summary_sales()
+public function summary_sales()
 {
     $page = 'Summary List of Sales';
 
     $purchaseRequests = PurchaseRequest::with(['items.product'])
-    ->whereIn('status', ['delivered', 'invoice_sent'])
-    ->get();
+        ->whereIn('status', ['delivered', 'invoice_sent'])
+        ->get();
 
-    // Subtotal of items only (excluding VAT & delivery fee)
+    // Subtotal of items with discount applied (excluding VAT & delivery fee)
     $subtotal = $purchaseRequests->sum(function ($pr) {
-        return $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+        return $pr->items->sum(function($item) {
+            $price = $item->product->price ?? 0;
+            $discount = $item->product->discount ?? 0; // Discount in percentage
+            $discountedPrice = $price - ($price * ($discount / 100));
+            return $item->quantity * $discountedPrice;
+        });
     });
 
     // VAT computation per PR (based on item subtotal only)
     $vatAmount = $purchaseRequests->sum(function ($pr) {
-        $prSubtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+        $prSubtotal = $pr->items->sum(function($item) {
+            $price = $item->product->price ?? 0;
+            $discount = $item->product->discount ?? 0;
+            $discountedPrice = $price - ($price * ($discount / 100));
+            return $item->quantity * $discountedPrice;
+        });
         return $prSubtotal * (($pr->vat ?? 0) / 100);
     });
 
-    // Keep deliveryFee if you still want to display it, but DO NOT include in totals
+    // Keep delivery fee separately (gross, includes VAT)
     $deliveryFee = $purchaseRequests->sum(fn($pr) => $pr->delivery_fee ?? 0);
 
-        // Include delivery fee
-        $vatExclusive = $subtotal + $deliveryFee; // subtotal + delivery
-        $total = $subtotal + $vatAmount + $deliveryFee; // subtotal + vat + delivery
+    // Calculate VAT component of delivery fee
+    $deliveryVAT = $deliveryFee * (0.12 / 1.12); // Extract 12% from gross
 
+    // Delivery fee without VAT
+    $deliveryExclusive = $deliveryFee - $deliveryVAT;
+
+    // Total VAT (sales VAT + delivery VAT)
+    $totalVAT = $vatAmount + $deliveryVAT;
+
+    // VAT exclusive = subtotal only, exclude delivery
+    $vatExclusive = $subtotal;
+
+    // Total = subtotal + VAT only, exclude delivery
+    $total = $subtotal + $vatAmount;
+
+    // Grand total including delivery fee (no change)
+    $grandTotal = $total + $deliveryFee;
 
     return view('pages.summary_sales', compact(
         'page',
         'purchaseRequests',
         'subtotal',
-        'vatAmount',
+        'vatAmount',        // Sales VAT
+        'deliveryVAT',      // Delivery VAT
+        'totalVAT',         // Total VAT
         'vatExclusive',
+        'deliveryExclusive',
         'deliveryFee',
-        'total'
+        'total',
+        'grandTotal'
     ));
 }
 
-  public function summary_sales_api($date_from, $date_to)
+public function summary_sales_api($date_from, $date_to)
 {
-        $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
-        ->whereBetween('created_at', [$date_from, $date_to])
+    $dateFrom = Carbon::parse($date_from)->startOfDay();
+    $dateTo   = Carbon::parse($date_to)->addDay()->startOfDay();
+
+    $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
+        ->where('created_at', '>=', $dateFrom)
+        ->where('created_at', '<', $dateTo)
         ->whereIn('status', ['delivered', 'invoice_sent'])
         ->get();
-
 
     return DataTables::of($query)
         ->addColumn('created_at', function ($pr) {
@@ -465,98 +662,157 @@ class HomeController extends Controller
             return $pr->items->sum('quantity');
         })
         ->addColumn('avg_price', function ($pr) {
-            return number_format($pr->items->avg(fn($item) => $item->product->price ?? 0), 2);
+            return number_format($pr->items->avg(function($item) {
+                $price = $item->product->price ?? 0;
+                $discount = $item->product->discount ?? 0;
+                return $price - ($price * ($discount / 100));
+            }), 2);
         })
         ->addColumn('subtotal', function ($pr) {
-            // Subtotal = items only (exclude delivery fee)
-            $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+            $subtotal = $pr->items->sum(function($item) {
+                $price = $item->product->price ?? 0;
+                $discount = $item->product->discount ?? 0;
+                $discountedPrice = $price - ($price * ($discount / 100));
+                return $item->quantity * $discountedPrice;
+            });
             return number_format($subtotal, 2);
         })
         ->addColumn('vat_amount', function ($pr) {
-            $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-            $vatRate  = $pr->vat ?? 0;
-            $vatAmount = $subtotal * ($vatRate / 100);
-            return number_format($vatAmount, 2);
+            $subtotal = $pr->items->sum(function($item) {
+                $price = $item->product->price ?? 0;
+                $discount = $item->product->discount ?? 0;
+                $discountedPrice = $price - ($price * ($discount / 100));
+                return $item->quantity * $discountedPrice;
+            });
+            $vatRate = $pr->vat ?? 0;
+            return number_format($subtotal * ($vatRate / 100), 2);
         })
-        ->addColumn('vat_exclusive', function ($pr) {
-            // VAT exclusive is item subtotal (exclude delivery)
-            $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-            return number_format($subtotal, 2);
+        ->addColumn('vat_inclusive', function ($pr) {
+            $subtotal = $pr->items->sum(function($item) {
+                $price = $item->product->price ?? 0;
+                $discount = $item->product->discount ?? 0;
+                $discountedPrice = $price - ($price * ($discount / 100));
+                return $item->quantity * $discountedPrice;
+            });
+            $vatRate = $pr->vat ?? 0;
+            return number_format($subtotal + ($subtotal * ($vatRate / 100)), 2);
+        })
+        ->addColumn('delivery_fee_exclusive', function ($pr) {
+            $deliveryFee = $pr->delivery_fee ?? 0;
+            return number_format($deliveryFee - ($deliveryFee * (0.12 / 1.12)), 2);
+        })
+        ->addColumn('delivery_vat', function ($pr) {
+            $deliveryFee = $pr->delivery_fee ?? 0;
+            return number_format($deliveryFee * (0.12 / 1.12), 2);
+        })
+        ->addColumn('delivery_fee_inclusive', function ($pr) {
+            return number_format($pr->delivery_fee ?? 0, 2);
+        })
+        ->addColumn('total_vat', function ($pr) {
+            $subtotal = $pr->items->sum(function($item) {
+                $price = $item->product->price ?? 0;
+                $discount = $item->product->discount ?? 0;
+                $discountedPrice = $price - ($price * ($discount / 100));
+                return $item->quantity * $discountedPrice;
+            });
+            $salesVAT = $subtotal * (($pr->vat ?? 0) / 100);
+            $deliveryVAT = ($pr->delivery_fee ?? 0) * (0.12 / 1.12);
+            return number_format($salesVAT + $deliveryVAT, 2);
         })
         ->addColumn('grand_total', function ($pr) {
-            // Grand total = items subtotal + vat (exclude delivery)
-            $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-            $vatRate  = $pr->vat ?? 0;
-            $vatAmount = $subtotal * ($vatRate / 100);
-            $total = $subtotal + $vatAmount;
-            return number_format($total, 2);
+            $subtotal = $pr->items->sum(function($item) {
+                $price = $item->product->price ?? 0;
+                $discount = $item->product->discount ?? 0;
+                $discountedPrice = $price - ($price * ($discount / 100));
+                return $item->quantity * $discountedPrice;
+            });
+            $salesVAT = $subtotal * (($pr->vat ?? 0) / 100);
+            $deliveryFee = $pr->delivery_fee ?? 0;
+            return number_format($subtotal + $salesVAT + $deliveryFee, 2);
         })
         ->make(true);
 }
-
 
     public function export($date_from, $date_to)
     {
         return Excel::download(new SalesSummaryExport($date_from, $date_to), 'sales_summary.xlsx');
     }
 
-    public function summary_sales_manualorder()
+public function summary_sales_manualorder()
 {
     $page = 'Summary List of Sales Manual Order';
 
     // Get all manual email orders
     $purchaseRequestsManual = ManualEmailOrder::where('status', 'approve')->get();
 
-    $subtotal = 0;
-    $vatAmount = 0;
-    $deliveryFee = 0; // keep if you want to display total delivery, but exclude from calculations
-    $total = 0;
+    // Initialize totals
+    $vatExclusive = 0;         // subtotal of items only
+    $salesVAT = 0;             // VAT on items only
+    $totalInclusive = 0;       // subtotal + VAT
+    $deliveryExclusive = 0;    // delivery fee without VAT
+    $deliveryVAT = 0;          // VAT portion of delivery
+    $deliveryInclusive = 0;    // delivery fee inclusive of VAT
+    $totalVAT = 0;             // total VAT (items + delivery)
+    $grandTotal = 0;           // total inclusive + delivery inclusive
 
     foreach ($purchaseRequestsManual as $pr) {
         $items = json_decode($pr->purchase_request, true) ?? [];
 
-        // Compute subtotal for this PR (items only)
-        $prSubtotal = 0;
-        foreach ($items as $item) {
-            $qty = (int) ($item['qty'] ?? 0);
-            $price = (float) ($item['price'] ?? 0);
-            $prSubtotal += $qty * $price;
-        }
+        // Items subtotal
+        $prSubtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
 
-        // VAT = 12% of subtotal (items only)
-        $prVat = $prSubtotal * 0.12;
+        // VAT on items
+        $prVAT = $prSubtotal * 0.12;
 
-        // Delivery Fee removed from calculations (set zero)
-        $prDelivery = 0;
+        // Items inclusive
+        $prTotalInclusive = $prSubtotal + $prVAT;
 
-        // Grand total for this PR (exclude delivery)
-        $prTotal = $prSubtotal + $prVat;
+        // Delivery fee
+        $prDelivery = (float) ($pr->delivery_fee ?? 0);
+
+        // Delivery breakdown
+        $prDeliveryExclusive = $prDelivery / 1.12; // remove VAT
+        $prDeliveryVAT = $prDelivery - $prDeliveryExclusive;
+        $prDeliveryInclusive = $prDelivery; // original delivery fee
+
+        // Total VAT for this order
+        $prTotalVAT = $prVAT + $prDeliveryVAT;
+
+        // Grand total = items inclusive + delivery inclusive
+        $prGrandTotal = $prTotalInclusive + $prDeliveryInclusive;
 
         // Accumulate
-        $subtotal += $prSubtotal;
-        $vatAmount += $prVat;
-        $deliveryFee += $prDelivery; // stays 0 if you want display later
-        $total += $prTotal;
+        $vatExclusive += $prSubtotal;
+        $salesVAT += $prVAT;
+        $totalInclusive += $prTotalInclusive;
+        $deliveryExclusive += $prDeliveryExclusive;
+        $deliveryVAT += $prDeliveryVAT;
+        $deliveryInclusive += $prDeliveryInclusive;
+        $totalVAT += $prTotalVAT;
+        $grandTotal += $prGrandTotal;
     }
-
-    // VAT exclusive = subtotal (before VAT) — exclude delivery
-    $vatExclusive = $subtotal;
 
     return view('pages.summary_sales_manual', compact(
         'page',
         'purchaseRequestsManual',
-        'subtotal',
-        'vatAmount',
         'vatExclusive',
-        'deliveryFee',
-        'total'
+        'salesVAT',
+        'totalInclusive',
+        'deliveryExclusive',
+        'deliveryVAT',
+        'deliveryInclusive',
+        'totalVAT',
+        'grandTotal'
     ));
 }
 
 
-    public function summary_sales_manualorder_api($date_from, $date_to)
+
+public function summary_sales_manualorder_api($date_from, $date_to)
 {
-    $query = ManualEmailOrder::where('status', 'approve')->whereBetween('order_date', [$date_from, $date_to])->get();
+    $query = ManualEmailOrder::where('status', 'approve')
+        ->whereBetween('order_date', [$date_from, $date_to])
+        ->get();
 
     return DataTables::of($query)
         ->addColumn('created_at', function ($pr) {
@@ -583,6 +839,9 @@ class HomeController extends Controller
         ->addColumn('order_date', function ($pr) {
             return $pr->order_date ?? '-';
         })
+        ->addColumn('delivery_date', function ($pr) {
+            return $pr->delivery_date ?? '-'; // NEW COLUMN
+        })
         ->addColumn('total_items', function ($pr) {
             $items = json_decode($pr->purchase_request, true) ?? [];
             return collect($items)->sum(fn($item) => (int) ($item['qty'] ?? 0));
@@ -593,7 +852,7 @@ class HomeController extends Controller
             $avg = collect($items)->avg(fn($item) => (float) ($item['price'] ?? 0));
             return number_format($avg, 2);
         })
-        ->addColumn('subtotal', function ($pr) {
+        ->addColumn('vat_exclusive', function ($pr) {
             $items = json_decode($pr->purchase_request, true) ?? [];
             $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
             return number_format($subtotal, 2);
@@ -601,26 +860,31 @@ class HomeController extends Controller
         ->addColumn('vat_amount', function ($pr) {
             $items = json_decode($pr->purchase_request, true) ?? [];
             $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
-            $vatAmount = $subtotal * 0.12; // exclude delivery
+            $vatAmount = $subtotal * 0.12;
             return number_format($vatAmount, 2);
         })
-        ->addColumn('vat_exclusive', function ($pr) {
+        ->addColumn('total_inclusive', function ($pr) {
             $items = json_decode($pr->purchase_request, true) ?? [];
             $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
-            return number_format($subtotal, 2);
+            $vatAmount = $subtotal * 0.12;
+            return number_format($subtotal + $vatAmount, 2);
         })
         ->addColumn('grand_total', function ($pr) {
             $items = json_decode($pr->purchase_request, true) ?? [];
             $subtotal = collect($items)->sum(fn($item) => (int)($item['qty'] ?? 0) * (float)($item['price'] ?? 0));
-            $vatAmount = $subtotal * 0.12; // exclude delivery
-            $grandTotal = $subtotal + $vatAmount;
+            $vatAmount = $subtotal * 0.12;
+            $deliveryFee = (float) ($pr->delivery_fee ?? 0);
+            $grandTotal = $subtotal + $vatAmount + $deliveryFee;
             return number_format($grandTotal, 2);
         })
         ->make(true);
 }
-
     public function export_manualorder($date_from, $date_to)
     {
         return Excel::download(new SalesSummaryManualExport($date_from, $date_to), 'sales_summary.xlsx');
     }
+
 }
+
+
+

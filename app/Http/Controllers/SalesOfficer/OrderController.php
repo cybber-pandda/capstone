@@ -73,7 +73,15 @@ class OrderController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                    $subtotal = $pr->items->sum(function ($item) {
+                        // Check if the product has a discount
+                        $unitPrice = $item->product->discount > 0
+                            ? ($item->product->discounted_price ?? $item->product->price)
+                            : $item->product->price;
+
+                        return $item->quantity * $unitPrice;
+                    });
+
                     $vatRate = $pr->vat ?? 0; // VAT percentage
                     $vatAmount = $subtotal * ($vatRate / 100);
                     $deliveryFee = $pr->delivery_fee ?? 0;
@@ -81,6 +89,7 @@ class OrderController extends Controller
 
                     return '₱' . number_format($total, 2);
                 })
+
                 ->editColumn('created_at', function ($pr) {
                     return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
                 })

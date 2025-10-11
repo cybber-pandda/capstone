@@ -3,7 +3,7 @@
 @section('content')
 <div class="section section-scrollable" style="margin-bottom: 20px;">
     <div class="container">
-
+    
         <div class="section-title" style="display:none;">
             <h3 class="title">{{ $page }}</h3>
         </div>
@@ -71,8 +71,22 @@
                                 <td>{{ $item->product->sku }}</td>
                                 <td>{{ $item->product->name }}</td>
                                 <td class="text-center">{{ $item->quantity }}</td>
-                                <td class="text-right">₱{{ number_format($item->product->price, 2) }}</td>
-                                <td class="text-right">₱{{ number_format($item->quantity * $item->product->price, 2) }}</td>
+                                @php
+                                    $unitPrice = $item->product->discount == 0 
+                                        ? $item->product->price 
+                                        : $item->product->discounted_price;
+                                @endphp
+
+                                <td class="text-end">
+                                    ₱{{ number_format($unitPrice, 2) }}
+                                    @if($item->product->discount > 0)
+                                        <br><small class="text-success">({{ $item->product->discount }}% off)</small>
+                                    @endif
+                                </td>
+
+                                <td class="text-end">
+                                    ₱{{ number_format($item->quantity * $unitPrice, 2) }}
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
@@ -86,23 +100,46 @@
                         $vatableSales = $subtotal;
                         $amountPaid = 0.00;
 
-                        $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
                         $b2bDate = $quotation->b2b_delivery_date;
                         $delivery_date = null;
                         $show_note = false;
 
                         if (!is_null($b2bDate)) {
-                        $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+                            // User chose a delivery date
+                            $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+
+                            // Check if chosen date is less than 2 days from today
+                            $diffDays = \Carbon\Carbon::parse($b2bDate)->diffInDays(now());
+
+                            if ($diffDays < 2) {
+                                $show_note = true;
+                                $note_message = "Selected date is preferred only, not guaranteed (due to volume).";
+                            }
                         } elseif ($quotation->status !== 'pending') {
-                        if ($isLargeOrder) {
-                        $delivery_date = now()->addDays(2)->format('F j, Y') . ' to ' . now()->addDays(3)->format('F j, Y');
-                        $show_note = true;
-                        } else {
-                        $delivery_date = now()->format('F j, Y');
-                        }
+                            // No date chosen → default 1 to 3 days
+                            $start = now()->addDays(1)->format('F j, Y');
+                            $end   = now()->addDays(3)->format('F j, Y');
+                            $delivery_date = $start . ' to ' . $end;
+                            $show_note = true;
+                            $note_message = "Expect delay if too many orders since we are preparing it.";
                         }
 
-                        @endphp
+                        /*
+                        // OLD CODE with quantity condition
+                        elseif ($quotation->status !== 'pending') {
+                            if ($isLargeOrder) {
+                                $start = now()->addDays(7)->format('F j, Y');
+                                $end   = now()->addDays(14)->format('F j, Y');
+                                $delivery_date = $start . ' to ' . $end;
+                            } else {
+                                $start = now()->addDays(2)->format('F j, Y');
+                                $end   = now()->addDays(7)->format('F j, Y');
+                                $delivery_date = $start . ' to ' . $end;
+                            }
+                            $show_note = true;
+                        }
+                        */
+                    @endphp
 
                         <tfoot>
                             <tr>
@@ -137,9 +174,9 @@
                         <span style="margin-bottom:5px;">
                             <b>Delivery Date:</b><br>
                             {{ $delivery_date }}
-                            @if($show_note)
-                            <br><small><i>Note: Expect delay if too many orders since we are preparing it.</i></small>
-                            @endif
+                                @if($show_note && !empty($note_message))
+                                <br><small><i>Note: {{ $note_message }}</i></small>
+                                @endif
                         </span>
                         <span><b>Payment Terms:</b><br> {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}</span>
                     </div>

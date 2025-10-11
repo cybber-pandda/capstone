@@ -26,6 +26,14 @@ $(document).ready(function () {
         columns: [
             { data: "order_number", name: "order_number", width: "10%" },
             { data: "customer_name", name: "customer_name", width: "10%" },
+            //ito bagong lagay
+            { 
+                data: "contact_number", 
+                name: "contact_number", 
+                width: "10%",
+                
+            },
+            //hanggang dito
             {
                 data: "total_items",
                 name: "total_items",

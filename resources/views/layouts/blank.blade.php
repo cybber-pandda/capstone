@@ -4,79 +4,62 @@
     <meta charset="utf-8">
     <title>Sales Invoice</title>
     <style>
-        /* GENERAL STYLES */
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 12px;
             color: #000;
             margin: 30px;
         }
-
-        /* COMPANY HEADER */
         .company-header {
             text-align: center;
             margin-bottom: 20px;
         }
-
         .company-header img {
             max-width: 120px;
             height: auto;
             margin-bottom: 10px;
         }
-
         .company-header h1 {
             font-size: 18px;
             margin: 5px 0;
         }
-
         .company-contact {
             font-size: 12px;
         }
-
-        /* SECTION STYLES */
         .section {
             border: 1px solid #000;
             padding: 15px;
             margin-bottom: 20px;
         }
-
         .section h3 {
             font-size: 14px;
             margin: 0 0 10px 0;
             text-decoration: underline;
         }
-
-        /* TABLE STYLES */
         table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 10px;
         }
-
         .table-bordered th, .table-bordered td {
             border: 1px solid #000;
             padding: 6px;
         }
-
         .table-bordered th {
             background-color: #f2f2f2;
             font-weight: bold;
         }
-
         .text-right { text-align: right; }
         .text-center { text-align: center; }
-
         .totals td {
             font-weight: bold;
             padding: 6px;
             font-size: 12px;
         }
-
         .disclaimer {
             font-size: 10px;
             font-style: italic;
         }
-
         .small-note {
             font-size: 10px;
             font-style: italic;
@@ -89,7 +72,7 @@
     <!-- COMPANY HEADER -->
     <div class="company-header">
         <img src="{{ public_path($companySettings->company_logo ?? 'assets/dashboard/images/noimage.png') }}" alt="Company Logo">
-        <h1>TANCTUCO CONSTRUCTION & TRADING CORPORATION</h1>
+        <h1>TANTUCO CONSTRUCTION & TRADING CORPORATION</h1>
         <div class="company-contact">
             Balubal, Sariaya, Quezon<br>
             VAT Reg TIN: {{ $companySettings->company_vat_reg ?? 'N/A' }}<br>
@@ -105,7 +88,7 @@
             <strong>Date Issued:</strong> {{ $quotation->date_issued ?? now()->toDateString() }}<br>
             <strong>Disclaimer:</strong>
             <span class="disclaimer">
-                This document is system-generated and provided for internal/business reference only. 
+                This document is system-generated and provided for internal/business reference only.
                 It is not BIR-accredited and shall not be considered as an official receipt or invoice for tax or accounting purposes.
             </span>
         </p>
@@ -145,14 +128,22 @@
             @php $subtotal = 0; @endphp
             @foreach ($quotation->items as $item)
                 @php
-                    $itemTotal = $item->quantity * $item->product->price;
+                    $unitPrice = $item->product->discount == 0
+                        ? $item->product->price
+                        : ($item->product->discounted_price ?? $item->product->price);
+                    $itemTotal = $item->quantity * $unitPrice;
                     $subtotal += $itemTotal;
                 @endphp
                 <tr>
                     <td>{{ $item->product->sku }}</td>
                     <td>{{ $item->product->name }}</td>
                     <td class="text-center">{{ $item->quantity }}</td>
-                    <td class="text-right">₱{{ number_format($item->product->price, 2) }}</td>
+                    <td class="text-right">
+                        ₱{{ number_format($unitPrice, 2) }}
+                        @if($item->product->discount > 0)
+                            <br><small class="text-success">({{ $item->product->discount }}% off)</small>
+                        @endif
+                    </td>
                     <td class="text-right">₱{{ number_format($itemTotal, 2) }}</td>
                 </tr>
             @endforeach
@@ -191,7 +182,14 @@
 
     <!-- DELIVERY & PAYMENT -->
     <p>
-        <strong>Delivery Date:</strong> {{ $quotation->b2b_delivery_date ?? now()->toFormattedDateString() }}<br>
+        <b>Date Delivered:</b>
+        @if ($invoiceData->delivery_date)
+            {{ \Carbon\Carbon::parse($invoiceData->delivery_date)->format('F j, Y g:i A') }}
+        @else
+            No delivery date provided
+        @endif
+    </p>
+    <p>
         <strong>Payment Terms:</strong> {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}
     </p>
 

@@ -78,12 +78,21 @@
                         if (!is_null($b2bDate)) {
                             // User chose a delivery date
                             $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+
+                            // Check if chosen date is less than 2 days from today
+                            $diffDays = \Carbon\Carbon::parse($b2bDate)->diffInDays(now());
+
+                            if ($diffDays < 2) {
+                                $show_note = true;
+                                $note_message = "Selected date is preferred only, not guaranteed (due to volume).";
+                            }
                         } elseif ($quotation->status !== 'pending') {
-                            // No date chosen → default 2 to 7 days
-                            $start = now()->addDays(2)->format('F j, Y');
-                            $end   = now()->addDays(7)->format('F j, Y');
+                            // No date chosen → default 1 to 3 days
+                            $start = now()->addDays(1)->format('F j, Y');
+                            $end   = now()->addDays(3)->format('F j, Y');
                             $delivery_date = $start . ' to ' . $end;
                             $show_note = true;
+                            $note_message = "Expect delay if too many orders since we are preparing it.";
                         }
 
                         /*
@@ -165,11 +174,9 @@
                         <span style="margin-bottom:5px;">
                             <b>Delivery Date:</b><br>
                             {{ $delivery_date }}
-                            @if($show_note)
-                            <br><small><i>Note: Expect delay if too many orders since we are preparing it.</i></small>
-                            @endif
-                        </span>
-                        <span style="text-align: right;"><b>Payment Terms</b><br> {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}</span>
+                                @if($show_note && !empty($note_message))
+                                <br><small><i>Note: {{ $note_message }}</i></small>
+                                @endif
                     </div>
 
                 </div>

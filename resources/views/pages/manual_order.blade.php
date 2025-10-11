@@ -127,7 +127,7 @@
                     <button type="button" class="btn btn-dark btn-sm qty-plus"><i class="link-icon" data-lucide="plus"></i></button>
                 </div>
             </td>
-            <td><input type="number" class="form-control price" name="products[${index}][price]" value="0" min="0"></td>
+            <td><input type="number" class="form-control price" name="products[${index}][price]" value="0" min="0" step="any"></td>
             <td><input type="text" class="form-control total" readonly></td>
             <td><button type="button" class="btn btn-danger btn-sm removeRow"><i class="link-icon" data-lucide="x"></i> Remove</button></td>
         </tr>`;

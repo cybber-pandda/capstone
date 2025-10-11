@@ -72,8 +72,22 @@
                                     <td>{{ $item->product->sku }}</td>
                                     <td>{{ $item->product->name }}</td>
                                     <td class="text-center">{{ $item->quantity }}</td>
-                                    <td class="text-end">₱{{ number_format($item->product->price, 2) }}</td>
-                                    <td class="text-end">₱{{ number_format($item->quantity * $item->product->price, 2) }}</td>
+                                    @php
+                                        $unitPrice = $item->product->discount == 0 
+                                            ? $item->product->price 
+                                            : $item->product->discounted_price;
+                                    @endphp
+
+                                    <td class="text-end">
+                                        ₱{{ number_format($unitPrice, 2) }}
+                                        @if($item->product->discount > 0)
+                                            <br><small class="text-success">({{ $item->product->discount }}% off)</small>
+                                        @endif
+                                    </td>
+
+                                    <td class="text-end">
+                                        ₱{{ number_format($item->quantity * $unitPrice, 2) }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -87,22 +101,20 @@
                             $vatableSales = $subtotal;
                             $amountPaid = 0.00;
 
-                            $isLargeOrder = collect($quotation->items)->sum(fn($item) => $item['quantity']) > 100;
                             $b2bDate = $quotation->b2b_delivery_date;
                             $delivery_date = null;
-                            $show_note = false;
 
                             if (!is_null($b2bDate)) {
+                                // User selected a date
                                 $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
                             } elseif ($quotation->status !== 'pending') {
-                                if ($isLargeOrder) {
-                                    $delivery_date = now()->addDays(2)->format('F j, Y') . ' to ' . now()->addDays(3)->format('F j, Y');
-                                    $show_note = true;
-                                } else {
-                                    $delivery_date = now()->format('F j, Y');
-                                }
+                                // No date chosen → show estimated range
+                                $start = now()->addDays(1)->format('F j, Y');
+                                $end   = now()->addDays(3)->format('F j, Y');
+                                $delivery_date = $start . ' to ' . $end;
                             }
                         @endphp
+
 
                         <tfoot>
                             <tr>
@@ -138,9 +150,6 @@
                         <span class="mb-2">
                             <b>Delivery Date:</b><br>
                             {{ $delivery_date }}
-                            @if($show_note)
-                                <br><small><i>Note: Expect delay if too many orders since we are preparing it.</i></small>
-                            @endif
                         </span>
                         <span><b>Payment Terms:</b><br> {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}</span>
                     </div>

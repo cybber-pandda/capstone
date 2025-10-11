@@ -98,37 +98,47 @@
     </div>
 
     @if(Auth::user()->role === 'salesofficer')
-    <div class="row">
-        <div class="col-12 col-xl-12 stretch-card">
-            <div class="row flex-grow-1">
-                {{-- Total Paid Pay Now --}}
-                <div class="col-md-6 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Cash Sales</h6>
-                            </div>
-                            <h3 class="mb-2 mt-2">{{ number_format($totalcashsales,2) }}</h3>
-
+<div class="row">
+    <div class="col-12 col-xl-12 stretch-card">
+        <div class="row flex-grow-1">
+            {{-- Total Paid Pay Now --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <h6 class="card-title mb-0">Total Cash Sales</h6>
                         </div>
+                        <h3 class="mb-2 mt-2">{{ number_format($totalcashsales, 2) }}</h3>
                     </div>
                 </div>
+            </div>
 
-                {{-- Total Paid Pay Later --}}
-                <div class="col-md-6 grid-margin stretch-card">
-                    <div class="card">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-baseline">
-                                <h6 class="card-title mb-0">Total Credit Sales</h6>
-                            </div>
-                            <h3 class="mb-2 mt-2">{{ number_format($totalpaylater,2) }}</h3>
+            {{-- Total Paid Pay Later --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <h6 class="card-title mb-0">Total Credit Sales</h6>
                         </div>
+                        <h3 class="mb-2 mt-2">{{ number_format($totalpaylater, 2) }}</h3>
                     </div>
                 </div>
+            </div>
 
+            {{-- Total Delivery Fee --}}
+            <div class="col-md-4 grid-margin stretch-card">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <h6 class="card-title mb-0">Total Delivery Fee</h6>
+                        </div>
+                        <h3 class="mb-2 mt-2">{{ number_format($totalDeliveryFeeAll, 2) }}</h3>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+</div>
     @endif
 
 

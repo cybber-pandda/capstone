@@ -23,11 +23,18 @@
             <tbody>
                 @foreach($purchaseRequests as $pr)
                 @php
-                $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                $vatRate = $pr->vat ?? 0; // VAT percentage
-                $vatAmount = $subtotal * ($vatRate / 100);
-                $deliveryFee = $pr->delivery_fee ?? 0;
-                $total = $subtotal + $vatAmount + $deliveryFee;
+                    // Compute subtotal using discounted prices
+                    $subtotal = $pr->items->sum(function ($item) {
+                        $unitPrice = $item->product->discount == 0 
+                            ? $item->product->price 
+                            : $item->product->discounted_price;
+                        return $item->quantity * $unitPrice;
+                    });
+
+                    $vatRate = $pr->vat ?? 0; // VAT percentage
+                    $vatAmount = $subtotal * ($vatRate / 100);
+                    $deliveryFee = $pr->delivery_fee ?? 0;
+                    $total = $subtotal + $vatAmount + $deliveryFee;
                 @endphp
                 <tr>
                     <td data-label="PR #:">{{ $pr->id }}-{{ date('Ymd', strtotime($pr->created_at)) }}</td>
@@ -35,13 +42,15 @@
                     <td data-label="Grand Total:">₱{{ number_format($total, 2) }}</td>
                     <td data-label="Status:">
                         @php
-                        $statusClass = match($pr->status) {
-                        'delivered' => 'text-success',
-                        'pending' => 'text-warning',
-                        default => 'text-secondary',
-                        };
+                            $statusClass = match($pr->status) {
+                                'delivered' => 'text-success',
+                                'pending' => 'text-warning',
+                                default => 'text-secondary',
+                            };
 
-                        $statusText = $pr->status === 'Delivery_in_progress' ? 'Ongoing Delivery' : ucfirst($pr->status);
+                            $statusText = $pr->status === 'Delivery_in_progress' 
+                                ? 'Ongoing Delivery' 
+                                : ucfirst($pr->status);
                         @endphp
 
                         <span class="{{ $statusClass }}" style="font-weight:bold; font-size:10px;">

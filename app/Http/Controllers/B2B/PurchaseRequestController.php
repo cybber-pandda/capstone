@@ -179,108 +179,109 @@ class PurchaseRequestController extends Controller
     // }
 
     
-     public function store(Request $request)
-    {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1'
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'product_id' => 'required|exists:products,id',
+        'quantity' => 'required|integer|min:1'
+    ]);
 
-        $userId = auth()->id();
+    $userId = auth()->id();
 
-        $purchaseRequest = PurchaseRequest::firstOrCreate([
-            'customer_id' => $userId,
-            'status' => null
-        ]);
+    $purchaseRequest = PurchaseRequest::firstOrCreate([
+        'customer_id' => $userId,
+        'status' => null
+    ]);
 
-        $product = Product::findOrFail($request->product_id);
-        
-        // ✅ Check available stock
-        $availableStock = $product->current_stock;
+    $product = Product::findOrFail($request->product_id);
 
-        $item = $purchaseRequest->items()->where('product_id', $request->product_id)->first();
+    // ✅ Check available stock
+    $availableStock = $product->current_stock;
 
-        $requestedQty = $request->quantity + ($item ? $item->quantity : 0);
+    $item = $purchaseRequest->items()->where('product_id', $request->product_id)->first();
 
-        if ($requestedQty > $availableStock) {
-            return response()->json([
-                'message' => "Not enough stock available. Requested: {$requestedQty}, Available: {$availableStock}"
-            ], 400, [], JSON_UNESCAPED_UNICODE);
-        }
+    $requestedQty = $request->quantity + ($item ? $item->quantity : 0);
 
-        if ($item) {
-            $item->quantity += $request->quantity;
-            $item->subtotal = $item->quantity * $product->price;
-            $item->save();
-        } else {
-            $purchaseRequest->items()->create([
-                'product_id' => $request->product_id,
-                'quantity' => $request->quantity,
-                'subtotal' => $request->quantity * $product->price
-            ]);
-        }
-
-        $salesOfficers = User::where('role', 'salesofficer')->get(); 
-        foreach ($salesOfficers as $officer) {
-            Notification::create([
-                'user_id' => $officer->id,
-                'type' => 'purchase_request',
-                'message' => 'A new purchase request has been updated by ' . auth()->user()->name . '. <br><a href="' . route('salesofficer.purchase-requests.index') . '">Visit</a>',
-            ]);
-        }
-
-        // Notification::create([
-        //     'user_id' => $userId,
-        //     'type' => 'purchase request',
-        //     'message' => 'You have updated your purchase request for product ID: ' . $request->product_id . '. <br><a href="' . route('salesofficer.purchase-requests.index') . '">Visit Link</a>',
-        // ]);
-
-        $items = $purchaseRequest->items()->with('product.productImages')->get();
-
-        $mapped = $items->map(function ($item) {
-            $product = $item->product;
-            return [
-                'id' => $item->id,
-                'product_name' => $product->name,
-                'product_image' => asset(optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png'),
-                'quantity' => $item->quantity,
-                'price' => $product->price,
-                'subtotal' => $item->subtotal,
-            ];
-        });
-
+    if ($requestedQty > $availableStock) {
         return response()->json([
-            'message' => 'Purchase request updated successfully.',
-            'items' => $mapped->take(5),
-            'total_quantity' => $items->sum('quantity'),
-            'subtotal' => $items->sum('subtotal'),
-            'pending_count' => $items->sum('quantity')
+            'message' => "Not enough stock available. Requested: {$requestedQty}, Available: {$availableStock}"
+        ], 400, [], JSON_UNESCAPED_UNICODE);
+    }
+
+    $price = $this->calculateProductPrice($product); // always use discounted price if available
+
+    if ($item) {
+        $item->quantity += $request->quantity;
+        $item->subtotal = round($item->quantity * $price, 2); // round subtotal
+        $item->save();
+    } else {
+        $purchaseRequest->items()->create([
+            'product_id' => $request->product_id,
+            'quantity' => $request->quantity,
+            'subtotal' => round($request->quantity * $price, 2)
         ]);
     }
 
-    public function updateItem(Request $request, $id)
-    {
-        $request->validate(['quantity' => 'required|integer|min:1']);
-
-        $item = PurchaseRequestItem::with('purchaseRequest')->findOrFail($id);
-
-        if (
-            $item->purchaseRequest->customer_id !== auth()->id() ||
-            $item->purchaseRequest->status !== null
-        ) {
-            return response()->json([
-                'message' => 'You can only update items from pending purchase requests.'
-            ], 403);
-        }
-
-        $price = $this->calculateProductPrice($item->product);
-
-        $item->quantity = $request->quantity;
-        $item->subtotal = $item->quantity * $price;
-        $item->save();
-
-        return response()->json(['message' => 'Quantity updated.']);
+    // Notify sales officers
+    $salesOfficers = User::where('role', 'salesofficer')->get();
+    foreach ($salesOfficers as $officer) {
+        Notification::create([
+            'user_id' => $officer->id,
+            'type' => 'purchase_request',
+            'message' => 'A new purchase request has been updated by ' . auth()->user()->name . '. <br><a href="' . route('salesofficer.purchase-requests.index') . '">Visit</a>',
+        ]);
     }
+
+    $items = $purchaseRequest->items()->with('product.productImages')->get();
+
+    $mapped = $items->map(function ($item) {
+        $product = $item->product;
+        $price = $this->calculateProductPrice($product);
+        return [
+            'id' => $item->id,
+            'product_name' => $product->name,
+            'product_image' => asset(optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png'),
+            'quantity' => $item->quantity,
+            'price' => $price,
+            'subtotal' => $item->subtotal,
+        ];
+    });
+
+    return response()->json([
+        'message' => 'Purchase request updated successfully.',
+        'items' => $mapped->take(5),
+        'total_quantity' => $items->sum('quantity'),
+        'subtotal' => round($items->sum('subtotal'), 2),
+        'pending_count' => $items->sum('quantity')
+    ]);
+}
+
+public function updateItem(Request $request, $id)
+{
+    $request->validate(['quantity' => 'required|integer|min:1']);
+
+    $item = PurchaseRequestItem::with('purchaseRequest', 'product')->findOrFail($id);
+
+    if (
+        $item->purchaseRequest->customer_id !== auth()->id() ||
+        $item->purchaseRequest->status !== null
+    ) {
+        return response()->json([
+            'message' => 'You can only update items from pending purchase requests.'
+        ], 403);
+    }
+
+    $price = $this->calculateProductPrice($item->product);
+
+    $item->quantity = $request->quantity;
+    $item->subtotal = round($item->quantity * $price, 2); // round subtotal
+    $item->save();
+
+    return response()->json([
+        'message' => 'Quantity updated successfully.',
+        'subtotal' => $item->subtotal
+    ]);
+}
 
     public function submitItem(Request $request)
     {

@@ -19,7 +19,7 @@
         <div class="tab-content" style="margin-top: 15px;">
             {{-- Straight Payment Table --}}
             <div role="tabpanel" class="tab-pane active" id="straight">
-                <table class="table-2" style="font-size: 11px;" id='straightCreditTable'>
+                <table class="table-2" style="font-size: 11px; width:100%" id='straightCreditTable'>
                     <thead>
                         <tr>
                             <th>Credit Amount</th>

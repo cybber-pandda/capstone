@@ -161,16 +161,25 @@
                             $itemSubtotal = $item->subtotal;
                             $subtotal += $itemSubtotal;
                         @endphp
-                        <tr>
+                        <tr data-id="{{ $item->id }}">
                             <td>
-                                <img src="{{ asset(optional($item->product->productImages->first())->image_path ?? 'assets/shop/img/noimage.png') }}"
-                                    width="50">
+                                <img src="{{ asset(optional($item->product->productImages->first())->image_path ?? 'assets/shop/img/noimage.png') }}" width="50">
                             </td>
                             <td>{{ $item->product->sku }}</td>
                             <td>{{ $item->product->name }}</td>
-                            <td>{{ $item->quantity }}</td>
-                            <td>₱{{ number_format($item->product->price, 2) }}</td>
-                            <td>₱{{ number_format($itemSubtotal, 2) }}</td>
+                            <td class="item-qty">{{ $item->quantity }}</td>
+                            @php
+                                $price = $item->product->discount > 0 
+                                    ? $item->product->discounted_price 
+                                    : $item->product->price;
+                            @endphp
+
+                            <td data-label="Price:" data-price="{{ $price }}">
+                                ₱{{ number_format($price, 2) }}
+                            </td>
+                            <td data-label="Subtotal:">
+                                ₱{{ number_format($itemSubtotal, 2) }}
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

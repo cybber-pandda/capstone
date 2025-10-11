@@ -37,14 +37,21 @@ class TrackingController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                    $vatRate = $pr->vat ?? 0; // VAT percentage
+                    $subtotal = $pr->items->sum(function ($item) {
+                        $unitPrice = ($item->product->discount > 0)
+                            ? ($item->product->discounted_price ?? $item->product->price)
+                            : ($item->product->price ?? 0);
+                        return $item->quantity * $unitPrice;
+                    });
+
+                    $vatRate = $pr->vat ?? 0;
                     $vatAmount = $subtotal * ($vatRate / 100);
                     $deliveryFee = $pr->delivery_fee ?? 0;
                     $total = $subtotal + $vatAmount + $deliveryFee;
 
                     return '₱' . number_format($total, 2);
                 })
+
                 ->addColumn('is_credit', function ($pr) {
                     return $pr->credit ? 'Yes' : 'No';
                 })
@@ -52,10 +59,10 @@ class TrackingController extends Controller
                     return is_null($pr->credit_amount) ? '0.00' : '₱'. $pr->credit_amount;
                 })
                 ->addColumn('payment_method', function ($pr) {
-                    return '<span>'. $pr->payment_method === 'pay_now'  ? 'Pay-Now' : 'Pay-Later'.'</span>';
+                    return '<span>' . ($pr->payment_method === 'pay_now' ? 'Pay-Now' : 'Pay-Later') . '</span>';
                 })
                 ->addColumn('is_cod', function ($pr) {
-                    return '<span class="badge badge-info">'. $pr->cod_flg  ? 'Yes' : 'No'.'</span>';
+                    return $pr->cod_flg ? 'Yes' : 'No';
                 })
                 // ->editColumn('created_at', function ($pr) {
                 //     return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
@@ -70,6 +77,18 @@ class TrackingController extends Controller
                         </button>
                     ';
                 })
+                //fix the search
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->get('search')['value']) {
+                        // Allow searching by related customer name or payment method
+                        $query->whereHas('customer', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhere('payment_method', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%");
+                    }
+                })
+                //hanggang dito
                 ->rawColumns(['is_credit', 'payment_method', 'action'])
                 ->make(true);
         }
@@ -140,7 +159,7 @@ class TrackingController extends Controller
                 $total += $item->quantity * ($item->product->price ?? 0);
             }
 
-            $orderNumber = "REF{$pr->id}-" . strtoupper(substr(uniqid(), 0, 6));
+            $orderNumber = 'REF' . ' ' . $pr->id . '-' . strtoupper(uniqid());
 
             // Create the Order
             $order = Order::create([
@@ -222,26 +241,33 @@ class TrackingController extends Controller
                 })
                 ->addColumn('total_amount', function ($order) {
                     $subtotal = $order->items->sum(function ($item) {
-                        return $item->quantity * ($item->product->price ?? 0);
+                        $unitPrice = ($item->product->discount > 0)
+                            ? ($item->product->discounted_price ?? $item->product->price)
+                            : ($item->product->price ?? 0);
+
+                        return $item->quantity * $unitPrice;
                     });
 
                     $vatRate = 0;
                     $deliveryFee = 0;
 
+                    // Extract Purchase Request ID from Order Number
                     if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
                         $purchaseRequestId = $matches[1];
                         $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+
                         if ($purchaseRequest) {
                             $vatRate = $purchaseRequest->vat ?? 0;
                             $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
                         }
                     }
 
-                    $vat = $subtotal * ($vatRate / 100);
-                    $grandTotal = $subtotal + $vat + $deliveryFee;
+                    $vatAmount = $subtotal * ($vatRate / 100);
+                    $total = $subtotal + $vatAmount + $deliveryFee;
 
-                    return '₱' . number_format($grandTotal, 2);
+                    return '₱' . number_format($total, 2);
                 })
+
                 ->addColumn('total_items', function ($order) {
                     return $order->items->sum('quantity');
                 })
@@ -402,6 +428,24 @@ class TrackingController extends Controller
                     }
 
                     return $badge;
+                })
+                //fix search
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->get('search')['value']) {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('order_number', 'like', "%{$search}%")
+                            ->orWhereHas('user', function ($sub) use ($search) {
+                                $sub->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('b2bAddress', function ($sub) use ($search) {
+                                $sub->where('full_address', 'like', "%{$search}%")
+                                    ->orWhere('address_notes', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('delivery', function ($sub) use ($search) {
+                                $sub->where('status', 'like', "%{$search}%");
+                            });
+                        });
+                    }
                 })
                 ->rawColumns(['action'])
                 ->make(true);

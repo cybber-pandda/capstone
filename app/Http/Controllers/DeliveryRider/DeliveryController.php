@@ -52,11 +52,27 @@ class DeliveryController extends Controller
                 'delivery.deliveryUser',
                 'items.product',
             ])
-                ->whereHas('delivery', function ($q) use ($user, $status) {
-                    $q->where('delivery_rider_id', $user->id);
+                // ->whereHas('delivery', function ($q) use ($user, $status) {
+                //     $q->where('delivery_rider_id', $user->id);
 
-                    if (!empty($status)) {
-                        $q->where('status', $status);
+                //     if (!empty($status)) {
+                //         $q->where('status', $status);
+                //     }
+                // })
+                //new fix for pending
+                //fix the pending
+                ->whereHas('delivery', function ($q) use ($user, $status) {
+                    if ($status === 'pending') {
+                        // Show all deliveries that are still pending (no assigned rider)
+                        $q->whereNull('delivery_rider_id')
+                        ->where('status', 'pending');
+                    } else {
+                        // For other statuses, show only deliveries assigned to this rider
+                        $q->where('delivery_rider_id', $user->id);
+
+                        if (!empty($status)) {
+                            $q->where('status', $status);
+                        }
                     }
                 })
                 ->latest();
@@ -96,12 +112,41 @@ class DeliveryController extends Controller
                 ->editColumn('created_at', fn($pr) => $pr->created_at->format('Y-m-d H:i:s'))
                 ->addColumn('action', function ($pr) {
                     $btn = '<button class="btn btn-sm btn-inverse-info view-items-btn" data-id="' . $pr->id . '"><i class="link-icon" data-lucide="list"></i>Items</button> ';
-                    $btn .= '<a href="' . route('deliveryrider.delivery.sales.inv', [
-                        'prId' => $pr->id,
-                        'customerId' => $pr->user_id
-                    ]) . '" class="btn btn-sm btn-inverse-primary">Invoice</a>';
+                    //New show sales invoice
+                     // Determine the purchaseRequestId: prefer an explicit relation/column, otherwise parse from order_number
+                    $purchaseRequestId = null;
+                    if (property_exists($pr, 'purchase_request_id') && !empty($pr->purchase_request_id)) {
+                        $purchaseRequestId = $pr->purchase_request_id;
+                    } elseif (!empty($pr->order_number) && preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
+                        $purchaseRequestId = $matches[1];
+                    }
+
+                    if ($purchaseRequestId) {
+                        $btn .= '<a href="' . route('deliveryrider.delivery.sales.inv', [
+                            'prId' => $purchaseRequestId,
+                            'customerId' => $pr->user_id
+                        ]) . '" class="btn btn-sm btn-inverse-primary">Invoice</a>';
+                    } else {
+                        // optional: show disabled button or nothing
+                        $btn .= '<button class="btn btn-sm btn-secondary" disabled title="No purchase request found">Invoice</button>';
+                    }
                     return $btn;
                 })
+                //fix search
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->get('search')['value']) {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('order_number', 'like', "%{$search}%")
+                            ->orWhereHas('user', function ($sub) use ($search) {
+                                $sub->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('delivery', function ($sub) use ($search) {
+                                $sub->where('status', 'like', "%{$search}%");
+                            });
+                        });
+                    }
+                })
+
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -114,9 +159,23 @@ class DeliveryController extends Controller
     public function getOrderItems($id)
     {
         $order = Order::with('items.product')->findOrFail($id);
+
+        // Compute discounted totals per item
+        foreach ($order->items as $item) {
+            $basePrice = $item->product->price ?? 0;
+            $discountedPrice = ($item->product->discount ?? 0) == 0
+                ? $basePrice
+                : ($item->product->discounted_price ?? $basePrice);
+
+            $item->final_price = $discountedPrice;
+            $item->total_price = $item->quantity * $discountedPrice;
+        }
+
         $html = view('components.order-items', compact('order'))->render();
+
         return response()->json(['html' => $html]);
     }
+
 
     public function deliveryHistories(Request $request)
     {
@@ -168,6 +227,21 @@ class DeliveryController extends Controller
                 ->addColumn('action', function ($pr) {
                     return '<button class="btn btn-sm btn-inverse-primary view-details-btn" data-id="' . $pr->delivery->id . '"><i class="link-icon" data-lucide="clock"></i> View History</button>';
                 })
+                //fix search
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->get('search')['value']) {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('order_number', 'like', "%{$search}%")
+                            ->orWhereHas('user', function ($sub) use ($search) {
+                                $sub->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('delivery', function ($sub) use ($search) {
+                                $sub->where('status', 'like', "%{$search}%");
+                            });
+                        });
+                    }
+                })
+                //hanggangdito
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -202,19 +276,36 @@ class DeliveryController extends Controller
                 'items.product',
                 'delivery'
             ])
+            //fix the pending
                 ->whereHas('delivery', function ($q) use ($user, $status) {
+                if ($status === 'pending') {
+                    // Show all deliveries that are still pending (no assigned rider)
+                    $q->whereNull('delivery_rider_id')
+                    ->where('status', 'pending');
+                } else {
+                    // For other statuses, show only deliveries assigned to this rider
                     $q->where('delivery_rider_id', $user->id);
 
                     if (!empty($status)) {
                         $q->where('status', $status);
                     }
-                })
+                }
+            })
                 ->latest();
 
             return datatables()->of($query)
                 ->addColumn('order_number', fn($order) => $order->order_number ?? 'N/A')
                 ->addColumn('customer_name', fn($order) => optional($order->user)->name ?? 'N/A')
                 ->addColumn('total_items', fn($order) => $order->items->sum('quantity') ?? 0)
+                //bagong lagay for phone number
+                ->addColumn('contact_number', function ($order) {
+                    // Get from B2B details if available
+                    $b2bDetail = B2BDetail::where('user_id', $order->user_id)->first();
+
+                    return $b2bDetail->contact_number
+                        ?? $b2bDetail->contact_person_number
+                        ?? 'N/A';
+                })
                 ->addColumn('grand_total', function ($order) {
                     $subtotal = $order->items->sum(function ($item) {
                         $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
@@ -293,6 +384,24 @@ class DeliveryController extends Controller
                     }
 
                     return $badge;
+                })
+                //fix search
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->get('search')['value']) {
+                        $query->where(function ($q) use ($search) {
+                            $q->where('order_number', 'like', "%{$search}%")
+                            ->orWhereHas('user', function ($sub) use ($search) {
+                                $sub->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('b2bAddress', function ($sub) use ($search) {
+                                $sub->where('full_address', 'like', "%{$search}%")
+                                    ->orWhere('address_notes', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('delivery', function ($sub) use ($search) {
+                                $sub->where('status', 'like', "%{$search}%");
+                            });
+                        });
+                    }
                 })
                 ->rawColumns(['action'])
                 ->make(true);
@@ -464,6 +573,21 @@ class DeliveryController extends Controller
                         return '<i data-lucide="star' . ($i <= $rating ? '' : '-off') . '" class="' . ($i <= $rating ? 'text-warning' : 'text-muted') . '"></i>';
                     })->implode('');
                 })
+                //fix search
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->get('search')['value']) {
+                        $query->where(function ($q) use ($search) {
+                            $q->whereHas('order', function ($sub) use ($search) {
+                                $sub->where('order_number', 'like', "%{$search}%")
+                                    ->orWhereHas('user', function ($userSub) use ($search) {
+                                        $userSub->where('name', 'like', "%{$search}%");
+                                    });
+                            })
+                            ->orWhere('status', 'like', "%{$search}%");
+                });
+                
+    }
+})
                 ->rawColumns(['rating'])
                 ->make(true);
         }

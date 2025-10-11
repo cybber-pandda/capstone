@@ -18,28 +18,36 @@
 
             @php
             $fullAddress = $delivery->b2bAddress->full_address ?? 'N/A';
-            $addressNotes = $delivery->b2bAddress->address_notes;
+            $addressNotes = $delivery->b2bAddress->address_notes ?? '';
             $shortAddress = strlen($fullAddress) > 20 ? substr($fullAddress, 0, 20) . '...' : $fullAddress;
 
+            // ✅ Compute subtotal with discount logic
             $subtotal = $delivery->items->sum(function ($item) {
-            return $item->quantity * ($item->product->price ?? 0);
+                $unitPrice = ($item->product->discount > 0)
+                    ? ($item->product->discounted_price ?? $item->product->price)
+                    : ($item->product->price ?? 0);
+
+                return $item->quantity * $unitPrice;
             });
 
             $vatRate = 0;
             $deliveryFee = 0;
 
+            // ✅ Retrieve VAT and delivery fee from Purchase Request if applicable
             if (preg_match('/REF (\d+)-/', $delivery->order_number, $matches)) {
-            $purchaseRequestId = $matches[1];
-            $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
-            if ($purchaseRequest) {
-            $vatRate = $purchaseRequest->vat ?? 0;
-            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
-            }
+                $purchaseRequestId = $matches[1];
+                $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+
+                if ($purchaseRequest) {
+                    $vatRate = $purchaseRequest->vat ?? 0;
+                    $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                }
             }
 
             $vat = $subtotal * ($vatRate / 100);
             $grandTotal = $subtotal + $vat + $deliveryFee;
             @endphp
+
 
             <tr>
                 <td data-label="Order #:">{{ $delivery->order_number }}</td>

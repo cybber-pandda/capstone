@@ -63,7 +63,9 @@
                     <td data-label="Image:"><img src="{{ asset($image) }}" width="50" height="50" alt="Image"></td>
                     <td data-label="SKU:">{{ $product->sku }}</td>
                     <td data-label="Product:">{{ $product->name }}</td>
-                    <td data-label="Price:">₱{{ number_format($product->discount == 0 ? $product->price : $product->discounted_price , 2) }}</td>
+                    <td data-label="Price:" data-price="{{ $product->discount > 0 && $product->discounted_price ? $product->discounted_price : $product->price }}">
+                        ₱{{ number_format($product->discount > 0 && $product->discounted_price ? $product->discounted_price : $product->price, 2) }}
+                    </td>
                     <td>
                         <center>
                             <div class="input-group" style="max-width: 130px;display: flex; align-items: center;">
@@ -74,7 +76,7 @@
                             </div>
                         </center>
                     </td>
-                    <td data-label="Subtotal:">₱{{ $item->subtotal }}</td>
+                    <td data-label="Subtotal:">₱{{ number_format($item->subtotal, 2) }}</td>
                     <td data-label="Date:">{{ $item->created_at->toDateTimeString() }}</td>
                     <td>
                         <center>
@@ -281,10 +283,12 @@
                     input.val(quantity);
                     toast('success', 'Quantity updated.');
 
-                    // Update subtotal
-                    let price = parseFloat(input.closest('tr').find('td:nth-child(4)').text().replace(/[^\d.]/g, ''));
+
+                    // Update subtotal using data-price attribute
+                    let price = parseFloat(input.closest('tr').find('td[data-label="Price:"]').data('price'));
                     let subtotal = quantity * price;
-                    input.closest('tr').find('td:nth-child(6)').text('₱' + subtotal.toFixed(2));
+                    input.closest('tr').find('td[data-label="Subtotal:"]').text('₱' + subtotal.toFixed(2));
+
 
                     updateCartDropdown()
 
@@ -336,12 +340,12 @@
             today.setHours(0, 0, 0, 0); // normalize to midnight
             let diffDays = Math.ceil((selectedDate - today) / (1000 * 60 * 60 * 24));
 
-            if (diffDays < 4) { // Example: less than 3 days warning
+            if (diffDays < 4) { // Example: less than 4 days warning
                 Swal.fire({
                     icon: 'info',
                     title: 'Notice',
-                    text: 'Choosing an earlier delivery date may result in higher delivery costs.',
-                    confirmButtonText: 'Okay'
+                    text: 'Please be informed that delivery on the selected date cannot be guaranteed. Our team will make every effort to deliver your order at the earliest possible time, subject to order volume.',
+                    confirmButtonText: 'Understood'
                 });
             }
         });

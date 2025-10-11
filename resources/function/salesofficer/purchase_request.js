@@ -78,6 +78,7 @@ $(document).ready(function () {
         $.get("/salesofficer/purchase-requests/" + id, function (response) {
             $(".modal-title").text("(B2B) Purchase Request Order");
             $("#prDetails").html(response.html);
+
             $("#sendQuotationBtn").val(id);
             $("#rejectQuotationBtn").val(id);
             $("#viewPRModal").modal("show");

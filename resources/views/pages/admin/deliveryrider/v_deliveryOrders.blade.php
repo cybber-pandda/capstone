@@ -27,10 +27,6 @@
                     <a class="nav-link" id="delivered-tab" data-bs-toggle="tab" href="#pending" role="tab"
                         aria-controls="delivered" aria-selected="false" data-status="delivered">Delivered</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="cancelled-tab" data-bs-toggle="tab" href="#pending" role="tab"
-                        aria-controls="cancelled" aria-selected="false" data-status="cancelled">Cancelled</a>
-                </li>
             </ul>
 
             <div class="tab-content" id="statusTabsContent">

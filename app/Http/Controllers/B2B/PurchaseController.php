@@ -48,52 +48,57 @@ class PurchaseController extends Controller
 
             $data = [];
 
-            foreach ($purchaseRequests as $pr) {
-                foreach ($pr->items as $item) {
-                    $product = $item->product;
-                    $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
+foreach ($purchaseRequests as $pr) {
+    foreach ($pr->items as $item) {
+        $product = $item->product;
+        $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
 
-                    // Check return/refund flags
-                    $return = $item->returnRequest;
-                    $refund = $item->refundRequest;
+        // Check return/refund flags
+        $return = $item->returnRequest;
+        $refund = $item->refundRequest;
 
-                    $showReturn = !$return || $return->status !== 'approved';
-                    $showRefund = !$refund || $refund->processed_by === null;
+        $showReturn = !$return || $return->status !== 'approved';
+        $showRefund = !$refund || $refund->processed_by === null;
 
-                    $actions = [];
-                   
-                    if ($pr->status === 'delivered') {
-                        if ($showReturn) {
-                            $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">  <i class="fa fa-check" aria-hidden="true"></i></button>';
-                        } else {
-                            $actions[] = '-';
-                        }
+        $actions = [];
 
-                        if ($showRefund) {
-                            $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">  <i class="fa fa-times" aria-hidden="true"></i></button>';
-                        } else {
-                            $actions[] = '-';
-                        }
-                    } else {
-                        $actions[] = '';
-                        $actions[] = '';
-                    }
-
-                    $actionHtml = implode('&nbsp;', $actions);
-
-                    $data[] = [
-                        'id' => $item->id,
-                        'sku' => $product->sku,
-                        'name' => $product->name,
-                        'price' => number_format($product->price, 2),
-                        'quantity' => $item->quantity,
-                        'subtotal' => number_format($item->quantity * $product->price, 2),
-                        'image' => '<img src="' . asset($image) . '" width="50" height="50">',
-                        'created_at' => $item->created_at->toDateTimeString(),
-                        'actions' => $actionHtml,
-                    ];
-                }
+        if ($pr->status === 'delivered') {
+            if ($showReturn) {
+                $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">Return</button>';
+            } else {
+                $actions[] = '-';
             }
+
+            if ($showRefund) {
+                $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">Refund</button>';
+                $actions[] = '-';
+            }
+        } else {
+            $actions[] = '';
+            $actions[] = '';
+        }
+
+        $actionHtml = implode('&nbsp;', $actions);
+
+        // ✅ Apply discount logic here
+        $unitPrice = $product->discount == 0 
+            ? $product->price 
+            : $product->discounted_price;
+
+        $data[] = [
+            'id' => $item->id,
+            'sku' => $product->sku,
+            'name' => $product->name,
+            'price' => number_format($unitPrice, 2),
+            'quantity' => $item->quantity,
+            'subtotal' => number_format($item->quantity * $unitPrice, 2),
+            'image' => '<img src="' . asset($image) . '" width="50" height="50">',
+            'created_at' => $item->created_at->toDateTimeString(),
+            'actions' => $actionHtml,
+        ];
+    }
+}
+
 
             return datatables()->of($data)->rawColumns(['image', 'actions'])->make(true);
         }

@@ -65,7 +65,20 @@ class ACPaymentController extends Controller
                                 <i class="link-icon" data-lucide="check"></i> Payment Approved
                             </span>';
                 })
-
+                //fix search
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->get('search')['value']) {
+                        $query->whereHas('purchaseRequest.customer', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('bank', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhere('reference_number', 'like', "%{$search}%")
+                        ->orWhere('status', 'like', "%{$search}%");
+                    }
+                })
+                //hanggang dito
                 ->rawColumns(['bank_name', 'proof_payment', 'reference_number', 'action'])
                 ->make(true);
         }

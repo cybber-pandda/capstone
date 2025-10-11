@@ -134,7 +134,20 @@
                 }
             });
         }
+        $(document).on('click', '.pending-requirements-btn', function(e) {
+            e.preventDefault();
 
+            $(document).ready(function() {
+                Swal.fire({
+                    title: "Pending Verification",
+                    text: "Your B2B account is pending approval.",
+                    icon: "info",
+                    confirmButtonColor: "#3085d6",
+                    confirmButtonText: "OK"
+                });
+            });
+
+        });
         // SEARCH button click (explicit search)
         $(document).on('click', '#search-btn', function(e) {
             e.preventDefault();
