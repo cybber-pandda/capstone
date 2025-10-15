@@ -42,13 +42,18 @@ $(document).ready(function () {
                 width: "10%",
             },
         ],
+        // ✅ Add this block for the search placeholder
+        language: {
+            search: "Search: ", // removes the "Search:" label
+            searchPlaceholder: "Search here" // sets placeholder text
+        },
         drawCallback: function () {
             if (typeof lucide !== "undefined") {
                 lucide.createIcons();
             }
         },
     });
-
+    
     $("#statusTabs .nav-link").on("click", function (e) {
         e.preventDefault();
         $("#statusTabs .nav-link").removeClass("active");

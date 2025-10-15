@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -24,6 +25,24 @@ class TrackingController extends Controller
 {
     public function submittedPO(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
         if ($request->ajax()) {
             $query = PurchaseRequest::with(['customer', 'items.product'])
                 ->where('status', 'po_submitted')
@@ -96,7 +115,8 @@ class TrackingController extends Controller
         return view('pages.superadmin.v_submittedPO', [
             'page' => 'Submitted Order',
             'pageCategory' => 'Tracking',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function show($id)
@@ -215,6 +235,24 @@ class TrackingController extends Controller
 
     public function deliveryPersonnel(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
 
         $deliveryman_select = User::select('name', 'id')->where('role', 'deliveryrider')->get();
 
@@ -300,7 +338,8 @@ class TrackingController extends Controller
             'page' => 'Delivery Personnel',
             'pageCategory' => 'Tracking',
             'deliveryman_select' => $deliveryman_select
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function assignDeliveryPersonnel(Request $request)
@@ -356,6 +395,25 @@ class TrackingController extends Controller
 
     public function deliveryLocation(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
+
         $status = $request->get('status');
 
         if ($request->ajax()) {
@@ -454,7 +512,8 @@ class TrackingController extends Controller
         return view('pages.superadmin.v_deliveryTracking', [
             'page' => 'Track Deliveries',
             'pageCategory' => 'Tracking',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function deliveryTracking($id)
@@ -478,6 +537,25 @@ class TrackingController extends Controller
 
     public function b2bRequirements(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
+
         if ($request->ajax()) {
             $b2bRequirements = B2BDetail::with('user')->get();
 
@@ -552,7 +630,8 @@ class TrackingController extends Controller
         return view('pages.superadmin.v_businessRequirement', [
             'page' => 'B2B Requirements',
             'pageCategory' => 'Tracking',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function updateStatus(Request $request)

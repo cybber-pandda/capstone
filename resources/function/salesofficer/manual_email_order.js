@@ -14,7 +14,7 @@ $(document).ready(function () {
             [5, 10, 30, 50, "All"],
         ],
         iDisplayLength: 10,
-        language: { search: "" },
+        language: { search: "Search:" },
         fixedHeader: { header: true },
         scrollCollapse: true,
         scrollX: true,

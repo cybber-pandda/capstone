@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use App\Exports\SalesSummaryExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\Notification;
 use App\Models\B2BAddress;
@@ -86,6 +87,25 @@ class PurchaseRequestController extends Controller
 
     public function index(Request $request)
     {
+        // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'salesofficer') {
+
         if ($request->ajax()) {
             $query = PurchaseRequest::with(['customer', 'items.product'])
                 ->where('status', 'pending')
@@ -121,7 +141,8 @@ class PurchaseRequestController extends Controller
 
         return view('pages.admin.salesofficer.v_purchaseList', [
             'page' => 'Pending Purchase Requests'
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
     
     public function show($id)

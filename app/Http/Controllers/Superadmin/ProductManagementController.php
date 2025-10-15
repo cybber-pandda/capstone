@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\User;
 use App\Models\Product;
@@ -15,6 +16,24 @@ class ProductManagementController extends Controller
 {
     public function index(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
         $page = 'Product Management';
         $pageCategory = 'Management';
         $user = User::getCurrentUser();
@@ -50,7 +69,8 @@ class ProductManagementController extends Controller
                 ->make(true);
         }
 
-        return view('pages.superadmin.v_productManagement', compact('page', 'pageCategory', 'category_select'));
+        return view('pages.superadmin.v_productManagement', compact('page', 'pageCategory', 'category_select'));}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function store(Request $request)

@@ -49,7 +49,7 @@
             @endif
             <div class="{{ $type != 'walkin' ? 'col-md-4' : 'col-md-6' }}">
                 <label>Order Date</label>
-                <input type="date" name="order_date" class="form-control" required>
+                <input type="date" name="order_date" id="orderDate" class="form-control" required>   {{-- ITO --}}
             </div>
             <div class="{{ $type != 'walkin' ? 'col-md-4' : 'col-md-6' }}">
                 <label>Remarks</label>
@@ -94,6 +94,18 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+
+
+        // Disable past dates for order_date DITO
+        let today = new Date();
+        let yyyy = today.getFullYear();
+        let mm = String(today.getMonth() + 1).padStart(2, '0');
+        let dd = String(today.getDate()).padStart(2, '0');
+        let minDate = `${yyyy}-${mm}-${dd}`;
+        $('#orderDate').attr('min', minDate);
+        // Hanggang dito
+
+
         let rowIndex = 0;
         let categories = @json($categories);
         let orderid = <?php echo isset($_GET['id']) ? $_GET['id'] : '""' ?>;

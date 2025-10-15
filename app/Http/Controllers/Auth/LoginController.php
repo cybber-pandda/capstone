@@ -43,6 +43,38 @@ class LoginController extends Controller
         ->header('Expires','Sat, 01 Jan 1990 00:00:00 GMT');
     }
 
+    public function customLogin(Request $request)
+    {
+        $identifier = $request->input('identifier');
+        $password = $request->input('password');
+
+        $user = \App\Models\User::where('email', $identifier)
+            ->orWhere('username', $identifier)
+            ->first();
+
+        // If user not found
+        if (!$user) {
+            if (filter_var($identifier, FILTER_VALIDATE_EMAIL)) {
+                return back()->withErrors(['identifier' => 'Email not registered.'])->withInput();
+            } else {
+                return back()->withErrors(['identifier' => 'Username not found.'])->withInput();
+            }
+        }
+
+        // If password incorrect
+        if (!\Hash::check($password, $user->password)) {
+            return back()->withErrors([
+                'password' => 'The password you’ve entered is incorrect.'
+            ])->withInput();
+        }
+
+
+        // Login success
+        Auth::login($user);
+        return redirect()->intended('home');
+    }
+
+
     public function ajaxLogin(Request $request)
     {
         // Validate the input

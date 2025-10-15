@@ -20,7 +20,13 @@
                         <i class="fa fa-envelope text-muted"></i>
                     </span>
                 </div>
-                <input class="form-control bg-white border-left-0 border-md" name="email" id="email" value="{{ $email ?? old('email') }}" placeholder="{{ __('Email') }}" autocomplete="email">
+                <input class="form-control bg-white border-left-0 border-md" 
+                    name="email" 
+                    id="email" 
+                    value="{{ $email ?? old('email') }}" 
+                    placeholder="{{ __('Email') }}" 
+                    autocomplete="email"
+                    readonly>
                 <span class="invalid-feedback d-block" role="alert" id="email_error"></span>
             </div>
 

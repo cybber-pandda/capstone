@@ -7,7 +7,7 @@ $(document).ready(function () {
         layout: {
             topEnd: {
                 search: {
-                    placeholder: "Search product",
+                    placeholder: "Search here",
                 },
             },
         },
@@ -17,7 +17,7 @@ $(document).ready(function () {
         ],
         iDisplayLength: 10,
         language: {
-            search: "",
+            search: "Search",
         },
         fixedHeader: { header: true },
         scrollCollapse: true,

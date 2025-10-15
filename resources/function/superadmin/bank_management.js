@@ -1,49 +1,51 @@
-$(document).ready(function () {
-    let bankId;
-
-    const table = $("#bankTable").DataTable({
-        processing: true,
-        serverSide: true,
-        paginationType: "simple_numbers",
-        responsive: true,
-        aLengthMenu: [
-            [5, 10, 30, 50, -1],
-            [5, 10, 30, 50, "All"],
-        ],
-        iDisplayLength: 10,
-        language: { search: "" },
-        fixedHeader: { header: true },
-        scrollCollapse: true,
-        scrollX: true,
-        scrollY: 600,
-        ajax: "/bank-management",
-        autoWidth: false,
-        columns: [
-            { data: "image", name: "image", width: "15%" },
-            { data: "name", name: "name", width: "20%" },
-            { data: "account_number", name: "account_number", width: "20%",   className: "dt-left-int", responsivePriority: 1, orderable: false, },
-            {
-                data: "created_at",
-                name: "created_at",
-                width: "15%",
-                render: function (data) {
-                    return new Date(data).toLocaleString();
-                },
+const table = $("#bankTable").DataTable({
+    processing: true,
+    serverSide: true,
+    paginationType: "simple_numbers",
+    responsive: true,
+    aLengthMenu: [
+        [5, 10, 30, 50, -1],
+        [5, 10, 30, 50, "All"],
+    ],
+    iDisplayLength: 10,
+    language: { search: "Search: " , searchPlaceholder: "Search here"},
+    fixedHeader: { header: true },
+    scrollCollapse: true,
+    scrollX: true,
+    scrollY: 600,
+    ajax: "/bank-management",
+    autoWidth: false,
+    columns: [
+        { data: "image", name: "image", width: "15%" },
+        { data: "name", name: "name", width: "20%" },
+        { data: "account_number", name: "account_number", width: "20%", className: "dt-left-int", responsivePriority: 1, orderable: false },
+        {
+            data: "created_at",
+            name: "created_at",
+            width: "15%",
+            render: function (data) {
+                return new Date(data).toLocaleString();
             },
-            {
-                data: "action",
-                name: "action",
-                orderable: false,
-                searchable: false,
-                width: "15%",
-            },
-        ],
-        drawCallback: function () {
-            if (typeof lucide !== "undefined") {
-                lucide.createIcons();
-            }
         },
-    });
+        {
+            data: "action",
+            name: "action",
+            orderable: false,
+            searchable: false,
+            width: "15%",
+        },
+    ],
+    drawCallback: function () {
+        if (typeof lucide !== "undefined") {
+            lucide.createIcons();
+        }
+    },
+    initComplete: function () {
+        // Add placeholder
+        $('#bankTable_filter input').attr('placeholder', 'Search Bank');
+    },
+});
+
 
     $(document).on("click", "#add", function () {
         $(".modal-title").text("Add bank");
@@ -160,4 +162,4 @@ $(document).ready(function () {
                 console.log(data);
             });
     }
-});
+

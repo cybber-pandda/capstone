@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\User;
 use App\Models\Delivery;
@@ -16,6 +17,24 @@ class ReportController extends Controller
 
     public function userReport(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
 
         if ($request->ajax()) {
             $users = User::select(['id', 'name', 'username', 'email', 'role', 'status', 'created_at'])
@@ -36,11 +55,30 @@ class ReportController extends Controller
             'page' => 'User Report',
             'pageCategory' => 'Reports',
             'userCounts' => $userCounts
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function deliveryReport(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
         if ($request->ajax()) {
             $deliveries = Delivery::with(['order', 'deliveryUser', 'latestHistory']);
 
@@ -71,11 +109,30 @@ class ReportController extends Controller
         return view('pages.superadmin.v_deliveryReport', [
             'page' => 'Delivery Report',
             'pageCategory' => 'Reports',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function inventoryReport(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
         if ($request->ajax()) {
             $products = Product::with('inventories')->get();
 
@@ -110,11 +167,30 @@ class ReportController extends Controller
         return view('pages.superadmin.v_inventoryReport', [
             'page' => 'Inventory Report',
             'pageCategory' => 'Reports',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function expiredProductReport(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'superadmin') {
         if ($request->ajax()) {
             $today = now()->toDateString();
 
@@ -146,6 +222,7 @@ class ReportController extends Controller
         return view('pages.superadmin.v_expiredProductReport', [
             'page' => 'Expired Product Report',
             'pageCategory' => 'Reports',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 }

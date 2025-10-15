@@ -1,7 +1,7 @@
 @extends('layouts.shop')
 
 @section('content')
-
+    
 <!-- SECTION -->
 <div class="section section-scrollable" style="display:none;">
     <!-- container -->
@@ -172,6 +172,18 @@
         // If user clears the input, auto-reset (fetch "all").
         // Only trigger fetch when the input becomes empty to avoid requests while typing.
         // Live search with debounce (400ms delay)
+         //nag add ako ng search mobile
+        $('#search_value, #search_value_mobile').on('input', debounce(function() {
+            searchQuery = $(this).val().trim();
+
+            if (searchQuery !== '') {
+                fetchProducts();
+            } else {
+                // If the input is cleared, reset to all products
+                searchQuery = '';
+                fetchProducts();
+            }
+        }, 400));
         $('#search_value').on('input', debounce(function() {
             searchQuery = $(this).val().trim();
 
@@ -399,6 +411,59 @@
                 }
             });
         });
+
+        //bago
+        // ===== CREDIT LIMIT ALERT SYSTEM =====
+        const creditLimit = {{ Auth::user()->credit_limit ?? 0 }};
+
+        // We'll track each threshold separately
+        const shown40 = sessionStorage.getItem('creditAlert40');
+        const shown30 = sessionStorage.getItem('creditAlert30');
+        const shown20 = sessionStorage.getItem('creditAlert20');
+
+        // Function to show alert (avoids duplicate logic)
+        function showCreditAlert(level, title, text, icon, color) {
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: icon,
+                confirmButtonColor: color,
+                confirmButtonText: "OK"
+            });
+            sessionStorage.setItem(`creditAlert${level}`, 'shown');
+        }
+
+        // ---- Logic ----
+        if (creditLimit <= 20000 && !shown20) {
+            showCreditAlert(
+                20,
+                "⚠️ Critical Credit Limit",
+                `Your current credit limit is only ₱${creditLimit.toLocaleString()}. 
+                Please settle payments immediately to continue ordering.`,
+                "error",
+                "#d33"
+            );
+        }
+        else if (creditLimit <= 30000 && !shown30) {
+            showCreditAlert(
+                30,
+                "Low Credit Limit",
+                `Your credit limit is ₱${creditLimit.toLocaleString()}. 
+                Consider settling pending balances soon.`,
+                "warning",
+                "#f39c12"
+            );
+        }
+        else if (creditLimit <= 40000 && !shown40) {
+            showCreditAlert(
+                40,
+                "Heads Up!",
+                `Your available credit limit is getting low (₱${creditLimit.toLocaleString()}).`,
+                "info",
+                "#3085d6"
+            );
+        }
+        //hanggang dito
 
 
     });

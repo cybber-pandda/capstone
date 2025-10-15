@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\PurchaseRequest;
 use App\Models\CreditPayment;
@@ -20,17 +21,34 @@ class ACPaymentController extends Controller
 
     public function paynow(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'salesofficer') {
 
         $codPR = PurchaseRequest::with('customer')
             ->where('cod_flg', 1)
-            ->whereDoesntHave('paidPayments', function ($q) {
-                $q->where('status', 'paid');
-            })
+            ->whereIn('status', ['delivered', 'invoice_sent']) // include both statuses
             ->get()
             ->mapWithKeys(function ($pr) {
                 $formattedDate = Carbon::parse($pr->created_at)->format('M. j, Y');
                 return [$pr->id => "{$pr->customer->name} - {$formattedDate}"];
             });
+
 
         if ($request->ajax()) {
             $query = PaidPayment::with([
@@ -86,7 +104,8 @@ class ACPaymentController extends Controller
         return view('pages.admin.salesofficer.v_paynow', [
             'page' => 'Pay-Now Payment Method',
             'cashDeliveries' => $codPR
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function manualPayment(Request $request)
@@ -130,6 +149,25 @@ class ACPaymentController extends Controller
 
     public function paylater(Request $request)
     {
+        // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'salesofficer') {
+
         if ($request->ajax()) {
             $paymentType = $request->get('payment_type');
 
@@ -167,7 +205,7 @@ class ACPaymentController extends Controller
                     })
                     ->addColumn('action', function ($payment) {
                         return is_null($payment->proof_payment) && is_null($payment->reference_number)
-                            ? '<span class="badge bg-danger text-white"> <i class="link-icon" data-lucide="clock"></i> Waiting for B2B Payment</span>'
+                            ? '<span class="badge bg-danger text-white"> <i class="link-icon" data-lucide="clock"></i> Awaiting Payment</span>'
                             : ($payment->status === 'paid' ? '' :
                                 '<button type="button" class="btn btn-sm btn-inverse-dark approve-payment p-2" data-id="' . $payment->id . '" style="font-size:11px">
                                     Approve
@@ -176,6 +214,18 @@ class ACPaymentController extends Controller
                                     Reject
                                 </button>'
                             );
+                    })
+                    ->filter(function ($query) use ($request) {
+                        if ($search = $request->input('search.value')) {
+                            $query->whereHas('purchaseRequest.customer', function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('bank', function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhere('reference_number', 'like', "%{$search}%")
+                            ->orWhere('status', 'like', "%{$search}%");
+                        }
                     })
                     ->rawColumns(['bank_name', 'paid_date', 'proof_payment', 'reference_number', 'status', 'action'])
                     ->make(true);
@@ -203,6 +253,18 @@ class ACPaymentController extends Controller
                         return '<button type="button" class="btn btn-sm btn-inverse-dark partial-payment-list p-2" data-id="' . $payment->purchase_request_id . '" style="font-size:11px">
                                 <i class="link-icon" data-lucide="view"></i> Show Payment List</button>';
                     })
+                    ->filter(function ($query) use ($request) {
+                        if ($search = $request->input('search.value')) {
+                            $query->whereHas('purchaseRequest.customer', function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('bank', function ($q) use ($search) {
+                                $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhere('reference_number', 'like', "%{$search}%")
+                            ->orWhere('status', 'like', "%{$search}%");
+                        }
+                    })
                     ->rawColumns(['total_amount', 'due_date', 'action'])
                     ->make(true);
             }
@@ -210,7 +272,8 @@ class ACPaymentController extends Controller
 
         return view('pages.admin.salesofficer.v_paylater', [
             'page' => 'Pay-Later Payment Method',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function approvePaylaterPayment($id)
@@ -313,108 +376,189 @@ class ACPaymentController extends Controller
         ]);
     }
 
-    public function account_receivable(Request $request)
-    {
-        $today = Carbon::today();
-        
-        $status = array('pending', 'reject', 'unpaid');
+public function account_receivable(Request $request)
+{
+    // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
 
-        // Overall totals
-        $totalPendingStraight = CreditPayment::with('purchaseRequest:id,credit_amount')->whereIn('status', $status)->get()->sum(function ($payment) {
-                return $payment->purchaseRequest->credit_amount ?? 0;
-            });
-        $totalPendingPartial  = CreditPartialPayment::whereIn('status', $status)->sum('amount_to_pay');
-        $totalPending = $totalPendingStraight + $totalPendingPartial;
-
-        $totalOverDueStraight = CreditPayment::with('purchaseRequest:id,credit_amount')
-            ->where('status', 'overdue')
-            ->whereDate('due_date', '<', $today)
-            ->get()
-            ->sum(function ($payment) {
-                return $payment->purchaseRequest->credit_amount ?? 0;
-            });
-
-        $totalOverDuePartial = CreditPartialPayment::where('status', 'overdue')
-            ->whereDate('due_date', '<', $today)
-            ->sum('amount_to_pay');
-
-        $totalOverDue = $totalOverDueStraight + $totalOverDuePartial;
-
-        $totalBalance = $totalPending + $totalOverDue;
-
-        // dd($totalBalance);
-
-        $customers = User::whereHas('purchaseRequests')
-            ->with(['purchaseRequests.creditPayment', 'purchaseRequests.creditPartialPayments'])
-            ->get()
-            ->map(function ($customer) use ($today, $status) {
-
-                $pendingStraight = $customer->purchaseRequests
-                    ->filter(fn($pr) => $pr->creditPayment && in_array($pr->creditPayment->status, $status))
-                    ->sum('credit_amount');
-
-                $pendingPartial = $customer->purchaseRequests
-                    ->flatMap(fn($pr) => $pr->creditPartialPayments)
-                    ->filter(fn($payment) => in_array($payment->status, $status))
-                    ->sum('amount_to_pay');
-
-                $overdueStraight = $customer->purchaseRequests
-                    ->filter(
-                        fn($pr) =>
-                        $pr->creditPayment &&
-                            $pr->creditPayment->status === 'overdue' &&
-                            $pr->creditPayment->due_date < $today
-                    )
-                    ->sum('credit_amount');
-
-                $overduePartial = $customer->purchaseRequests
-                    ->flatMap(fn($pr) => $pr->creditPartialPayments)
-                    ->filter(
-                        fn($payment) =>
-                        $payment->status === 'overdue' &&
-                            $payment->due_date < $today
-                    )
-                    ->sum('amount_to_pay');
-
-                $pending = $pendingStraight + $pendingPartial;
-                $overdue = $overdueStraight + $overduePartial;
-                $balance = $pending + $overdue;
-                $firstPrId = $customer->purchaseRequests->first()?->id;
-
-                return [
-                    'user_id'       => $customer->id,
-                    'customer_name' => $customer->name,
-                    'pending'       => $pending,
-                    'overdue'       => $overdue,
-                    'balance'       => $balance,
-                    'pr_id'         => $firstPrId,
-                ];
-            });
-
-        if ($request->ajax()) {
-            return DataTables::of($customers)
-                ->addColumn('pending', fn($row) => '₱' . number_format($row['pending'], 2))
-                ->addColumn('overdue', fn($row) => '₱' . number_format($row['overdue'], 2))
-                ->addColumn('balance', fn($row) => '₱' . number_format($row['balance'], 2))
-                ->addColumn('action', function ($row) {
-                    return '<button class="btn btn-sm btn-primary view-details" data-userid="' . e($row['user_id']) . '" data-prid="' . e($row['pr_id']) . '">View Details</button>';
-                })
-                ->rawColumns(['action'])
-                ->make(true);
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
         }
 
-        return view('pages.admin.salesofficer.v_accountreceivable', [
-            'page'          => 'Account Receivable',
-            // 'totalPending'  => $totalPending,
-            'totalOverDue'  => $totalOverDue,
-            'totalBalance'  => $totalBalance,
-            'customers'     => $customers,
-        ]);
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'salesofficer') {
+
+    $today = Carbon::today();
+    
+    // Statuses that represent an outstanding AR balance for the payment records
+    $payment_statuses = array('pending', 'reject', 'unpaid');
+    
+    // Purchase Request statuses that trigger AR (after delivery/invoicing)
+    $ar_trigger_statuses = ['delivered', 'invoice_sent'];
+
+    // Filter to ensure the parent PurchaseRequest status is one of the AR trigger statuses
+    $arTriggerPrFilter = fn($q) => $q->whereIn('status', $ar_trigger_statuses);
+
+    // --- OVERALL TOTALS CALCULATION (Keep as is, since it was mostly correct) ---
+
+    // Total Pending Straight
+    $totalPendingStraight = CreditPayment::with('purchaseRequest:id,credit_amount')
+        ->whereIn('status', $payment_statuses)
+        ->whereHas('purchaseRequest', $arTriggerPrFilter)
+        ->get()
+        ->sum(function ($payment) {
+            return $payment->purchaseRequest->credit_amount ?? 0;
+        });
+        
+    // Total Pending Partial
+    $totalPendingPartial = CreditPartialPayment::whereIn('status', $payment_statuses)
+        ->whereHas('purchaseRequest', $arTriggerPrFilter)
+        ->sum('amount_to_pay');
+
+    $totalPending = $totalPendingStraight + $totalPendingPartial;
+
+    // Total Overdue Straight
+    $totalOverDueStraight = CreditPayment::with('purchaseRequest:id,credit_amount')
+        ->where('status', 'overdue')
+        ->whereDate('due_date', '<', $today)
+        ->whereHas('purchaseRequest', $arTriggerPrFilter)
+        ->get()
+        ->sum(function ($payment) {
+            return $payment->purchaseRequest->credit_amount ?? 0;
+        });
+
+    // Total Overdue Partial
+    $totalOverDuePartial = CreditPartialPayment::where('status', 'overdue')
+        ->whereDate('due_date', '<', $today)
+        ->whereHas('purchaseRequest', $arTriggerPrFilter)
+        ->sum('amount_to_pay');
+
+    $totalOverDue = $totalOverDueStraight + $totalOverDuePartial;
+
+    $totalBalance = $totalPending + $totalOverDue;
+
+    // --- DATATABLES LOGIC: REPLACEMENT STARTS HERE ---
+    
+    if ($request->ajax()) {
+        
+        // Define the filter function to be used in 'with' and 'whereHas'
+        $payLaterArFilter = function($q) use ($ar_trigger_statuses) {
+            $q->whereIn('credit_payment_type', ['Straight Payment', 'Partial Payment'])
+              ->whereIn('status', $ar_trigger_statuses);
+        };
+
+        // 1. Filter the User list: Only users who have AT LEAST ONE AR-ELIGIBLE PR
+        // This ensures only relevant customers are queried.
+        $customersQuery = User::whereHas('purchaseRequests', $payLaterArFilter)
+        
+        // 2. Eager Load only the relevant PRs (and their payments) for calculation
+        // This is the CRUCIAL part: It filters the data retrieved by the 'with' clause.
+        ->with(['purchaseRequests' => $payLaterArFilter, // <-- Filters the PRs collection
+               'purchaseRequests.creditPayment', 
+               'purchaseRequests.creditPartialPayments']);
+
+        return DataTables::of($customersQuery)
+            // The logic inside these addColumn closures now correctly operates ONLY 
+            // on the filtered 'purchaseRequests' collection.
+            ->addColumn('customer_name', function ($customer) {
+                return $customer->name; // Changed from customer_name to name as per your model convention
+            })
+// INSIDE public function account_receivable(Request $request)
+->addColumn('overdue', function ($customer) use ($today, $ar_trigger_statuses) {
+    // The PRs here are ALREADY filtered by $payLaterArFilter
+
+    // Overdue Straight: Uses the PR's credit_amount
+    $overdueStraight = $customer->purchaseRequests
+        ->filter(fn($pr) => 
+            $pr->creditPayment && 
+            $pr->creditPayment->status === 'overdue' && 
+            $pr->creditPayment->due_date < $today
+        )
+        ->sum('credit_amount'); // ✅ Uses full credit_amount from PR
+
+    // Overdue Partial: Uses the sum of 'amount_to_pay' from partial records
+    $overduePartial = $customer->purchaseRequests
+        ->flatMap(fn($pr) => $pr->creditPartialPayments)
+        ->filter(fn($payment) => $payment->status === 'overdue' && $payment->due_date < $today)
+        ->sum('amount_to_pay'); // ✅ Uses amount_to_pay from partials
+
+    $totalOverdue = $overdueStraight + $overduePartial;
+
+    return $totalOverdue;
+})
+// INSIDE public function account_receivable(Request $request)
+->addColumn('balance', function ($customer) use ($today, $payment_statuses) {
+    // NOTE: $customer->purchaseRequests collection ONLY contains AR-ELIGIBLE PRs.
+
+    // 1. Pending Straight: Sum of PR credit_amount for pending straight payments
+    $pendingStraight = $customer->purchaseRequests
+        ->filter(fn($pr) => 
+            $pr->credit_payment_type === 'Straight Payment' && // Explicitly check type
+            $pr->creditPayment && 
+            in_array($pr->creditPayment->status, $payment_statuses)
+        )
+        ->sum('credit_amount'); // Sum the full PR amount
+
+    // 2. Pending Partial: Sum of amount_to_pay for pending partial payments
+    $pendingPartial = $customer->purchaseRequests
+        ->filter(fn($pr) => $pr->credit_payment_type === 'Partial Payment') // Explicitly check type
+        ->flatMap(fn($pr) => $pr->creditPartialPayments)
+        ->filter(fn($payment) => in_array($payment->status, $payment_statuses))
+        ->sum('amount_to_pay');
+    
+    // 3. Overdue Straight
+    $overdueStraight = $customer->purchaseRequests
+        ->filter(fn($pr) => 
+            $pr->credit_payment_type === 'Straight Payment' && // Explicitly check type
+            $pr->creditPayment && 
+            $pr->creditPayment->status === 'overdue' && 
+            $pr->creditPayment->due_date < $today
+        )
+        ->sum('credit_amount');
+
+    // 4. Overdue Partial
+    $overduePartial = $customer->purchaseRequests
+        ->filter(fn($pr) => $pr->credit_payment_type === 'Partial Payment') // Explicitly check type
+        ->flatMap(fn($pr) => $pr->creditPartialPayments)
+        ->filter(fn($payment) => $payment->status === 'overdue' && $payment->due_date < $today)
+        ->sum('amount_to_pay');
+
+    // Final Balance is the sum of all pending and overdue amounts
+    $totalBalance = $pendingStraight + $pendingPartial + $overdueStraight + $overduePartial;
+
+    return $totalBalance;
+})
+            ->addColumn('action', function ($customer) {
+                return '<button class="btn btn-sm btn-inverse-dark view-details" data-userid="' . $customer->id . '" style="font-size:11px;">View Details</button>';
+            })
+            ->rawColumns(['action'])
+            ->make(true);
     }
+    // --- DATATABLES LOGIC: REPLACEMENT ENDS HERE ---
+
+    // --- NON-AJAX VIEW DATA (Still needs filtering) ---
+    
+    return view('pages.admin.salesofficer.v_accountreceivable', [ 
+        'page' => 'Account Receivable',
+        'totalOverDue' => $totalOverDue,
+        'totalBalance' => $totalBalance,
+    ]);}
+    return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
+}
 
     public function account_receivable_pr($userid, Request $request)
     {
         $type = $request->query('type', 'straight'); // default = straight
+        $ar_trigger_statuses = ['delivered', 'invoice_sent'];
         $customer = User::find($userid);
 
         if (!$customer) {
@@ -426,6 +570,7 @@ class ACPaymentController extends Controller
         $purchaseRequests = $customer->purchaseRequests()
             ->where('customer_id', $userid)
             ->where('credit_payment_type', $prType)
+            ->whereIn('status', $ar_trigger_statuses) // ✅ This is the correct filter
             ->get();
 
         if ($purchaseRequests->isEmpty()) {

@@ -47,7 +47,7 @@
                     [5, 10, 30, 50, "All"],
                 ],
                 iDisplayLength: 10,
-                language: { search: "" },
+                language: { search: "Search: " , searchPlaceholder: "Search here"},
                 fixedHeader: { header: true },
                 scrollCollapse: true,
                 scrollX: true,

@@ -64,6 +64,8 @@ $(document).ready(function () {
                 lucide.createIcons();
             }
         },
+ // REMOVE SEARCH BAR
+    dom: 'lrtip' // l = length, r = processing, t = table, i = info, p = pagination
     });
 
     $(document).on("click", "#add", function () {

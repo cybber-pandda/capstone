@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\User;
 use App\Models\Order;
@@ -42,6 +43,25 @@ class DeliveryController extends Controller
 
     public function deliveryOrders(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'deliveryrider') {
+
         $user = User::getCurrentUser();
         $status = $request->get('status');
 
@@ -153,7 +173,8 @@ class DeliveryController extends Controller
 
         return view('pages.admin.deliveryrider.v_deliveryOrders', [
             'page' => 'Delivery Orders'
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function getOrderItems($id)
@@ -179,6 +200,25 @@ class DeliveryController extends Controller
 
     public function deliveryHistories(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'deliveryrider') {
+
         $user = User::getCurrentUser();
 
         if ($request->ajax()) {
@@ -248,7 +288,8 @@ class DeliveryController extends Controller
 
         return view('pages.admin.deliveryrider.v_deliveryHistory', [
             'page' => 'Delivery History'
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function getDeliveryDetails(Order $order)
@@ -266,6 +307,25 @@ class DeliveryController extends Controller
 
     public function deliveryLocation(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'deliveryrider') {
+
         $user = User::getCurrentUser();
         $status = $request->get('status');
 
@@ -409,7 +469,8 @@ class DeliveryController extends Controller
 
         return view('pages.admin.deliveryrider.v_deliveryLocation', [
             'page' => 'Delivery Location',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function deliveryTracking($id)
@@ -521,6 +582,24 @@ class DeliveryController extends Controller
 
     public function deliveryRatings(Request $request)
     {
+         // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'deliveryrider') {
         $user = auth()->user(); // Delivery Rider
         $riderId = $user->id;
 
@@ -594,7 +673,8 @@ class DeliveryController extends Controller
 
         return view('pages.admin.deliveryrider.v_deliveryRating', [
             'page' => 'My Delivery Rating',
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function show_sales_inv($prId, $customerId)

@@ -56,8 +56,9 @@
             'label' => 'Paid Date',
             'type' => 'date',
             'name' => 'paid_date',
-            'attributes' => 'placeholder=\'Enter delivery fee\''
-        ]) @endcomponent 
+            'attributes' => 'placeholder="Enter delivery date" id="paid_date" required'
+        ]) @endcomponent
+
 
     </form>
     @slot('footer')
@@ -73,5 +74,19 @@
 @endsection
 
 @push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const paidDateInput = document.getElementById('paid_date');
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const dd = String(today.getDate()).padStart(2, '0');
+    const minDate = `${yyyy}-${mm}-${dd}`;
+
+    // Set the minimum selectable date to today
+    paidDateInput.setAttribute('min', minDate);
+});
+</script>
+
 <script src="{{ route('secure.js', ['filename' => 'salesofficer_paynow']) }}"></script>
 @endpush

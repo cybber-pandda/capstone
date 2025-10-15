@@ -53,30 +53,44 @@ foreach ($purchaseRequests as $pr) {
         $product = $item->product;
         $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
 
-        // Check return/refund flags
-        $return = $item->returnRequest;
-        $refund = $item->refundRequest;
+        // ✅ Get related return/refund data
+$return = $item->returnRequest;
+$refund = $item->refundRequest;
 
-        $showReturn = !$return || $return->status !== 'approved';
-        $showRefund = !$refund || $refund->processed_by === null;
+// ✅ Determine if a return or refund exists
+$hasReturn = $return && !in_array($return->status, ['cancelled']);
+$hasRefund = $refund && !in_array($refund->status, ['cancelled']);
 
-        $actions = [];
+$actions = [];
 
-        if ($pr->status === 'delivered') {
-            if ($showReturn) {
-                $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">Return</button>';
-            } else {
-                $actions[] = '-';
-            }
+// ✅ NEW ENHANCED LOGIC: Show only the requested type with status
+if ($hasReturn) {
+    $statusText = ucfirst($return->status ?? 'Pending');
+    $btnClass = match ($return->status) {
+        'approved' => 'btn-success',
+        'rejected' => 'btn-danger',
+        default => 'btn-secondary',
+    };
+    // Show only return with its status
+    $actions[] = '<button class="btn btn-xs ' . $btnClass . '" disabled title="Return ' . $statusText . '">Return ' . $statusText . '</button>';
+}
+elseif ($hasRefund) {
+    $statusText = ucfirst($refund->status ?? 'Pending');
+    $btnClass = match ($refund->status) {
+        'approved' => 'btn-success',
+        'rejected' => 'btn-danger',
+        default => 'btn-secondary',
+    };
+    // Show only refund with its status
+    $actions[] = '<button class="btn btn-xs ' . $btnClass . '" disabled title="Refund ' . $statusText . '">Refund ' . $statusText . '</button>';
+}
+else {
+    // No request yet → show both
+    $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">Return</button>';
+    $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">Refund</button>';
+}
+// --- END OF ENHANCED STATUS-BASED LOGIC ---
 
-            if ($showRefund) {
-                $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">Refund</button>';
-                $actions[] = '-';
-            }
-        } else {
-            $actions[] = '';
-            $actions[] = '';
-        }
 
         $actionHtml = implode('&nbsp;', $actions);
 
@@ -122,8 +136,8 @@ foreach ($purchaseRequests as $pr) {
 
         $item = PurchaseRequestItem::with('purchaseRequest', 'product')->findOrFail($request->item_id);
 
-        if ($item->purchaseRequest->status !== 'delivered') {
-            return response()->json(['message' => 'Only delivered items can be returned.'], 422);
+        if (!in_array($item->purchaseRequest->status, ['delivered', 'invoice_sent'])) {
+            return response()->json(['message' => 'Only delivered or invoice sent items can be returned.'], 422);
         }
 
         if (PurchaseRequestReturn::where('purchase_request_item_id', $item->id)->exists()) {
@@ -247,7 +261,7 @@ foreach ($purchaseRequests as $pr) {
             if ($type === 'refund') {
                 // $data = PurchaseRequestRefund::with(['product', 'purchaseRequestItem'])
                 //new for auth for return and refund
-                $data = PurchaseRequestReturn::with(['product', 'purchaseRequestItem.purchaseRequest'])
+                $data = PurchaseRequestRefund::with(['product', 'purchaseRequestItem.purchaseRequest'])
                     ->whereHas('purchaseRequestItem.purchaseRequest', function($q) use ($customerId) {
                         $q->where('customer_id', $customerId); // ✅ only the logged-in customer
                     })
@@ -265,7 +279,9 @@ foreach ($purchaseRequests as $pr) {
                             'amount' => number_format($r->amount, 2),
                             'method' => ucfirst($r->method),
                             'reference' => $r->reference,
-                            'status' => $r->processed_by ? 'Processed' : 'Pending',
+                            'status' => $r->status 
+                            ? ucfirst($r->status) 
+                            : ($r->processed_by ? 'Processed' : 'Pending'),
                             'date' => $r->created_at->toDateTimeString(),
                         ];
                     });

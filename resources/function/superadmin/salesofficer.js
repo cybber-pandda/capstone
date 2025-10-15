@@ -19,7 +19,7 @@ $(document).ready(function () {
         ],
         iDisplayLength: 10,
         language: {
-            search: "",
+            search: "Search: ",
         },
         fixedHeader: {
             header: true,

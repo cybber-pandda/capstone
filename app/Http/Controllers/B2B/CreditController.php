@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon; //ito
 
 
 use App\Models\CreditPayment;
@@ -123,7 +124,8 @@ class CreditController extends Controller
                     'bank'
                 ])
                     ->whereHas('purchaseRequest', function ($q) use ($userId) {
-                        $q->where('customer_id', $userId);
+                        $q->where('customer_id', $userId)
+                         ->whereIn('status', ['delivered','invoice_sent']); // ito
                     })
                     ->latest();
 
@@ -177,10 +179,11 @@ class CreditController extends Controller
                     'bank'
                 ])
                     ->whereHas('purchaseRequest', function ($q) use ($userId) {
-                        $q->where('customer_id', $userId);
+                        $q->where('customer_id', $userId)
+                        ->whereIn('status', ['delivered','invoice_sent']); // ito
                     })
                     ->selectRaw('purchase_request_id, bank_id, MAX(due_date) as last_due_date, SUM(amount_to_pay) as total_amount, status')
-                    ->groupBy('purchase_request_id')
+                    ->groupBy('purchase_request_id', 'bank_id', 'status') //ito
                     ->latest();
 
                 return DataTables::of($query)
@@ -189,7 +192,7 @@ class CreditController extends Controller
                     })
                     ->addColumn('due_date', function ($payment) {
                         return $payment->last_due_date
-                            ? \Carbon\Carbon::parse($payment->last_due_date)->format('M d, Y')
+                            ? Carbon::parse($payment->last_due_date)->format('M d, Y') //ito
                             : '--';
                     })
                     ->addColumn('status', function ($payment) {

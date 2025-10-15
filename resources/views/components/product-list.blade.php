@@ -91,9 +91,14 @@
 @endif
 <script>
 document.querySelectorAll('.item-qty').forEach(input => {
-    // On input, remove all non-digit characters
     input.addEventListener('input', function() {
+        // Remove all non-digit characters
         this.value = this.value.replace(/\D/g, '');
+
+        // Limit to 5 digits
+        if (this.value.length > 6) {
+            this.value = this.value.substring(0, 6);
+        }
     });
 });
 </script>

@@ -20,6 +20,11 @@ $(document).ready(function () {
             },
             autoWidth: false,
             columns: columns,
+            // ✅ Add this block for the search placeholder
+        language: {
+            search: "Search: ", // removes the "Search:" label
+            searchPlaceholder: "Search here" // sets placeholder text
+        },
             drawCallback: function () {
                 if (typeof lucide !== "undefined") {
                     lucide.createIcons();
@@ -215,7 +220,7 @@ $(document).ready(function () {
                                         </button>
                                         <button class="btn btn-sm btn-inverse-dark reject-payment p-1" data-id="${item.id}" data-paymenttype="partial" style="font-size:11px;">Reject
                                         </button>`
-                                        : ( item.status === 'paid' ? '' : `<span class="badge bg-danger">Waiting for B2B Payment</span>`)
+                                        : ( item.status === 'paid' ? '' : `<span class="badge bg-danger">Awaiting Payment</span>`)
                                         
                                 }
                             </td>

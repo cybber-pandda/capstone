@@ -27,6 +27,8 @@ Route::post('/login/ajax', [App\Http\Controllers\Auth\LoginController::class, 'a
 
 Auth::routes(['verify' => true]);
 
+Route::post('/custom-login', [App\Http\Controllers\Auth\LoginController::class, 'customLogin'])->name('custom.login');
+
 Route::get('/secure-js-file/{filename}', [App\Http\Controllers\SecureController::class, 'serveJsFile'])->name('secure.js');
 Route::post('/verify/code',  [App\Http\Controllers\Auth\VerificationController::class, 'otp_verify']);
 

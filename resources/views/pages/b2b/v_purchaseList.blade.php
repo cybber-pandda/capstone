@@ -60,21 +60,26 @@
                 $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
                 @endphp
                 <tr data-id="{{ $item->id }}">
-                    <td data-label="Image:"><img src="{{ asset($image) }}" width="50" height="50" alt="Image"></td>
+                    <td data-label="Image:">
+                        <img src="{{ asset($image) }}" width="50" height="50" alt="Image">
+                    </td>
                     <td data-label="SKU:">{{ $product->sku }}</td>
                     <td data-label="Product:">{{ $product->name }}</td>
-                    <td data-label="Price:" data-price="{{ $product->discount > 0 && $product->discounted_price ? $product->discounted_price : $product->price }}">
+                    <td data-label="Price:" 
+                        data-price="{{ $product->discount > 0 && $product->discounted_price ? $product->discounted_price : $product->price }}"
+                        data-stock="{{ $product->current_stock }}">
                         ₱{{ number_format($product->discount > 0 && $product->discounted_price ? $product->discounted_price : $product->price, 2) }}
                     </td>
                     <td>
                         <center>
-                            <div class="input-group" style="max-width: 130px;display: flex; align-items: center;">
+                            <div class="input-group" style="max-width: 130px; display: flex; align-items: center;">
                                 <button class="btn btn-sm btn-outline-secondary qty-decrease">−</button>
                                 <input type="number" class="form-control form-control-sm text-center item-qty"
                                     value="{{ $item->quantity }}" min="1">
                                 <button class="btn btn-sm btn-outline-secondary qty-increase">+</button>
                             </div>
                         </center>
+                    </td>
                     </td>
                     <td data-label="Subtotal:">₱{{ number_format($item->subtotal, 2) }}</td>
                     <td data-label="Date:">{{ $item->created_at->toDateTimeString() }}</td>
@@ -174,6 +179,25 @@
                 e.preventDefault();
             }
         });
+        $(document).on('input', '.item-qty', function() {
+        let value = $(this).val();
+
+        // Remove non-digit characters
+        value = value.replace(/\D/g, '');
+
+        // Limit to 5 digits
+        if (value.length > 5) {
+            value = value.slice(0, 5);
+        }
+
+        // Ensure minimum of 1
+        if (value === '' || parseInt(value) < 1) {
+            value = 1;
+        }
+
+        $(this).val(value);
+        });
+
         // Remove Item
         $('.btn-remove-item').click(function() {
             let row = $(this).closest('tr');
@@ -220,54 +244,75 @@
         });
 
 
-        $(document).on('click', '#submitPR', function() {
-            const prIds = JSON.parse(this.getAttribute('data-prids'));
-            const $submitBtn = $(this);
+$(document).on('click', '#submitPR', function() {
+    const prIds = JSON.parse(this.getAttribute('data-prids'));
+    const $submitBtn = $(this);
 
-            $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
+    // 1️⃣ Gather all quantities and product IDs from the table
+    let valid = true;
+    let itemsData = [];
 
-            $.ajax({
-                url: `/b2b/purchase-requests/submit`,
-                method: 'POST',
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    prids: prIds,
-                    expected_delivery_date: $('#expectedDeliveryDate').val() || null
-                },
-                success: function(response) {
-                    if (response.success) {
+    prIds.forEach(prId => {
+        $(`tr[data-id]`).each(function() {
+            const row = $(this);
+            const itemId = row.data('id');
+            const qty = parseInt(row.find('.item-qty').val());
+            const available = parseInt(row.find('td[data-label="Price:"]').data('stock') || 0); // assume we add data-stock
 
-                        Swal.fire({
-                            title: "Success, Purchase Request Submitted",
-                            text: response.message,
-                            icon: "info",
-                            showCancelButton: false,
-                            confirmButtonColor: "#3085d6",
-                            cancelButtonColor: "#d33",
-                            confirmButtonText: "Okay"
-                        }).then((result) => {
-                            if (result.isConfirmed) {
-                                location.reload();
-                            }
-                        });
-                    } else {
-                        toast('error', 'Submission failed. Please try again.');
-                        $submitBtn.prop('disabled', false).text('Submit Request');
-                    }
-                },
-                error: function(xhr) {
-                    let errorMessage = 'Something went wrong. Please try again.';
-                    if (xhr.responseJSON && xhr.responseJSON.message) {
-                        errorMessage = xhr.responseJSON.message;
-                    }
-                    toast('error', errorMessage);
-                    $submitBtn.prop('disabled', false).text('Submit Request');
-                },
-                complete: function() {
-                    $submitBtn.prop('disabled', false).text('Submit Request');
-                }
-            });
+            if (qty > available) {
+                toast('error', `Not enough stock available. Requested: ${qty}, Available: ${available}`);
+                valid = false;
+                return false; // break out of each
+            }
+
+            itemsData.push({ itemId: itemId, quantity: qty });
         });
+    });
+
+    if (!valid) return; // stop submission if stock insufficient
+
+    // 2️⃣ Disable button and submit
+    $submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
+
+    $.ajax({
+        url: `/b2b/purchase-requests/submit`,
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            prids: prIds,
+            expected_delivery_date: $('#expectedDeliveryDate').val() || null
+        },
+        success: function(response) {
+            if (response.success) {
+                Swal.fire({
+                    title: "Success, Purchase Request Submitted",
+                    text: response.message,
+                    icon: "info",
+                    confirmButtonColor: "#3085d6",
+                    confirmButtonText: "Okay"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        location.reload();
+                    }
+                });
+            } else {
+                toast('error', 'Submission failed. Please try again.');
+                $submitBtn.prop('disabled', false).text('Submit Request');
+            }
+        },
+        error: function(xhr) {
+            let errorMessage = 'Something went wrong. Please try again.';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            toast('error', errorMessage);
+            $submitBtn.prop('disabled', false).text('Submit Request');
+        },
+        complete: function() {
+            $submitBtn.prop('disabled', false).text('Submit Request');
+        }
+    });
+});
 
 
         // Update quantity function
@@ -374,6 +419,16 @@
             const fullText = $(this).data('fulltext');
             alert(fullText);
         });
+    });
+
+        $(document).ready(function() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+        const dd = String(today.getDate()).padStart(2, '0');
+        const minDate = `${yyyy}-${mm}-${dd}`;
+
+        $('#expectedDeliveryDate').attr('min', minDate);
     });
 </script>
 @endpush

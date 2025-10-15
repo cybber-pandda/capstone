@@ -47,4 +47,39 @@
 
 @push('scripts')
 <script src="{{ route('secure.js', ['filename' => 'forgot']) }}"></script>
+
+<script>
+            const emailInput = $('#email');
+            const emailError = $('#email_error');
+
+            emailInput.on('input', function() {
+                let value = $(this).val().toLowerCase(); // optional: lowercase for uniformity
+
+                // 1. Remove invalid characters (letters, numbers, ., _, -, @)
+                value = value.replace(/[^a-z0-9._@-]/g, '');
+
+                // 2. Ensure only one @
+                const atParts = value.split('@');
+                if (atParts.length > 2) {
+                    value = atParts[0] + '@' + atParts.slice(1).join('').replace(/@/g, '');
+                }
+
+                // 3. Remove consecutive dots
+                value = value.replace(/\.{2,}/g, '.');
+
+                // 4. Remove leading periods
+                value = value.replace(/^\.+/, '');
+
+                // 5. Remove periods just before @
+                value = value.replace(/\.@/g, '@');
+
+                $(this).val(value);
+
+                // 8. Regex check for valid email format
+                const emailRegex = /^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+
+            });
+
+              
+     </script>
 @endpush

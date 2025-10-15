@@ -792,19 +792,220 @@
     @endif
 
 
-    @if($showPaymentModal)
     <script>
-        $(document).ready(function() {
-            if (!window.location.pathname.includes('purchase/credit')) {
-                $('#overduePaymentModal').modal({
-                    show: true,
-                    backdrop: 'static',
-                    keyboard: false
-                });
+    $(document).ready(function() {
+        // Business Name Validation
+        const businessNameInput = $('#business_name');
+        const businessNameError = $('.business_name_error');
+
+        businessNameInput.on('input', function() {
+            let value = $(this).val();
+
+            // Allow letters, numbers, spaces, and selected punctuation
+            value = value.replace(/[^A-Za-z0-9 &\-',.!]/g, '');
+
+            // Collapse multiple spaces into one
+            value = value.replace(/\s{2,}/g, ' ');
+
+            // Trim leading spaces
+            value = value.trimStart();
+
+            $(this).val(value);
+
+            // Live error message
+            if (/[^A-Za-z0-9 &\-',.!]/.test(value)) {
+                businessNameError.text('Invalid character detected. Only letters, numbers, spaces, and & - \' , . ! are allowed.').show();
+            } else {
+                businessNameError.text('').hide();
             }
         });
+        const tinInput = $('#tin_number');
+        const tinError = $('.tin_number_error');
+
+        tinInput.on('input', function() {
+            let value = $(this).val();
+
+            // 1. Remove any non-digit characters
+            value = value.replace(/\D/g, '');
+
+            // 2. Limit to 12 digits
+            if (value.length > 12) {
+                value = value.substring(0, 12);
+            }
+
+            // 3. Insert hyphens every 3 digits
+            let formatted = value.replace(/(\d{3})(?=\d)/g, '$1-');
+
+            $(this).val(formatted);
+        });
+
+        // Optional: prevent pasting invalid characters
+        tinInput.on('paste', function(e) {
+            e.preventDefault();
+            let pasteData = (e.originalEvent || e).clipboardData.getData('text/plain');
+            pasteData = pasteData.replace(/\D/g, '').substring(0, 12);
+            let formatted = pasteData.replace(/(\d{3})(?=\d)/g, '$1-');
+            $(this).val(formatted);
+        });
+        
+const contactInput = $('#contact_number');
+
+contactInput.on('input', function() {
+    let value = $(this).val();
+
+    // 1. Remove all invalid characters (allow digits, space, (, ))
+    value = value.replace(/[^0-9\s()-]/g, '');
+
+    // 2. Remove consecutive spaces
+    value = value.replace(/\s+/g, ' ');
+
+    // 3. Remove consecutive parentheses
+    value = value.replace(/\(\(+/g, '(');
+    value = value.replace(/\)\)+/g, ')');
+
+    // 4. Optional: remove space immediately after '(' or before ')'
+    value = value.replace(/\(\s+/g, '(');
+    value = value.replace(/\s+\)/g, ')');
+
+    // 5. Limit total length (you can adjust max)
+    if (value.length > 14) value = value.substring(0, 14);
+
+    $(this).val(value);
+});
+
+// Handle paste to clean input
+contactInput.on('paste', function(e) {
+    e.preventDefault();
+    let pasteData = (e.originalEvent || e).clipboardData.getData('text/plain');
+    pasteData = pasteData.replace(/[^0-9\s()]/g, '')
+                         .replace(/\s+/g, ' ')
+                         .replace(/\(\(+/g, '(')
+                         .replace(/\)\)+/g, ')')
+                         .replace(/\(\s+/g, '(')
+                         .replace(/\s+\)/g, ')')
+                         .substring(0, 14);
+
+    $(this).val(pasteData);
+});
+
+
+                const contactPersonInput = $('#contact_person');
+                const contactPersonError = $('.contact_person_error');
+
+                contactPersonInput.on('input', function() {
+                    let value = $(this).val();
+
+                    // 1. Allow only letters and spaces
+                    value = value.replace(/[^A-Za-z\s]/g, '');
+
+                    // 2. Collapse multiple spaces into one
+                    value = value.replace(/\s{2,}/g, ' ');
+
+                    // 3. Trim leading spaces
+                    value = value.trimStart();
+
+                    // 4. Auto-capitalize each word
+                    value = value.replace(/\b\w/g, c => c.toUpperCase());
+
+                    $(this).val(value);
+
+                    // 5. Live error messages
+                    if (/[^A-Za-z\s]/.test(value)) {
+                        contactPersonError.text('Only letters are allowed.').show();
+                    } else if (/\s{2,}/.test(value)) {
+                        contactPersonError.text('Only one space is allowed between names.').show();
+                    } else {
+                        contactPersonError.text('').hide();
+                    }
+                });
+
+                    const phoneInput = $('#contact_phone');
+                    const phoneError = $('.contact_phone_error');
+
+                    phoneInput.on('input', function() {
+                        let value = $(this).val();
+
+                        // Remove any character that is not a digit or space
+                        value = value.replace(/[^0-9\s]/g, '');
+
+                        // Remove consecutive spaces
+                        value = value.replace(/\s+/g, ' ');
+
+                        // Trim leading/trailing spaces
+                        value = value.trim();
+
+                        $(this).val(value);
+
+                        // Count only digits for validation
+                        const digitsOnly = value.replace(/\s/g, '');
+
+                        if (digitsOnly.length > 0 && digitsOnly.length < 11) {
+                            phoneError.text('Phone number must have exactly 11 digits.').show();
+                        } else if (digitsOnly.length > 11) {
+                            // Trim to 11 digits
+                            let trimmed = digitsOnly.substring(0, 11);
+                            // Optional: reformat with spaces for readability
+                            phoneInput.val(trimmed.replace(/(\d{4})(\d{3})(\d{4})/, '$1 $2 $3'));
+                            phoneError.text('').hide();
+                        } else {
+                            phoneError.text('').hide();
+                        }
+                    });
+                    
+        const contactPersonPhoneInput = $('#contact_person_number');
+        const contactPersonPhoneError = $('.contact_person_number_error');
+
+        contactPersonPhoneInput.on('input', function() {
+            let value = $(this).val();
+
+            // Remove all non-digit characters
+            value = value.replace(/\D/g, '');
+
+            // Limit to 11 digits
+            if (value.length > 11) value = value.substring(0, 11);
+
+            // Auto-insert spaces: 0930 984 7881
+            if (value.length > 7) {
+                value = value.replace(/(\d{4})(\d{3})(\d{0,4})/, '$1 $2 $3');
+            } else if (value.length > 4) {
+                value = value.replace(/(\d{4})(\d{0,3})/, '$1 $2');
+            }
+
+            $(this).val(value);
+
+            // Count digits only for validation
+            const digitsOnly = value.replace(/\s/g, '');
+
+        });
+
+    // Optional: handle paste event to auto-format
+    contactPersonPhoneInput.on('paste', function(e) {
+        e.preventDefault();
+        let pasteData = (e.originalEvent || e).clipboardData.getData('text/plain');
+        pasteData = pasteData.replace(/\D/g, '').substring(0, 11);
+
+        if (pasteData.length > 7) {
+            pasteData = pasteData.replace(/(\d{4})(\d{3})(\d{0,4})/, '$1 $2 $3');
+        } else if (pasteData.length > 4) {
+            pasteData = pasteData.replace(/(\d{4})(\d{0,3})/, '$1 $2');
+        }
+
+        $(this).val(pasteData);
+        contactPersonPhoneError.text(digitsOnly.length < 11 ? 'Phone number must have exactly 11 digits.' : '').hide();
+    });
+        
+        // Payment Modal Logic (optional, separate)
+        @if($showPaymentModal)
+        if (!window.location.pathname.includes('purchase/credit')) {
+            $('#overduePaymentModal').modal({
+                show: true,
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+        @endif
+    });
     </script>
-    @endif
 
     @endauth
 

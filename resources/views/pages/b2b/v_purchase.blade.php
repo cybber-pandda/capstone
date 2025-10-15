@@ -69,7 +69,7 @@
                     </div>
                     <div class="form-group">
                         <label>Upload Photo (optional)</label>
-                        <input type="file" name="photo" class="form-control">
+                        <input type="file" name="photo" class="form-control" accept=".jpg, .jpeg, .png">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -96,10 +96,10 @@
                         <label>Reason for refund</label>
                         <textarea class="form-control" name="reason" required></textarea>
                     </div>
-                    <div class="form-group">
-                        <label>Amount</label>
-                        <input type="number" step="0.01" name="amount" class="form-control" required>
-                    </div>
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="number" step="0.01" name="amount" class="form-control" id="amountInput" required>
+                        </div>
                     <div class="form-group">
                         <label>Method</label>
                         <select name="method" class="form-control" required>
@@ -111,10 +111,10 @@
                         <label>Transaction Reference</label>
                         <input type="text" name="reference" class="form-control" required>
                     </div>
-                    <div class="form-group">
-                        <label>Upload Proof</label>
-                        <input type="file" name="proof" class="form-control" required>
-                    </div>
+                        <div class="form-group">
+                            <label>Upload Proof</label>
+                            <input type="file" name="proof" class="form-control" accept=".jpg, .jpeg, .png" required>
+                        </div>
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-danger">Submit Refund</button>
@@ -259,6 +259,12 @@
                     toast('error', msg);
                 }
             });
+        });
+        document.getElementById('amountInput').addEventListener('keydown', function (e) {
+            // Disallow 'e', 'E', '+', and '-'
+            if (['e', 'E', '+', '-'].includes(e.key)) {
+                e.preventDefault();
+            }
         });
 
     });

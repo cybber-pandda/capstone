@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 use App\Models\PurchaseRequestRefund;
 use App\Models\PurchaseRequestReturn;
@@ -17,9 +18,29 @@ class ReturnRefundController extends Controller
 {
     public function index()
     {
+        // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        // 2️⃣ If user is logged in → check their role
+        $user = Auth::user();
+
+        // Example role logic (adjust 'role' and role names to match your database)
+        
+        if ($user->role === 'salesofficer') {
+
         return view('pages.admin.salesofficer.v_returnRefund', [
             'page' => 'Return & Refund'
-        ]);
+        ]);}
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
     public function data(Request $request)
@@ -37,6 +58,17 @@ class ReturnRefundController extends Controller
                 })
                 ->editColumn('created_at', fn($pr) => Carbon::parse($pr->created_at)->format('F d, Y h:i A'))
                 ->addColumn('action', fn($pr) => '<button class="btn btn-sm btn-primary review-return" data-id="' . $pr->id . '">Review</button>')
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->input('search.value')) {
+                        $query->whereHas('purchaseRequest.customer', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('product', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhere('status', 'like', "%{$search}%");
+                    }
+                })
                 ->rawColumns(['photo', 'action'])
                 ->make(true);
         } elseif ($request->type === 'refund') {
@@ -54,6 +86,17 @@ class ReturnRefundController extends Controller
                 })
                 ->editColumn('created_at', fn($pr) => Carbon::parse($pr->created_at)->format('F d, Y h:i A'))
                 ->addColumn('action', fn($pr) => '<button class="btn btn-sm btn-success process-refund" data-id="' . $pr->id . '">Process</button>')
+                ->filter(function ($query) use ($request) {
+                    if ($search = $request->input('search.value')) {
+                        $query->whereHas('purchaseRequest.customer', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhereHas('product', function ($q) use ($search) {
+                            $q->where('name', 'like', "%{$search}%");
+                        })
+                        ->orWhere('status', 'like', "%{$search}%");
+                    }
+                })
                 ->rawColumns(['photo', 'action'])
                 ->make(true);
         }
@@ -167,7 +210,7 @@ class ReturnRefundController extends Controller
         Notification::create([
             'user_id' => $customerPr->customer_id,
             'type' => 'refund_purchase',
-            'message' => 'Your refund request has been declined',
+            'message' => 'Your refund request has been declined.',
             'link' => route('b2b.purchase.rr'),
         ]);
 

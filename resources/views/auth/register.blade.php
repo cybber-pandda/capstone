@@ -273,6 +273,158 @@
                 e.preventDefault();
                 $(this).tab('show');
             });
+
+            // --- First Name Validation ---
+            const firstNameInput = $('#firstname');
+            const firstNameError = $('#firstname_error');
+
+            firstNameInput.on('input', function() {
+                let value = $(this).val();
+
+                // 1. Allow only letters and spaces
+                value = value.replace(/[^A-Za-z\s]/g, '');
+
+                // 2. Replace multiple spaces with a single space
+                value = value.replace(/\s{2,}/g, ' ');
+
+                // 3. Remove leading/trailing spaces
+                value = value.trimStart();
+
+                // 4. Auto-capitalize each word
+                value = value.replace(/\b\w/g, c => c.toUpperCase());
+
+                $(this).val(value);
+
+                // Error messages
+                if (/[^A-Za-z\s]/.test(value)) {
+                    firstNameError.text('Only letters are allowed.').show();
+                } else if (/\s{2,}/.test(value)) {
+                    firstNameError.text('Only one space is allowed between names.').show();
+                } else {
+                    firstNameError.text('').hide();
+                }
+            });
+
+            const lastNameInput = $('#lastname');
+            const lastNameError = $('#lastname_error');
+
+            lastNameInput.on('input', function() {
+                let value = $(this).val();
+
+                // 1. Allow only letters, spaces, and periods (for suffix)
+                value = value.replace(/[^A-Za-z.\s]/g, '');
+
+                // 2. Replace multiple spaces with a single space
+                value = value.replace(/\s{2,}/g, ' ');
+
+                // 3. Trim leading spaces
+                value = value.trimStart();
+
+                // 4. Prevent starting or trailing dots (e.g., ".Dator", "Dator.")
+                value = value.replace(/^\./, '');
+                value = value.replace(/\.$/, '');
+
+                // 5. Prevent dot in the middle (e.g., Dator.Santos → Dator Santos)
+                value = value.replace(/([A-Za-z]+)\.([A-Za-z]+)/g, '$1 $2');
+
+                // 6. Auto-capitalize each word
+                value = value.replace(/\b\w/g, c => c.toUpperCase());
+
+                // 7. Auto-fix suffix casing (jr → Jr., sr → Sr.)
+                const suffixFix = {
+                    'jr': 'Jr.',
+                    'jr.': 'Jr.',
+                    'sr': 'Sr.',
+                    'sr.': 'Sr.'
+                };
+
+                let parts = value.split(' ');
+                if (parts.length > 1) {
+                    let lastWord = parts[parts.length - 1].toLowerCase();
+                    if (suffixFix[lastWord]) {
+                        parts[parts.length - 1] = suffixFix[lastWord];
+                    }
+                }
+
+                // 8. Disallow Sr./Jr. as prefix (e.g., "Sr Dator")
+                if (/^(Sr\.?|Jr\.?)\s/i.test(value)) {
+                    value = value.replace(/^(Sr\.?|Jr\.?)\s*/i, '');
+                    lastNameError.text('“Sr.” or “Jr.” cannot be at the start of the surname.').show();
+                } 
+                else {
+                    // 9. Disallow Sr./Jr. in the middle (e.g., "Dator Jr. Dator")
+                    if (/\b(Jr\.?|Sr\.?)\s+[A-Za-z]/i.test(value)) {
+                        lastNameError.text('“Sr.” or “Jr.” must only appear at the end of the surname.').show();
+                        // Remove anything after the suffix (keeps only up to Jr./Sr.)
+                        value = value.replace(/\b(Jr\.?|Sr\.?).*$/i, '$1');
+                    } else {
+                        lastNameError.text('').hide();
+                    }
+                }
+
+                // 10. Allow only these valid suffixes at the end
+                const validSuffixes = ['Jr.', 'Sr.', 'II', 'III', 'IV'];
+                const lastWord = parts[parts.length - 1];
+                if (parts.length > 1 && /\./.test(lastWord) && !validSuffixes.includes(lastWord)) {
+                    parts.pop();
+                    lastNameError.text('Invalid suffix. Only "Jr.", "Sr.", "II", "III", or "IV" allowed.').show();
+                } else if (parts.length > 1 && !/\./.test(lastWord) && !validSuffixes.includes(lastWord)) {
+                    lastNameError.text('').hide();
+                }
+
+                value = parts.join(' ');
+                $(this).val(value);
+            });
+            
+            const usernameInput = $('#username');
+            const usernameError = $('#username_error');
+
+            usernameInput.on('input', function() {
+                let value = $(this).val();
+
+                // New: Allows [A-Za-z0-9._-]
+                value = value.replace(/[^a-z0-9_]/g, '');
+
+                // 2. Collapse consecutive underscores or periods
+                value = value.replace(/([_])\1+/g, '$1');
+
+                // 3. Remove leading underscores or periods
+                value = value.replace(/^([_]+)/, '');
+
+                $(this).val(value);
+
+            const emailInput = $('#email');
+            const emailError = $('#email_error');
+
+            emailInput.on('input', function() {
+                let value = $(this).val().toLowerCase(); // optional: lowercase for uniformity
+
+                // 1. Remove invalid characters (letters, numbers, ., _, -, @)
+                value = value.replace(/[^a-z0-9._@-]/g, '');
+
+                // 2. Ensure only one @
+                const atParts = value.split('@');
+                if (atParts.length > 2) {
+                    value = atParts[0] + '@' + atParts.slice(1).join('').replace(/@/g, '');
+                }
+
+                // 3. Remove consecutive dots
+                value = value.replace(/\.{2,}/g, '.');
+
+                // 4. Remove leading periods
+                value = value.replace(/^\.+/, '');
+
+                // 5. Remove periods just before @
+                value = value.replace(/\.@/g, '@');
+
+                $(this).val(value);
+
+                // 8. Regex check for valid email format
+                const emailRegex = /^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+
+                });
+            });
+                        
         });
     </script>
     @endpush

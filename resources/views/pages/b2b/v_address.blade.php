@@ -41,7 +41,11 @@
                     <div class="form-group"><label>Barangay</label><input type="text" name="barangay" class="form-control" required></div>
                     <div class="form-group"><label>City</label><input type="text" name="city" class="form-control" required></div>
                     <div class="form-group"><label>Province</label><input type="text" name="province" class="form-control" required></div>
-                    <div class="form-group"><label>Zip Code</label><input type="text" name="zip_code" class="form-control"></div>
+                    <div class="form-group">
+                        <label>Zip Code</label>
+                        <input type="text" name="zip_code" class="form-control" maxlength="4" pattern="\d*" title="Numbers only, max 4 digits">
+                    </div>
+
 
                     <div class="form-group">
                         <label>Address Notes</label>
@@ -232,5 +236,17 @@
             }
         });
     });
+
+    document.querySelector('input[name="zip_code"]').addEventListener('input', function() {
+        // Remove all non-digit characters
+        this.value = this.value.replace(/\D/g, '');
+        
+        // Limit to 4 digits
+        if (this.value.length > 4) {
+            this.value = this.value.slice(0, 4);
+        }
+    });
+
+    
 </script>
 @endpush

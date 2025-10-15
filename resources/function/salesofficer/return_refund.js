@@ -4,6 +4,10 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         responsive: true,
+        language: {
+            search: "Search:", // remove "Search:" label
+            searchPlaceholder: "Search here" // add placeholder
+        },
         ajax: {
             url: "/salesofficer/return-refund/data",
             data: { type: "return" }
@@ -24,6 +28,10 @@ $(document).ready(function () {
         processing: true,
         serverSide: true,
         responsive: true,
+        language: {
+            search: "Search:", // remove "Search:" label
+            searchPlaceholder: "Search here" // add placeholder
+        },
         ajax: {
             url: "/salesofficer/return-refund/data",
             data: { type: "refund" }
