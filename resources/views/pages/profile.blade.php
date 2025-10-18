@@ -96,32 +96,32 @@
                         <!-- Tab content -->
                         <div class="tab-content mt-3">
                             <div class="tab-pane fade show active" id="profile" role="tabpanel">
-                                <div class="mb-3">
-                                    <label for="profileImage" class="form-label">Profile Image</label>
-                                    <input type="file" class="form-control" id="profileImage">
-                                </div>
+                            <div class="mb-3">
+                                        <label for="profileImage" class="form-label">Profile Image</label>
+                                        <input type="file" class="form-control" id="profileImage" accept="image/png, image/jpeg, image/jpg, image/gif">
+                                    </div>
                             </div>
                             <div class="tab-pane fade" id="name" role="tabpanel">
                                 <div class="mb-3">
                                     <label for="firstNameInput" class="form-label">First Name</label>
-                                    <input type="text" class="form-control" id="firstNameInput">
+                                    <input type="text" class="form-control" id="firstNameInput" pattern="[\p{Lu}\p{Ll}]+(\s[\p{Lu}\p{Ll}]+)*" title="Only letters allowed, first letter capitalized">
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="lastNameInput" class="form-label">Last Name</label>
-                                    <input type="text" class="form-control" id="lastNameInput">
+                                    <input type="text" class="form-control" id="lastNameInput" pattern="[\p{Lu}\p{Ll}]+(\s[\p{Lu}\p{Ll}]+)*" title="Only letters allowed, first letter capitalized">
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="username" role="tabpanel">
                                 <div class="mb-3">
                                     <label for="usernameInput" class="form-label">Username</label>
-                                    <input type="text" class="form-control" id="usernameInput">
+                                    <input type="text" class="form-control" id="usernameInput" pattern="[a-z0-9]+" title="Only lowercase letters and numbers allowed">
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="email" role="tabpanel">
                                 <div class="mb-3">
                                     <label for="emailInput" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="emailInput">
+                                    <input type="email" class="form-control" id="emailInput" pattern="[a-z0-9@.]+" title="Only lowercase letters, numbers, @, and . allowed">
                                 </div>
                             </div>
                             <div class="tab-pane fade" id="password" role="tabpanel">
@@ -171,7 +171,33 @@
 
 
 @push('scripts')
-    <script>
+<script>
+    $(document).ready(function() {
+
+        // First Name & Last Name: only letters, first letter uppercase
+        $('#firstNameInput, #lastNameInput').on('input', function() {
+            let value = this.value
+                .replace(/[^A-Za-zÀ-ÖØ-öø-ÿ\s]/g, '') // allow letters and spaces
+                .replace(/\b\w/g, l => l.toUpperCase()); // capitalize first letter
+            this.value = value;
+        });
+
+        // Username: lowercase letters + numbers only
+        $('#usernameInput').on('input', function() {
+            this.value = this.value.replace(/[^a-z0-9]/g, '');
+        });
+
+        // Email: lowercase only, allow a-z, 0-9, @, .
+        $('#emailInput').on('input', function() {
+            this.value = this.value.toLowerCase().replace(/[^a-z0-9@.]/g, '');
+        });
+
+        // ✅ Strong password validation function
+        function isStrongPassword(password) {
+            const pattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+            return pattern.test(password);
+        }
+
         $('#editProfileBtn').on('click', function () {
             $('#editProfileModal').modal('show');
             $('.form-control').val('');
@@ -203,9 +229,25 @@
                     break;
 
                 case 'password':
-                    formData.append('current_password', $('#currentPasswordInput').val());
-                    formData.append('new_password', $('#newPasswordInput').val());
-                    formData.append('new_password_confirmation', $('#confirmPasswordInput').val());
+                    const currentPassword = $('#currentPasswordInput').val();
+                    const newPassword = $('#newPasswordInput').val();
+                    const confirmPassword = $('#confirmPasswordInput').val();
+
+                    // ✅ Strong password check
+                    if (!isStrongPassword(newPassword)) {
+                        toast('error', 'New password must be at least 8 characters long and include uppercase, lowercase, number, and special character.');
+                        return;
+                    }
+
+                    // ✅ Confirm password match
+                    if (newPassword !== confirmPassword) {
+                        toast('error', 'New password and confirmation do not match.');
+                        return;
+                    }
+
+                    formData.append('current_password', currentPassword);
+                    formData.append('new_password', newPassword);
+                    formData.append('new_password_confirmation', confirmPassword);
                     break;
 
                 case 'about':
@@ -223,11 +265,10 @@
                     $('#editProfileModal').modal('hide');
                     getProfileDetails(CURRENT_USER_ID);
                     $('.form-control').val('');
-                    toast('success', response.message); // ✅ Show success message
+                    toast('success', response.message);
                 },
                 error: function (xhr) {
                     if (xhr.status === 422) {
-                        // ✅ Validation errors
                         let errors = xhr.responseJSON.errors;
                         if (errors) {
                             $.each(errors, function (key, messages) {
@@ -236,13 +277,14 @@
                                 });
                             });
                         } else if (xhr.responseJSON.error) {
-                            toast('error', xhr.responseJSON.error); // e.g. password mismatch
+                            toast('error', xhr.responseJSON.error);
                         }
                     } else {
-                        toast('error', 'Something went wrong.'); // fallback
+                        toast('error', 'Something went wrong.');
                     }
                 }
             });
         });
-    </script>
+    });
+</script>
 @endpush

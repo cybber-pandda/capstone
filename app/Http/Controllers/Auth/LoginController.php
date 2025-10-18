@@ -61,6 +61,12 @@ class LoginController extends Controller
             }
         }
 
+        // ✅ Check if account is deactivated - ITO
+        if ($user->status == 0) {
+            Auth::logout(); // ensure no residual session
+            return redirect()->route('login')->with('account_deactivated', true);
+        }
+        //HANGGANG DITO
         // If password incorrect
         if (!\Hash::check($password, $user->password)) {
             return back()->withErrors([
@@ -125,7 +131,7 @@ class LoginController extends Controller
         return [
             $field => $identifier,
             'password' => $request->input('password'),
-            'status' => 1,
+            //'status' => 1, ITO
         ];
     }
 

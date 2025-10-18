@@ -28,16 +28,18 @@
         <div class="row mb-3">
             <div class="col-md-4">
                 <label>Customer Name</label>
-                <input type="text" name="customer_name" class="form-control" required>
+                <input type="text" name="customer_name" class="form-control" required
+                    pattern="[A-Za-z\s]+" title="Only letters and spaces are allowed">
             </div>
             <div class="col-md-4">
                 <label>Customer Address</label>
                 <input type="text" name="customer_address" class="form-control" required>
             </div>
-            <div class="col-md-4">
-                <label>Customer Phone Number</label>
-                <input type="number" name="customer_phone_number" class="form-control" required>
-            </div>
+                <div class="col-md-4">
+                    <label>Customer Phone Number</label>
+                    <input type="text" name="customer_phone_number" class="form-control" required
+                        pattern="\d{1,11}" maxlength="11" title="Only numbers are allowed, up to 11 digits">
+                </div>
         </div>
 
         <div class="row mb-3">
@@ -50,10 +52,6 @@
             <div class="{{ $type != 'walkin' ? 'col-md-4' : 'col-md-6' }}">
                 <label>Order Date</label>
                 <input type="date" name="order_date" id="orderDate" class="form-control" required>   {{-- ITO --}}
-            </div>
-            <div class="{{ $type != 'walkin' ? 'col-md-4' : 'col-md-6' }}">
-                <label>Remarks</label>
-                <input type="text" name="remarks" class="form-control">
             </div>
         </div>
 
@@ -139,7 +137,7 @@
                     <button type="button" class="btn btn-dark btn-sm qty-plus"><i class="link-icon" data-lucide="plus"></i></button>
                 </div>
             </td>
-            <td><input type="number" class="form-control price" name="products[${index}][price]" value="0" min="0" step="any"></td>
+            <td><input type="number" class="form-control price" name="products[${index}][price]" value="0" min="0" step="any" readonly></td>
             <td><input type="text" class="form-control total" readonly></td>
             <td><button type="button" class="btn btn-danger btn-sm removeRow"><i class="link-icon" data-lucide="x"></i> Remove</button></td>
         </tr>`;
@@ -294,6 +292,14 @@
                 }
             });
         });
+        
+        $(document).on('input', 'input[name="customer_name"]', function() {
+            this.value = this.value.replace(/[^A-Za-z\s]/g, '');
+        });
+        $(document).on('input', 'input[name="customer_phone_number"]', function() {
+            this.value = this.value.replace(/\D/g, '').slice(0, 11);
+        });
+
     });
 </script>
 @endpush

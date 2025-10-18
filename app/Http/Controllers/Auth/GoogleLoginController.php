@@ -26,6 +26,13 @@ class GoogleLoginController extends Controller
         $existingUser = User::where('email', $googleUser->email)->first();
 
         if ($existingUser) {
+            // If user exists but is deactivated
+            if (!$existingUser->status) {
+                return redirect()->route('login')
+                    ->with('account_deactivated', true);
+            }
+
+            // Normal login flow
             Auth::login($existingUser);
             return redirect(RouteServiceProvider::HOME);
         }
@@ -39,7 +46,7 @@ class GoogleLoginController extends Controller
             'password' => Hash::make(rand(100000, 999999)),
             'profile' => $googleUser->avatar,
         ]);
-
+        
         // Log in the newly created user
         Auth::login($user);
 

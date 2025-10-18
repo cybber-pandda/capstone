@@ -98,4 +98,20 @@
 
 @push('scripts')
 <script src="{{ route('secure.js', ['filename' => 'login']) }}"></script>
+@if(session('account_deactivated'))
+<script>
+//if hanngang endif
+Swal.fire({ 
+  icon: 'warning',
+  title: 'Account Deactivated',
+  text: 'Your account is temporarily deactivated. Please contact us at tantucoctc@gmail.com',
+  confirmButtonColor: '#6571ff',
+  customClass: {
+    popup: 'swal-custom-popup',
+    title: 'swal-custom-title',
+    confirmButton: 'swal-custom-button'
+  }
+});
+</script>
+@endif
 @endpush
