@@ -253,6 +253,7 @@ class InventoryManagementController extends Controller
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
+            'expiry_date' => 'nullable|date',
             'type' => 'required|in:in,out',
             'reason' => 'nullable|string',
         ]);
@@ -286,6 +287,7 @@ class InventoryManagementController extends Controller
             $inventory = $product->inventories()->create([
                 'type' => $validated['type'],
                 'quantity' => abs($validated['quantity']),
+                'expiry_date' => $validated['expiry_date'],
                 'reason' => $validated['reason'],
             ]);
 

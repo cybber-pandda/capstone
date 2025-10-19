@@ -29,7 +29,7 @@ class WelcomeController extends Controller
             ->select(['id', 'category_id', 'sku', 'name', 'description', 'price', 'discount', 'discounted_price', 'created_at', 'expiry_date']);
 
         if ($request->filled('search')) {
-            $products->where(function($query) use ($request) {
+            $products->where(function ($query) use ($request) {
                 $query->where('name', 'like', '%' . $request->search . '%')
                     ->orWhere('description', 'like', '%' . $request->search . '%');
             });
@@ -61,6 +61,7 @@ class WelcomeController extends Controller
             'inventories',
             'category',
             'productImages',
+            'prReserveStocks',
             'ratings.user:id,name' // Only fetch id and name for efficiency
         ])
             ->select([
@@ -77,6 +78,11 @@ class WelcomeController extends Controller
             ])
             ->findOrFail($id);
 
+        // Calculate Reserve Stock (only pending and approved)
+        $reserveStock = $product->prReserveStocks()
+            ->whereIn('status', ['pending', 'approved'])
+            ->sum('qty');
+
         // Calculate average rating and total number of ratings
         $averageRating = $product->ratings->avg('rating');
         $totalRatings  = $product->ratings->count();
@@ -86,6 +92,7 @@ class WelcomeController extends Controller
             'product' => $product,
             'average_rating' => $averageRating ? round($averageRating, 1) : 0,
             'total_ratings'  => $totalRatings,
+            'reserve_stock' => $reserveStock,
         ]);
     }
 
@@ -121,26 +128,26 @@ class WelcomeController extends Controller
 
     public function store(Request $request)
     {
-$validated = $request->validate([
-    'customer_type'          => 'required',
-    'customer_name'          => 'required|string|max:255',
-    'customer_address'       => 'required|string|max:255',
-    'customer_phone_number'  => ['required', 'regex:/^09\d{9}$/'],
-    'order_date'             => 'required|date',
-    'remarks'                => 'nullable|string|max:255',
-    'products'               => 'required|array|min:1',
-    'products.*.category_id' => 'required|integer',
-    'products.*.product_id'  => 'required|integer',
-    'products.*.qty'         => 'required|integer|min:1',
-], [
-    'customer_phone_number.required' => 'Please enter the customer phone number.',
-    'customer_phone_number.regex'    => 'Phone number must be 11 digits and start with 09.',
-    'products.required'                => 'Please add at least one product.',
-    'products.*.category_id.required'  => 'Please select a category for each product row.',
-    'products.*.product_id.required'   => 'Please select a product for each product row.',
-    'products.*.qty.required'          => 'Please enter quantity for each product row.',
-    'products.*.qty.min'               => 'Quantity must be at least 1 in each product row.',
-]);
+        $validated = $request->validate([
+            'customer_type'          => 'required',
+            'customer_name'          => 'required|string|max:255',
+            'customer_address'       => 'required|string|max:255',
+            'customer_phone_number'  => ['required', 'regex:/^09\d{9}$/'],
+            'order_date'             => 'required|date',
+            'remarks'                => 'nullable|string|max:255',
+            'products'               => 'required|array|min:1',
+            'products.*.category_id' => 'required|integer',
+            'products.*.product_id'  => 'required|integer',
+            'products.*.qty'         => 'required|integer|min:1',
+        ], [
+            'customer_phone_number.required' => 'Please enter the customer phone number.',
+            'customer_phone_number.regex'    => 'Phone number must be 11 digits and start with 09.',
+            'products.required'                => 'Please add at least one product.',
+            'products.*.category_id.required'  => 'Please select a category for each product row.',
+            'products.*.product_id.required'   => 'Please select a product for each product row.',
+            'products.*.qty.required'          => 'Please enter quantity for each product row.',
+            'products.*.qty.min'               => 'Quantity must be at least 1 in each product row.',
+        ]);
         foreach ($validated['products'] as &$product) {
             $dbProduct = Product::find($product['product_id']);
             $product['price'] = ($dbProduct->discounted_price > 0) ? $dbProduct->discounted_price : $dbProduct->price;

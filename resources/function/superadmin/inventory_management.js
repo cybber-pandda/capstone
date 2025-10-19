@@ -1,4 +1,7 @@
 $(document).ready(function () {
+    let today = new Date().toISOString().split("T")[0];
+    $('#inventoryMangementForm input[name="expiry_date"]').attr("min", today);
+
     const table = $("#inventoryManagement").DataTable({
         processing: true,
         serverSide: true,
@@ -97,6 +100,10 @@ $(document).ready(function () {
             placeholder: "",
             allowClear: true,
         });
+    });
+
+    $(document).on("click", "#clear-expiry", function () {
+        $('#inventoryMangementForm input[name="expiry_date"]').val("");
     });
 
     $("#saveInventory").on("click", function (e) {

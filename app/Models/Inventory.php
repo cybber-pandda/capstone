@@ -15,6 +15,12 @@ class Inventory extends Model
         'product_id',
         'type',
         'quantity',
+        'expiry_date',
         'reason'
     ];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
 }

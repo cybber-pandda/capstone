@@ -62,4 +62,5 @@ class PaidPayment extends Model
             'id'
         );
     }
+
 }

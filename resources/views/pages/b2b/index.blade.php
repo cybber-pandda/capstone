@@ -1,7 +1,7 @@
 @extends('layouts.shop')
 
 @section('content')
-    
+
 <!-- SECTION -->
 <div class="section section-scrollable" style="display:none;">
     <!-- container -->
@@ -66,8 +66,8 @@
                     <div class="col-md-6">
                         <div id="product-images" class="text-center" style="margin-bottom: 15px;">
                             <!-- Main Image -->
-                            <img id="modal-image" src="{{ asset('assets/dashboard/images/noimage.png') }}" 
-                                 class="img-responsive center-block main-product-image" style="max-height: 300px;" alt="Product Image">
+                            <img id="modal-image" src="{{ asset('assets/dashboard/images/noimage.png') }}"
+                                class="img-responsive center-block main-product-image" style="max-height: 300px;" alt="Product Image">
                         </div>
                         <div id="image-thumbnails" class="text-center clearfix" style="margin-bottom: 15px;">
                             <!-- Thumbnails will be appended here by JS -->
@@ -172,7 +172,7 @@
         // If user clears the input, auto-reset (fetch "all").
         // Only trigger fetch when the input becomes empty to avoid requests while typing.
         // Live search with debounce (400ms delay)
-         //nag add ako ng search mobile
+        //nag add ako ng search mobile
         $('#search_value, #search_value_mobile').on('input', debounce(function() {
             searchQuery = $(this).val().trim();
 
@@ -227,13 +227,13 @@
             };
         }
 
-        $(document).on('click', '.quick-view', function () {
+        $(document).on('click', '.quick-view', function() {
             var productId = $(this).data('id');
 
             $.ajax({
                 url: '/product/details/' + productId,
                 type: 'GET',
-                success: function (response) {
+                success: function(response) {
                     var product = response.product;
 
                     // Basic Info
@@ -264,7 +264,7 @@
                     var reviewsContainer = $('#modal-reviews');
                     reviewsContainer.empty();
                     if (product.ratings.length > 0) {
-                        product.ratings.forEach(function (review) {
+                        product.ratings.forEach(function(review) {
                             reviewsContainer.append(`
                                 <div class="review-box" style="border-bottom:1px solid #eee; padding:8px 0;">
                                     <strong>${review.user.name}</strong><br>
@@ -292,21 +292,27 @@
                     product.product_images.forEach(img => {
                         const thumbPath = '/' + img.image_path;
                         const thumbnail = $(`<img src="${thumbPath}" class="img-thumbnail m-1" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;">`);
-                        thumbnail.on('click', function () {
+                        thumbnail.on('click', function() {
                             $('#modal-image').attr('src', thumbPath);
                         });
                         thumbnailsContainer.append(thumbnail);
                     });
 
                     // Inventory
-                    let totalIn = 0, totalOut = 0;
+                    let totalIn = 0,
+                        totalOut = 0;
                     if (product.inventories && product.inventories.length > 0) {
-                        product.inventories.forEach(function (inv) {
+                        product.inventories.forEach(function(inv) {
                             if (inv.type === 'in') totalIn += parseInt(inv.quantity);
                             else if (inv.type === 'out') totalOut += parseInt(inv.quantity);
                         });
                         const netStock = totalIn - totalOut;
-                        $('#inventory-list').html(`<li><strong>Available Stock:</strong> ${netStock}</li>`);
+                        const reserveStock = response.reserve_stock ?? 0;
+
+                        $('#inventory-list').html(`
+                            <li><strong>Available Stock:</strong> ${netStock}</li>
+                            <li><strong>Reserve Stock:</strong> ${reserveStock}</li>
+                        `);
                     } else {
                         $('#inventory-list').html('<li>No inventory info</li>');
                     }
@@ -314,7 +320,7 @@
                     // Show modal
                     $('#productModal').modal('show');
                 },
-                error: function () {
+                error: function() {
                     toast('error', 'Error loading product info');
                 }
             });
@@ -328,7 +334,7 @@
             const quantity = $quantityInput.val();
 
             if (!quantity || isNaN(quantity) || parseInt(quantity) <= 0) {
-                toast('warning','Please enter a valid quantity greater than 0.');
+                toast('warning', 'Please enter a valid quantity greater than 0.');
                 return;
             }
 
@@ -343,9 +349,9 @@
                     toast('success', response.message);
                     $quantityInput.val('');
 
-                    
-                    setTimeout(function(){
-                       location.reload();
+
+                    setTimeout(function() {
+                        location.reload();
                     }, 3000)
 
                     // window.purchaseRequestCart = {
@@ -414,7 +420,7 @@
 
         //bago
         // ===== CREDIT LIMIT ALERT SYSTEM =====
-        const creditLimit = {{ Auth::user()->credit_limit ?? 0 }};
+        const creditLimit = {{Auth::user()->credit_limit ?? 0}};
 
         // We'll track each threshold separately
         const shown40 = sessionStorage.getItem('creditAlert40');
@@ -443,8 +449,7 @@
                 "error",
                 "#d33"
             );
-        }
-        else if (creditLimit <= 30000 && !shown30) {
+        } else if (creditLimit <= 30000 && !shown30) {
             showCreditAlert(
                 30,
                 "Low Credit Limit",
@@ -453,8 +458,7 @@
                 "warning",
                 "#f39c12"
             );
-        }
-        else if (creditLimit <= 40000 && !shown40) {
+        } else if (creditLimit <= 40000 && !shown40) {
             showCreditAlert(
                 40,
                 "Heads Up!",

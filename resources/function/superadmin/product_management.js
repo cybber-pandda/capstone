@@ -1,8 +1,6 @@
 $(document).ready(function () {
     let productId;
     let imagePreview = $("#imagePreviewContainer");
-    let today = new Date().toISOString().split("T")[0];
-    $('#productForm input[name="expiry_date"]').attr("min", today);
 
     const table = $("#productManagement").DataTable({
         processing: true,
@@ -121,7 +119,7 @@ $(document).ready(function () {
             $('#productForm input[name="name"]').val(response.product.name);
             $('#productForm input[name="price"]').val(response.product.price);
             $('#productForm input[name="discount"]').val(response.product.discount);
-            $('#productForm input[name="expiry_date"]').val(response.product.expiry_date);
+            // $('#productForm input[name="expiry_date"]').val(response.product.expiry_date);
             $('#productForm input[name="maximum_stock"]').val(response.product.maximum_stock);
             $('#productForm input[name="critical_stock_level"]').val(response.product.critical_stock_level);
             $('#productForm select[name="category_id"]').val(response.product.category_id).trigger('change');

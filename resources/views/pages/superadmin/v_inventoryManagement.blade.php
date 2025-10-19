@@ -41,16 +41,16 @@
     <form id="inventoryMangementForm" action="{{ route('inventory.store') }}" method="POST">
 
         @component('components.select', [
-            'label' => 'Product',
-            'name' => 'product_id',
-            'selected' => old('product_id', ''),
-            'options' => $product_select->pluck('name', 'id')->toArray(),
-            'attributes' => 'required'
+        'label' => 'Product',
+        'name' => 'product_id',
+        'selected' => old('product_id', ''),
+        'options' => $product_select->pluck('name', 'id')->toArray(),
+        'attributes' => 'required'
         ])
         @endcomponent
 
         @component('components.input', ['label' => 'Quantity', 'type' => 'number', 'name' => 'quantity', 'attributes' => '' ]) @endcomponent
-        
+
         @component('components.select', [
         'label' => 'Stock Type',
         'name' => 'type',
@@ -58,6 +58,9 @@
         'options' => ['in', 'out'],
         'attributes' => ''
         ]) @endcomponent
+
+        @component('components.input', ['label' => 'Product Expiration Date', 'type' => 'date', 'name' => 'expiry_date', 'attributes' => '' ]) @endcomponent
+        <button type="button" class="btn btn-sm btn-outline-secondary mb-3" id="clear-expiry">Clear Expiry Date</button>
 
         @component('components.select', [
         'label' => 'Stock Reason',

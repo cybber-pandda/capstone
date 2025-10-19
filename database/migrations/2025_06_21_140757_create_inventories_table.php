@@ -18,6 +18,7 @@ class CreateInventoriesTable extends Migration
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->enum('type', ['in', 'out']);
             $table->integer('quantity');
+            $table->date('expiry_date')->nullable();
             $table->enum('reason', ['restock', 'sold', 'returned', 'damaged', 'stock update', 'other'])->nullable();
             $table->timestamps();
         });

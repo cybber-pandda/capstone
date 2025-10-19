@@ -251,7 +251,12 @@
                             else if (inv.type === 'out') totalOut += parseInt(inv.quantity);
                         });
                         const netStock = totalIn - totalOut;
-                        $('#inventory-list').html(`<li><strong>Available Stock:</strong> ${netStock}</li>`);
+                        const reserveStock = response.reserve_stock ?? 0;
+
+                        $('#inventory-list').html(`
+                            <li><strong>Available Stock:</strong> ${netStock}</li>
+                            <li><strong>Reserve Stock:</strong> ${reserveStock}</li>
+                        `);
                     } else {
                         $('#inventory-list').html('<li>No inventory info</li>');
                     }

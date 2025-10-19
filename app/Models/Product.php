@@ -20,7 +20,7 @@ class Product extends Model
         'price',
         'discount',
         'discounted_price',
-        'expiry_date',
+        // 'expiry_date',
         'maximum_stock',
         'critical_stock_level'
     ];
@@ -68,5 +68,10 @@ class Product extends Model
     public function stockBatches()
     {
         return $this->hasMany(StockBatch::class, 'product_id');
+    }
+
+    public function prReserveStocks()
+    {
+        return $this->hasMany(PrReserveStock::class, 'product_id');
     }
 }
