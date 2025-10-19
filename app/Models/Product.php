@@ -64,4 +64,9 @@ class Product extends Model
     {
         return $this->stock_in - $this->stock_out;
     }
+
+    public function stockBatches()
+    {
+        return $this->hasMany(StockBatch::class, 'product_id');
+    }
 }

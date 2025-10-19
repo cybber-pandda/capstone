@@ -41,7 +41,7 @@
         <div class="row">
             <div class="col-md-6">
                 @component('components.input', ['label' => 'Product Name', 'type' => 'text', 'name' => 'name', 'attributes' => '' ]) @endcomponent
-                @component('components.input', ['label' => 'Expiry Date', 'type' => 'date', 'name' => 'expiry_date', 'attributes' => '' ]) @endcomponent
+                @component('components.input', ['label' => 'Product Expiration Date', 'type' => 'date', 'name' => 'expiry_date', 'attributes' => '' ]) @endcomponent
                 <button type="button" class="btn btn-sm btn-outline-secondary mb-2" id="clear-expiry">Clear Expiry Date</button>
                 
                 @component('components.select', [

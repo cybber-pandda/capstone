@@ -22,10 +22,11 @@
                 <th>SKU</th>
                 <th>Name</th>
                 <th>Price</th>
-                <th>Stock In</th>
-                <th>Stock Out</th>
-                <th>Current Stock</th>
+                <th>In</th>
+                <th>Out</th>
+                <th>Stock</th>
                 <th>Inventory Breakdown</th>
+                <th>Action</th>
             </tr>
             '
             ])

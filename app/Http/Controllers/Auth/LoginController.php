@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 use App\Models\UserLog;
 use App\Models\User;
@@ -48,7 +49,7 @@ class LoginController extends Controller
         $identifier = $request->input('identifier');
         $password = $request->input('password');
 
-        $user = \App\Models\User::where('email', $identifier)
+        $user = User::where('email', $identifier)
             ->orWhere('username', $identifier)
             ->first();
 
@@ -68,7 +69,7 @@ class LoginController extends Controller
         }
         //HANGGANG DITO
         // If password incorrect
-        if (!\Hash::check($password, $user->password)) {
+        if (!Hash::check($password, $user->password)) {
             return back()->withErrors([
                 'password' => 'The password you’ve entered is incorrect.'
             ])->withInput();

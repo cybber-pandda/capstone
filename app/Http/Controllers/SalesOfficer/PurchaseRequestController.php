@@ -15,6 +15,7 @@ use App\Models\Notification;
 use App\Models\B2BAddress;
 use App\Models\B2BDetail;
 use App\Models\PurchaseRequest;
+use App\Models\PrReserveStock;
 
 class PurchaseRequestController extends Controller
 {
@@ -103,48 +104,49 @@ class PurchaseRequestController extends Controller
         $user = Auth::user();
 
         // Example role logic (adjust 'role' and role names to match your database)
-        
+
         if ($user->role === 'salesofficer') {
 
-        if ($request->ajax()) {
-            $query = PurchaseRequest::with(['customer', 'items.product'])
-                ->where('status', 'pending')
-                ->latest();
+            if ($request->ajax()) {
+                $query = PurchaseRequest::with(['customer', 'items.product'])
+                    ->where('status', 'pending')
+                    ->latest();
 
-            return DataTables::of($query)
-                ->addColumn('customer_name', function ($pr) {
-                    return optional($pr->customer)->name;
-                })
-                ->addColumn('total_items', function ($pr) {
-                    return $pr->items->sum('quantity');
-                })
-                ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->discount > 0 ? $item->product->discounted_price : $item->product->price));
-                    $vatRate = $pr->vat ?? 0; // VAT percentage
-                    $vatAmount = $subtotal * ($vatRate / 100);
-                    $deliveryFee = $pr->delivery_fee ?? 0;
-                    $total = $subtotal + $vatAmount + $deliveryFee;
+                return DataTables::of($query)
+                    ->addColumn('customer_name', function ($pr) {
+                        return optional($pr->customer)->name;
+                    })
+                    ->addColumn('total_items', function ($pr) {
+                        return $pr->items->sum('quantity');
+                    })
+                    ->addColumn('grand_total', function ($pr) {
+                        $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->discount > 0 ? $item->product->discounted_price : $item->product->price));
+                        $vatRate = $pr->vat ?? 0; // VAT percentage
+                        $vatAmount = $subtotal * ($vatRate / 100);
+                        $deliveryFee = $pr->delivery_fee ?? 0;
+                        $total = $subtotal + $vatAmount + $deliveryFee;
 
-                    return '₱' . number_format($total, 2);
-                })
-                ->editColumn('created_at', function ($pr) {
-                    return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
-                })
-                ->addColumn('action', function ($pr) {
-                    return '<button type="button" class="btn btn-sm btn-inverse-dark  review-pr p-2" data-id="' . $pr->id . '">
+                        return '₱' . number_format($total, 2);
+                    })
+                    ->editColumn('created_at', function ($pr) {
+                        return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
+                    })
+                    ->addColumn('action', function ($pr) {
+                        return '<button type="button" class="btn btn-sm btn-inverse-dark  review-pr p-2" data-id="' . $pr->id . '">
                             <i class="link-icon" data-lucide="eye"></i> Review PR
                         </button>';
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
+                    })
+                    ->rawColumns(['action'])
+                    ->make(true);
+            }
 
-        return view('pages.admin.salesofficer.v_purchaseList', [
-            'page' => 'Pending Purchase Requests'
-        ]);}
+            return view('pages.admin.salesofficer.v_purchaseList', [
+                'page' => 'Pending Purchase Requests'
+            ]);
+        }
         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
-    
+
     public function show($id)
     {
         $pr = PurchaseRequest::with(['items.product.productImages'])->findOrFail($id);
@@ -165,8 +167,8 @@ class PurchaseRequestController extends Controller
 
         $html = view('components.pr-items', compact('pr', 'b2bReq', 'b2bAddress'))->render();
 
-         return response()->json(['html' => $html]);
-    } 
+        return response()->json(['html' => $html]);
+    }
 
     // public function show($id)
     // {
@@ -212,7 +214,10 @@ class PurchaseRequestController extends Controller
             'delivery_fee' => 'nullable|numeric|min:0',
         ]);
 
-        // Update with additional fees + status
+      
+        PrReserveStock::approveReservation($id);
+
+        // Update purchase request
         $purchaseRequest->update([
             'prepared_by_id' => $userid,
             'status' => 'quotation_sent',
@@ -254,6 +259,8 @@ class PurchaseRequestController extends Controller
         $purchaseRequest->pr_remarks .= $prefix . $request->rejection_reason;
         $purchaseRequest->status = 'reject_quotation';
         $purchaseRequest->save();
+
+        PrReserveStock::releaseReservedStock($id, 'cancelled');
 
         // Notify customer
         if ($purchaseRequest->customer) {

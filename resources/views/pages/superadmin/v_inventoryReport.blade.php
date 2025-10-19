@@ -24,7 +24,7 @@
                 <th>Price</th>
                 <th>Stock In</th>
                 <th>Stock Out</th>
-                <th>Current Stock</th>
+                <!-- <th>Current Stock</th> -->
                 <th>Chart</th>
             </tr>
             '

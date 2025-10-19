@@ -45,6 +45,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified', 'check.status'])-
     Route::resource('user-management', App\Http\Controllers\Superadmin\UserManagementController::class);
     Route::get('inventory-management', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'index'])->name('inventory');
     Route::post('inventory-management', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'store'])->name('inventory.store');
+    Route::get('/inventory-management/fifo/{id}', [App\Http\Controllers\Superadmin\InventoryManagementController::class, 'getFIFO'])->name('inventory.fifo');
     Route::resource('bank-management', App\Http\Controllers\Superadmin\BankManagementController::class);
 
     // Account Creation
@@ -69,8 +70,9 @@ Route::middleware(['prevent-back-history', 'auth', 'verified', 'check.status'])-
     Route::post('/assign-delivery-personnel', [App\Http\Controllers\Superadmin\TrackingController::class, 'assignDeliveryPersonnel'])->name('tracking.assign-delivery-personnel');
     Route::get('/b2b/requirements', [App\Http\Controllers\Superadmin\TrackingController::class, 'b2bRequirements'])->name('tracking.b2b.requirement');
     Route::post('/b2b/requirement/update-status', [App\Http\Controllers\Superadmin\TrackingController::class, 'updateStatus']);
-
-    /* Sales Officer */     
+   
+    
+    /* Sales Officer */
     Route::prefix('salesofficer')->name('salesofficer.')->group(function () {
         Route::get('/purchase-requests/all', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'index'])->name('purchase-requests.index');
         Route::get('/purchase-requests/{id}', [App\Http\Controllers\SalesOfficer\PurchaseRequestController::class, 'show']);
@@ -124,7 +126,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified', 'check.status'])-
 
     /* B2B */
     Route::prefix('b2b')->name('b2b.')->group(function () {
-       
+
         Route::post('/business/requirement', [App\Http\Controllers\B2B\B2BController::class, 'business_requirement'])->name('business.requirement');
 
         Route::get('/profile', [App\Http\Controllers\B2B\B2BController::class, 'index'])->name('profile.index');
@@ -140,7 +142,7 @@ Route::middleware(['prevent-back-history', 'auth', 'verified', 'check.status'])-
         Route::get('/quotations/review', [App\Http\Controllers\B2B\QuotationController::class, 'review'])->name('quotations.review');
         Route::get('/quotations/review/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'show'])->name('quotations.show');
         Route::post('/quotations/cancel/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'cancelQuotation'])->name('quotations.cancel');
-       
+
         Route::post('/quotations/payment/paylater', [App\Http\Controllers\B2B\QuotationController::class, 'payLater'])->name('quotations.payment.paylater');
         Route::post('/quotations/payment/upload', [App\Http\Controllers\B2B\QuotationController::class, 'uploadPaymentProof'])->name('quotations.payment.upload');
         Route::get('/quotations/status/{id}', [App\Http\Controllers\B2B\QuotationController::class, 'checkStatus']);

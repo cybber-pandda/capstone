@@ -36,18 +36,46 @@ $(document).ready(function () {
                 orderable: false,
                 width: "5%",
             },
-            { data: "stockIn", name: "stockIn", width: "10%" },
-            { data: "stockOut", name: "stockOut", width: "10%" },
-            { data: "current_stock", name: "current_stock", width: "10%" },
+            {
+                data: "stockIn",
+                name: "stockIn",
+                className: "dt-left-int",
+                responsivePriority: 1,
+                orderable: false,
+                width: "5%",
+            },
+            {
+                data: "stockOut",
+                name: "stockOut",
+                className: "dt-left-int",
+                responsivePriority: 1,
+                orderable: false,
+                width: "5%",
+            },
+            {
+                data: "current_stock",
+                name: "current_stock",
+                className: "dt-left-int",
+                responsivePriority: 1,
+                orderable: false,
+                width: "5%",
+            },
             {
                 data: "inventory_breakdown",
                 name: "inventory_breakdown",
                 orderable: false,
                 searchable: false,
-                width: "25%",
+                width: "10%",
                 render: function (data) {
                     return data || "<em>No inventory data</em>";
                 },
+            },
+            {
+                data: "action",
+                name: "action",
+                orderable: false,
+                searchable: false,
+                width: "5%",
             },
         ],
         drawCallback: function () {
@@ -63,11 +91,11 @@ $(document).ready(function () {
         $("#inventoryMangementForm")[0].reset();
     });
 
-    $('#inventoryManagementModal').on('shown.bs.modal', function () {
+    $("#inventoryManagementModal").on("shown.bs.modal", function () {
         $('select[name="product_id"]').select2({
-            dropdownParent: $('#inventoryManagementModal'), // Important for modals
+            dropdownParent: $("#inventoryManagementModal"), // Important for modals
             placeholder: "",
-            allowClear: true
+            allowClear: true,
         });
     });
 
@@ -99,7 +127,6 @@ $(document).ready(function () {
                 table.ajax.reload();
             },
             error: function (response) {
-                
                 hideLoader(".saveInventory");
                 $("#saveInventory").prop("disabled", false);
 
@@ -112,7 +139,7 @@ $(document).ready(function () {
                         );
                     });
                 } else if (response.status === 400) {
-                    toast('warning',response.responseJSON.message);
+                    toast("warning", response.responseJSON.message);
                 } else {
                     console.log(response);
                 }

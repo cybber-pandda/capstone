@@ -8,6 +8,7 @@ use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\User;
 use App\Models\Order;
@@ -19,6 +20,8 @@ use App\Models\Inventory;
 use App\Models\B2BDetail;
 use App\Models\B2BAddress;
 use App\Models\PaidPayment;
+use App\Models\StockBatch;
+use App\Models\PrReserveStock;
 
 class DeliveryController extends Controller
 {
@@ -43,7 +46,7 @@ class DeliveryController extends Controller
 
     public function deliveryOrders(Request $request)
     {
-         // 1️⃣ If user is NOT logged in → show login page
+        // 1️⃣ If user is NOT logged in → show login page
         if (!Auth::check()) {
             $page = 'Sign In';
             $companysettings = DB::table('company_settings')->first();
@@ -59,121 +62,122 @@ class DeliveryController extends Controller
         $user = Auth::user();
 
         // Example role logic (adjust 'role' and role names to match your database)
-        
+
         if ($user->role === 'deliveryrider') {
 
-        $user = User::getCurrentUser();
-        $status = $request->get('status');
+            $user = User::getCurrentUser();
+            $status = $request->get('status');
 
-        if ($request->ajax()) {
-            $query = Order::with([
-                'user',
-                'b2bAddress',
-                'delivery.deliveryUser',
-                'items.product',
-            ])
-                // ->whereHas('delivery', function ($q) use ($user, $status) {
-                //     $q->where('delivery_rider_id', $user->id);
+            if ($request->ajax()) {
+                $query = Order::with([
+                    'user',
+                    'b2bAddress',
+                    'delivery.deliveryUser',
+                    'items.product',
+                ])
+                    // ->whereHas('delivery', function ($q) use ($user, $status) {
+                    //     $q->where('delivery_rider_id', $user->id);
 
-                //     if (!empty($status)) {
-                //         $q->where('status', $status);
-                //     }
-                // })
-                //new fix for pending
-                //fix the pending
-                ->whereHas('delivery', function ($q) use ($user, $status) {
-                    if ($status === 'pending') {
-                        // Show all deliveries that are still pending (no assigned rider)
-                        $q->whereNull('delivery_rider_id')
-                        ->where('status', 'pending');
-                    } else {
-                        // For other statuses, show only deliveries assigned to this rider
-                        $q->where('delivery_rider_id', $user->id);
+                    //     if (!empty($status)) {
+                    //         $q->where('status', $status);
+                    //     }
+                    // })
+                    //new fix for pending
+                    //fix the pending
+                    ->whereHas('delivery', function ($q) use ($user, $status) {
+                        if ($status === 'pending') {
+                            // Show all deliveries that are still pending (no assigned rider)
+                            $q->whereNull('delivery_rider_id')
+                                ->where('status', 'pending');
+                        } else {
+                            // For other statuses, show only deliveries assigned to this rider
+                            $q->where('delivery_rider_id', $user->id);
 
-                        if (!empty($status)) {
-                            $q->where('status', $status);
+                            if (!empty($status)) {
+                                $q->where('status', $status);
+                            }
                         }
-                    }
-                })
-                ->latest();
+                    })
+                    ->latest();
 
-            return datatables()->of($query)
-                ->addColumn('order_number', fn($pr) => $pr->order_number ?? 'N/A')
-                ->addColumn('customer_name', fn($pr) => optional($pr->user)->name ?? 'N/A')
-                ->addColumn('total_items', fn($pr) => $pr->items->sum('quantity'))
-                ->addColumn('grand_total', function ($pr) {
-                    // $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                    // return '₱' . number_format($total, 2);
+                return datatables()->of($query)
+                    ->addColumn('order_number', fn($pr) => $pr->order_number ?? 'N/A')
+                    ->addColumn('customer_name', fn($pr) => optional($pr->user)->name ?? 'N/A')
+                    ->addColumn('total_items', fn($pr) => $pr->items->sum('quantity'))
+                    ->addColumn('grand_total', function ($pr) {
+                        // $total = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
+                        // return '₱' . number_format($total, 2);
 
-                    $subtotal = $pr->items->sum(function ($item) {
-                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
-                        return $item->quantity * ($price ?? 0);
-                    });
-
-                    // Default values
-                    $vatRate = 0;
-                    $deliveryFee = 0;
-
-                    if (preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
-                        $purchaseRequestId = $matches[1];
-                        $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
-
-                        if ($purchaseRequest) {
-                            $vatRate = $purchaseRequest->vat ?? 0;
-                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
-                        }
-                    }
-
-                    $vat = $subtotal * ($vatRate / 100);
-                    $grandTotal = $subtotal + $vat + $deliveryFee;
-
-                    return '₱' . number_format($grandTotal, 2);
-                })
-                ->editColumn('created_at', fn($pr) => $pr->created_at->format('Y-m-d H:i:s'))
-                ->addColumn('action', function ($pr) {
-                    $btn = '<button class="btn btn-sm btn-inverse-info view-items-btn" data-id="' . $pr->id . '"><i class="link-icon" data-lucide="list"></i>Items</button> ';
-                    //New show sales invoice
-                     // Determine the purchaseRequestId: prefer an explicit relation/column, otherwise parse from order_number
-                    $purchaseRequestId = null;
-                    if (property_exists($pr, 'purchase_request_id') && !empty($pr->purchase_request_id)) {
-                        $purchaseRequestId = $pr->purchase_request_id;
-                    } elseif (!empty($pr->order_number) && preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
-                        $purchaseRequestId = $matches[1];
-                    }
-
-                    if ($purchaseRequestId) {
-                        $btn .= '<a href="' . route('deliveryrider.delivery.sales.inv', [
-                            'prId' => $purchaseRequestId,
-                            'customerId' => $pr->user_id
-                        ]) . '" class="btn btn-sm btn-inverse-primary">Invoice</a>';
-                    } else {
-                        // optional: show disabled button or nothing
-                        $btn .= '<button class="btn btn-sm btn-secondary" disabled title="No purchase request found">Invoice</button>';
-                    }
-                    return $btn;
-                })
-                //fix search
-                ->filter(function ($query) use ($request) {
-                    if ($search = $request->get('search')['value']) {
-                        $query->where(function ($q) use ($search) {
-                            $q->where('order_number', 'like', "%{$search}%")
-                            ->orWhereHas('user', function ($sub) use ($search) {
-                                $sub->where('name', 'like', "%{$search}%");
-                            })
-                            ->orWhereHas('delivery', function ($sub) use ($search) {
-                                $sub->where('status', 'like', "%{$search}%");
-                            });
+                        $subtotal = $pr->items->sum(function ($item) {
+                            $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                            return $item->quantity * ($price ?? 0);
                         });
-                    }
-                })
 
-                ->rawColumns(['action'])
-                ->make(true);
+                        // Default values
+                        $vatRate = 0;
+                        $deliveryFee = 0;
+
+                        if (preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
+                            $purchaseRequestId = $matches[1];
+                            $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
+
+                            if ($purchaseRequest) {
+                                $vatRate = $purchaseRequest->vat ?? 0;
+                                $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                            }
+                        }
+
+                        $vat = $subtotal * ($vatRate / 100);
+                        $grandTotal = $subtotal + $vat + $deliveryFee;
+
+                        return '₱' . number_format($grandTotal, 2);
+                    })
+                    ->editColumn('created_at', fn($pr) => $pr->created_at->format('Y-m-d H:i:s'))
+                    ->addColumn('action', function ($pr) {
+                        $btn = '<button class="btn btn-sm btn-inverse-info view-items-btn" data-id="' . $pr->id . '"><i class="link-icon" data-lucide="list"></i>Items</button> ';
+                        //New show sales invoice
+                        // Determine the purchaseRequestId: prefer an explicit relation/column, otherwise parse from order_number
+                        $purchaseRequestId = null;
+                        if (property_exists($pr, 'purchase_request_id') && !empty($pr->purchase_request_id)) {
+                            $purchaseRequestId = $pr->purchase_request_id;
+                        } elseif (!empty($pr->order_number) && preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
+                            $purchaseRequestId = $matches[1];
+                        }
+
+                        if ($purchaseRequestId) {
+                            $btn .= '<a href="' . route('deliveryrider.delivery.sales.inv', [
+                                'prId' => $purchaseRequestId,
+                                'customerId' => $pr->user_id
+                            ]) . '" class="btn btn-sm btn-inverse-primary">Invoice</a>';
+                        } else {
+                            // optional: show disabled button or nothing
+                            $btn .= '<button class="btn btn-sm btn-secondary" disabled title="No purchase request found">Invoice</button>';
+                        }
+                        return $btn;
+                    })
+                    //fix search
+                    ->filter(function ($query) use ($request) {
+                        if ($search = $request->get('search')['value']) {
+                            $query->where(function ($q) use ($search) {
+                                $q->where('order_number', 'like', "%{$search}%")
+                                    ->orWhereHas('user', function ($sub) use ($search) {
+                                        $sub->where('name', 'like', "%{$search}%");
+                                    })
+                                    ->orWhereHas('delivery', function ($sub) use ($search) {
+                                        $sub->where('status', 'like', "%{$search}%");
+                                    });
+                            });
+                        }
+                    })
+
+                    ->rawColumns(['action'])
+                    ->make(true);
+            }
+
+            return view('pages.admin.deliveryrider.v_deliveryOrders', [
+                'page' => 'Delivery Orders'
+            ]);
         }
-
-        return view('pages.admin.deliveryrider.v_deliveryOrders', [
-            'page' => 'Delivery Orders'
-        ]);}
         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
@@ -200,7 +204,7 @@ class DeliveryController extends Controller
 
     public function deliveryHistories(Request $request)
     {
-         // 1️⃣ If user is NOT logged in → show login page
+        // 1️⃣ If user is NOT logged in → show login page
         if (!Auth::check()) {
             $page = 'Sign In';
             $companysettings = DB::table('company_settings')->first();
@@ -216,79 +220,80 @@ class DeliveryController extends Controller
         $user = Auth::user();
 
         // Example role logic (adjust 'role' and role names to match your database)
-        
+
         if ($user->role === 'deliveryrider') {
 
-        $user = User::getCurrentUser();
+            $user = User::getCurrentUser();
 
-        if ($request->ajax()) {
-            $query = Order::with([
-                'user',
-                'items.product',
-                'delivery.histories' => fn($q) => $q->latest('logged_at')
-            ])
-                ->whereHas(
-                    'delivery',
-                    fn($q) =>
-                    $q->where('delivery_rider_id', $user->id)
-                )
-                ->latest();
+            if ($request->ajax()) {
+                $query = Order::with([
+                    'user',
+                    'items.product',
+                    'delivery.histories' => fn($q) => $q->latest('logged_at')
+                ])
+                    ->whereHas(
+                        'delivery',
+                        fn($q) =>
+                        $q->where('delivery_rider_id', $user->id)
+                    )
+                    ->latest();
 
-            return datatables()->of($query)
-                ->addColumn('order_number', fn($pr) => $pr->order_number ?? 'N/A')
-                ->addColumn('customer_name', fn($pr) => optional($pr->user)->name ?? 'N/A')
-                ->addColumn('total_items', fn($pr) => $pr->items->sum('quantity'))
-                ->addColumn('grand_total', function ($pr) {
-                   $subtotal = $pr->items->sum(function ($item) {
-                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
-                        return $item->quantity * ($price ?? 0);
-                    });
-
-                    // Default values
-                    $vatRate = 0;
-                    $deliveryFee = 0;
-
-                    if (preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
-                        $purchaseRequestId = $matches[1];
-                        $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
-
-                        if ($purchaseRequest) {
-                            $vatRate = $purchaseRequest->vat ?? 0;
-                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
-                        }
-                    }
-
-                    $vat = $subtotal * ($vatRate / 100);
-                    $grandTotal = $subtotal + $vat + $deliveryFee;
-
-                    return '₱' . number_format($grandTotal, 2);
-                })
-                ->addColumn('tracking_number', fn($pr) => $pr->delivery->tracking_number ?? 'N/A')
-                ->addColumn('action', function ($pr) {
-                    return '<button class="btn btn-sm btn-inverse-primary view-details-btn" data-id="' . $pr->delivery->id . '"><i class="link-icon" data-lucide="clock"></i> View History</button>';
-                })
-                //fix search
-                ->filter(function ($query) use ($request) {
-                    if ($search = $request->get('search')['value']) {
-                        $query->where(function ($q) use ($search) {
-                            $q->where('order_number', 'like', "%{$search}%")
-                            ->orWhereHas('user', function ($sub) use ($search) {
-                                $sub->where('name', 'like', "%{$search}%");
-                            })
-                            ->orWhereHas('delivery', function ($sub) use ($search) {
-                                $sub->where('status', 'like', "%{$search}%");
-                            });
+                return datatables()->of($query)
+                    ->addColumn('order_number', fn($pr) => $pr->order_number ?? 'N/A')
+                    ->addColumn('customer_name', fn($pr) => optional($pr->user)->name ?? 'N/A')
+                    ->addColumn('total_items', fn($pr) => $pr->items->sum('quantity'))
+                    ->addColumn('grand_total', function ($pr) {
+                        $subtotal = $pr->items->sum(function ($item) {
+                            $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                            return $item->quantity * ($price ?? 0);
                         });
-                    }
-                })
-                //hanggangdito
-                ->rawColumns(['action'])
-                ->make(true);
-        }
 
-        return view('pages.admin.deliveryrider.v_deliveryHistory', [
-            'page' => 'Delivery History'
-        ]);}
+                        // Default values
+                        $vatRate = 0;
+                        $deliveryFee = 0;
+
+                        if (preg_match('/REF (\d+)-/', $pr->order_number, $matches)) {
+                            $purchaseRequestId = $matches[1];
+                            $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
+
+                            if ($purchaseRequest) {
+                                $vatRate = $purchaseRequest->vat ?? 0;
+                                $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                            }
+                        }
+
+                        $vat = $subtotal * ($vatRate / 100);
+                        $grandTotal = $subtotal + $vat + $deliveryFee;
+
+                        return '₱' . number_format($grandTotal, 2);
+                    })
+                    ->addColumn('tracking_number', fn($pr) => $pr->delivery->tracking_number ?? 'N/A')
+                    ->addColumn('action', function ($pr) {
+                        return '<button class="btn btn-sm btn-inverse-primary view-details-btn" data-id="' . $pr->delivery->id . '"><i class="link-icon" data-lucide="clock"></i> View History</button>';
+                    })
+                    //fix search
+                    ->filter(function ($query) use ($request) {
+                        if ($search = $request->get('search')['value']) {
+                            $query->where(function ($q) use ($search) {
+                                $q->where('order_number', 'like', "%{$search}%")
+                                    ->orWhereHas('user', function ($sub) use ($search) {
+                                        $sub->where('name', 'like', "%{$search}%");
+                                    })
+                                    ->orWhereHas('delivery', function ($sub) use ($search) {
+                                        $sub->where('status', 'like', "%{$search}%");
+                                    });
+                            });
+                        }
+                    })
+                    //hanggangdito
+                    ->rawColumns(['action'])
+                    ->make(true);
+            }
+
+            return view('pages.admin.deliveryrider.v_deliveryHistory', [
+                'page' => 'Delivery History'
+            ]);
+        }
         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
@@ -307,7 +312,7 @@ class DeliveryController extends Controller
 
     public function deliveryLocation(Request $request)
     {
-         // 1️⃣ If user is NOT logged in → show login page
+        // 1️⃣ If user is NOT logged in → show login page
         if (!Auth::check()) {
             $page = 'Sign In';
             $companysettings = DB::table('company_settings')->first();
@@ -323,153 +328,154 @@ class DeliveryController extends Controller
         $user = Auth::user();
 
         // Example role logic (adjust 'role' and role names to match your database)
-        
+
         if ($user->role === 'deliveryrider') {
 
-        $user = User::getCurrentUser();
-        $status = $request->get('status');
+            $user = User::getCurrentUser();
+            $status = $request->get('status');
 
-        if ($request->ajax()) {
-            $query = Order::with([
-                'user',
-                'b2bAddress',
-                'items.product',
-                'delivery'
-            ])
-            //fix the pending
-                ->whereHas('delivery', function ($q) use ($user, $status) {
-                if ($status === 'pending') {
-                    // Show all deliveries that are still pending (no assigned rider)
-                    $q->whereNull('delivery_rider_id')
-                    ->where('status', 'pending');
-                } else {
-                    // For other statuses, show only deliveries assigned to this rider
-                    $q->where('delivery_rider_id', $user->id);
+            if ($request->ajax()) {
+                $query = Order::with([
+                    'user',
+                    'b2bAddress',
+                    'items.product',
+                    'delivery'
+                ])
+                    //fix the pending
+                    ->whereHas('delivery', function ($q) use ($user, $status) {
+                        if ($status === 'pending') {
+                            // Show all deliveries that are still pending (no assigned rider)
+                            $q->whereNull('delivery_rider_id')
+                                ->where('status', 'pending');
+                        } else {
+                            // For other statuses, show only deliveries assigned to this rider
+                            $q->where('delivery_rider_id', $user->id);
 
-                    if (!empty($status)) {
-                        $q->where('status', $status);
-                    }
-                }
-            })
-                ->latest();
-
-            return datatables()->of($query)
-                ->addColumn('order_number', fn($order) => $order->order_number ?? 'N/A')
-                ->addColumn('customer_name', fn($order) => optional($order->user)->name ?? 'N/A')
-                ->addColumn('total_items', fn($order) => $order->items->sum('quantity') ?? 0)
-                //bagong lagay for phone number
-                ->addColumn('contact_number', function ($order) {
-                    // Get from B2B details if available
-                    $b2bDetail = B2BDetail::where('user_id', $order->user_id)->first();
-
-                    return $b2bDetail->contact_number
-                        ?? $b2bDetail->contact_person_number
-                        ?? 'N/A';
-                })
-                ->addColumn('grand_total', function ($order) {
-                    $subtotal = $order->items->sum(function ($item) {
-                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
-                        return $item->quantity * ($price ?? 0);
-                    });
-
-                    // Default values
-                    $vatRate = 0;
-                    $deliveryFee = 0;
-
-                    if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
-                        $purchaseRequestId = $matches[1];
-                        $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
-
-                        if ($purchaseRequest) {
-                            $vatRate = $purchaseRequest->vat ?? 0;
-                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                            if (!empty($status)) {
+                                $q->where('status', $status);
+                            }
                         }
-                    }
+                    })
+                    ->latest();
 
-                    $vat = $subtotal * ($vatRate / 100);
-                    $grandTotal = $subtotal + $vat + $deliveryFee;
+                return datatables()->of($query)
+                    ->addColumn('order_number', fn($order) => $order->order_number ?? 'N/A')
+                    ->addColumn('customer_name', fn($order) => optional($order->user)->name ?? 'N/A')
+                    ->addColumn('total_items', fn($order) => $order->items->sum('quantity') ?? 0)
+                    //bagong lagay for phone number
+                    ->addColumn('contact_number', function ($order) {
+                        // Get from B2B details if available
+                        $b2bDetail = B2BDetail::where('user_id', $order->user_id)->first();
 
-                    return '₱' . number_format($grandTotal, 2);
-                })
-                ->addColumn('address', fn($order) => optional($order->b2bAddress)->full_address ?? 'N/A')
-                ->addColumn('address_notes', fn($order) => optional($order->b2bAddress)->address_notes ?? 'N/A')
-                ->addColumn('action', function ($order) {
-                    $status = $order->delivery->status ?? 'unknown';
+                        return $b2bDetail->contact_number
+                            ?? $b2bDetail->contact_person_number
+                            ?? 'N/A';
+                    })
+                    ->addColumn('grand_total', function ($order) {
+                        $subtotal = $order->items->sum(function ($item) {
+                            $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
+                            return $item->quantity * ($price ?? 0);
+                        });
 
-                    $messages = [
-                        'pending' => 'Waiting for admin to assign a rider',
-                        'assigned' => 'Waiting to be accepted by deliveryman',
-                        'delivered' => 'Delivery completed',
-                        'cancelled' => 'Delivery was cancelled',
-                    ];
+                        // Default values
+                        $vatRate = 0;
+                        $deliveryFee = 0;
 
-                    $badgeColors = [
-                        'pending' => 'warning',
-                        'assigned' => 'info',
-                        'delivered' => 'success',
-                        'cancelled' => 'danger',
-                    ];
+                        if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
+                            $purchaseRequestId = $matches[1];
+                            $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
 
-                    if ($status === 'on_the_way') {
-                        $trackBtn = '<a href="' . route('deliveryrider.delivery.tracking', $order->delivery->id) . '" class="btn btn-sm btn-inverse-primary me-1">
+                            if ($purchaseRequest) {
+                                $vatRate = $purchaseRequest->vat ?? 0;
+                                $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                            }
+                        }
+
+                        $vat = $subtotal * ($vatRate / 100);
+                        $grandTotal = $subtotal + $vat + $deliveryFee;
+
+                        return '₱' . number_format($grandTotal, 2);
+                    })
+                    ->addColumn('address', fn($order) => optional($order->b2bAddress)->full_address ?? 'N/A')
+                    ->addColumn('address_notes', fn($order) => optional($order->b2bAddress)->address_notes ?? 'N/A')
+                    ->addColumn('action', function ($order) {
+                        $status = $order->delivery->status ?? 'unknown';
+
+                        $messages = [
+                            'pending' => 'Waiting for admin to assign a rider',
+                            'assigned' => 'Waiting to be accepted by deliveryman',
+                            'delivered' => 'Delivery completed',
+                            'cancelled' => 'Delivery was cancelled',
+                        ];
+
+                        $badgeColors = [
+                            'pending' => 'warning',
+                            'assigned' => 'info',
+                            'delivered' => 'success',
+                            'cancelled' => 'danger',
+                        ];
+
+                        if ($status === 'on_the_way') {
+                            $trackBtn = '<a href="' . route('deliveryrider.delivery.tracking', $order->delivery->id) . '" class="btn btn-sm btn-inverse-primary me-1">
                                         <i class="link-icon" data-lucide="truck"></i> Track
                                     </a>';
 
-                        $markDeliveredBtn = '<button type="button" class="btn btn-sm btn-inverse-success mark-delivered-btn mx-1"
+                            $markDeliveredBtn = '<button type="button" class="btn btn-sm btn-inverse-success mark-delivered-btn mx-1"
                                                 data-id="' . $order->delivery->id . '">
                                                 <i class="link-icon" data-lucide="check-circle"></i> Mark as Delivered
                                             </button>';
 
-                        // $cancelBtn = '<button type="button" class="btn btn-sm btn-inverse-danger cancel-delivery-btn"
-                        //                 data-id="' . $order->delivery->id . '">
-                        //                 <i class="link-icon" data-lucide="x"></i> Cancel
-                        //             </button>';
+                            // $cancelBtn = '<button type="button" class="btn btn-sm btn-inverse-danger cancel-delivery-btn"
+                            //                 data-id="' . $order->delivery->id . '">
+                            //                 <i class="link-icon" data-lucide="x"></i> Cancel
+                            //             </button>';
 
-                        $cancelBtn = '';
+                            $cancelBtn = '';
 
-                        return $trackBtn . $markDeliveredBtn . $cancelBtn;
-                    }
+                            return $trackBtn . $markDeliveredBtn . $cancelBtn;
+                        }
 
-                    $badgeText = $messages[$status] ?? ucfirst($status);
-                    $badgeClass = $badgeColors[$status] ?? 'secondary';
+                        $badgeText = $messages[$status] ?? ucfirst($status);
+                        $badgeClass = $badgeColors[$status] ?? 'secondary';
 
-                    $badge = '<span class="badge bg-' . $badgeClass . '">' . $badgeText . '</span>';
+                        $badge = '<span class="badge bg-' . $badgeClass . '">' . $badgeText . '</span>';
 
-                    if ($status === 'delivered' && $order->delivery->proof_delivery) {
-                        $proofBtn = '<button class="btn btn-sm btn-inverse-info ms-2 view-proof-btn" 
+                        if ($status === 'delivered' && $order->delivery->proof_delivery) {
+                            $proofBtn = '<button class="btn btn-sm btn-inverse-info ms-2 view-proof-btn" 
                             data-proof="' . asset($order->delivery->proof_delivery) . '">
                         <i class="link-icon" data-lucide="eye"></i> View Proof
                      </button>';
-                        return $badge . $proofBtn;
-                    }
+                            return $badge . $proofBtn;
+                        }
 
-                    return $badge;
-                })
-                //fix search
-                ->filter(function ($query) use ($request) {
-                    if ($search = $request->get('search')['value']) {
-                        $query->where(function ($q) use ($search) {
-                            $q->where('order_number', 'like', "%{$search}%")
-                            ->orWhereHas('user', function ($sub) use ($search) {
-                                $sub->where('name', 'like', "%{$search}%");
-                            })
-                            ->orWhereHas('b2bAddress', function ($sub) use ($search) {
-                                $sub->where('full_address', 'like', "%{$search}%")
-                                    ->orWhere('address_notes', 'like', "%{$search}%");
-                            })
-                            ->orWhereHas('delivery', function ($sub) use ($search) {
-                                $sub->where('status', 'like', "%{$search}%");
+                        return $badge;
+                    })
+                    //fix search
+                    ->filter(function ($query) use ($request) {
+                        if ($search = $request->get('search')['value']) {
+                            $query->where(function ($q) use ($search) {
+                                $q->where('order_number', 'like', "%{$search}%")
+                                    ->orWhereHas('user', function ($sub) use ($search) {
+                                        $sub->where('name', 'like', "%{$search}%");
+                                    })
+                                    ->orWhereHas('b2bAddress', function ($sub) use ($search) {
+                                        $sub->where('full_address', 'like', "%{$search}%")
+                                            ->orWhere('address_notes', 'like', "%{$search}%");
+                                    })
+                                    ->orWhereHas('delivery', function ($sub) use ($search) {
+                                        $sub->where('status', 'like', "%{$search}%");
+                                    });
                             });
-                        });
-                    }
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
+                        }
+                    })
+                    ->rawColumns(['action'])
+                    ->make(true);
+            }
 
-        return view('pages.admin.deliveryrider.v_deliveryLocation', [
-            'page' => 'Delivery Location',
-        ]);}
+            return view('pages.admin.deliveryrider.v_deliveryLocation', [
+                'page' => 'Delivery Location',
+            ]);
+        }
         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
@@ -527,21 +533,19 @@ class DeliveryController extends Controller
                     if ($purchaseRequest) {
                         $purchaseRequest->status = 'delivered';
                         $purchaseRequest->save();
+                        PrReserveStock::completeReservation($purchaseRequestId);
                     }
                 }
             }
 
-
-            // Add to inventory as 'sold'
-            foreach ($delivery->order->items as $item) {
-                Inventory::create([
-                    'product_id' => $item->product_id,
-                    'type' => 'out',
-                    'quantity' => $item->quantity,
-                    'reason' => 'sold',
-                ]);
-            }
-
+            // foreach ($delivery->order->items as $item) {
+            //     Inventory::create([
+            //         'product_id' => $item->product_id,
+            //         'type' => 'out',
+            //         'quantity' => $item->quantity,
+            //         'reason' => 'sold',
+            //     ]);
+            // }
 
             $user = $delivery->order?->user;
             if ($user) {
@@ -577,12 +581,28 @@ class DeliveryController extends Controller
         $delivery->delivery_remarks = $request->remarks ?? 'Cancelled by rider.';
         $delivery->save();
 
+        // foreach ($delivery->order->items as $item) {
+        //     Inventory::create([
+        //         'product_id' => $item->product_id,
+        //         'type' => 'in',
+        //         'quantity' => $item->quantity,
+        //         'reason' => 'Return stock cancelled',
+        //     ]);
+        // }
+
+        if ($delivery->order?->order_number) {
+            preg_match('/REF (\d+)-/', $delivery->order->order_number, $matches);
+            if (isset($matches[1])) {
+                $purchaseRequestId = $matches[1];
+                PrReserveStock::releaseReservedStock($purchaseRequestId, 'cancelled');
+            }
+        }
+
         return response()->json(['message' => 'Delivery has been cancelled.']);
     }
 
     public function deliveryRatings(Request $request)
     {
-         // 1️⃣ If user is NOT logged in → show login page
         if (!Auth::check()) {
             $page = 'Sign In';
             $companysettings = DB::table('company_settings')->first();
@@ -594,86 +614,83 @@ class DeliveryController extends Controller
                 ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
         }
 
-        // 2️⃣ If user is logged in → check their role
         $user = Auth::user();
 
-        // Example role logic (adjust 'role' and role names to match your database)
-        
         if ($user->role === 'deliveryrider') {
-        $user = auth()->user(); // Delivery Rider
-        $riderId = $user->id;
+            $user = auth()->user(); // Delivery Rider
+            $riderId = $user->id;
 
-        if ($request->ajax()) {
-            // Only fetch deliveries assigned to the current rider
-            $query = \App\Models\Delivery::with([
-                'order.user',
-                'order.items.product',
-                'rating'
-            ])
-                ->where('delivery_rider_id', $riderId)
-                ->has('order') // Ensure it has an order
-                ->latest();
+            if ($request->ajax()) {
+                // Only fetch deliveries assigned to the current rider
+                $query = \App\Models\Delivery::with([
+                    'order.user',
+                    'order.items.product',
+                    'rating'
+                ])
+                    ->where('delivery_rider_id', $riderId)
+                    ->has('order') // Ensure it has an order
+                    ->latest();
 
-            return datatables()->of($query)
-                ->addColumn('order_number', fn($delivery) => $delivery->order->order_number ?? 'N/A')
-                ->addColumn('customer_name', fn($delivery) => optional($delivery->order->user)->name ?? 'N/A')
-                ->addColumn('total_items', fn($delivery) => $delivery->order->items->sum('quantity') ?? 0)
-                ->addColumn('grand_total', function ($delivery) {
-                    $order = $delivery->order;
-                    $subtotal = $order->items->sum(function ($item) {
-                        return $item->quantity * ($item->product->price ?? 0);
-                    });
+                return datatables()->of($query)
+                    ->addColumn('order_number', fn($delivery) => $delivery->order->order_number ?? 'N/A')
+                    ->addColumn('customer_name', fn($delivery) => optional($delivery->order->user)->name ?? 'N/A')
+                    ->addColumn('total_items', fn($delivery) => $delivery->order->items->sum('quantity') ?? 0)
+                    ->addColumn('grand_total', function ($delivery) {
+                        $order = $delivery->order;
+                        $subtotal = $order->items->sum(function ($item) {
+                            return $item->quantity * ($item->product->price ?? 0);
+                        });
 
-                    $vatRate = 0;
-                    $deliveryFee = 0;
+                        $vatRate = 0;
+                        $deliveryFee = 0;
 
-                    if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
-                        $purchaseRequestId = $matches[1];
-                        $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
-                        if ($purchaseRequest) {
-                            $vatRate = $purchaseRequest->vat ?? 0;
-                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                        if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
+                            $purchaseRequestId = $matches[1];
+                            $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+                            if ($purchaseRequest) {
+                                $vatRate = $purchaseRequest->vat ?? 0;
+                                $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                            }
                         }
-                    }
 
-                    $vat = $subtotal * ($vatRate / 100);
-                    $grandTotal = $subtotal + $vat + $deliveryFee;
+                        $vat = $subtotal * ($vatRate / 100);
+                        $grandTotal = $subtotal + $vat + $deliveryFee;
 
-                    return '₱' . number_format($grandTotal, 2);
-                })
-                ->addColumn('rating', function ($delivery) {
-                    $rating = $delivery->rating->rating ?? null;
+                        return '₱' . number_format($grandTotal, 2);
+                    })
+                    ->addColumn('rating', function ($delivery) {
+                        $rating = $delivery->rating->rating ?? null;
 
-                    if (!$rating) {
-                        return '<span class="text-muted">Not rated</span>';
-                    }
+                        if (!$rating) {
+                            return '<span class="text-muted">Not rated</span>';
+                        }
 
-                    return collect(range(1, 5))->map(function ($i) use ($rating) {
-                        return '<i data-lucide="star' . ($i <= $rating ? '' : '-off') . '" class="' . ($i <= $rating ? 'text-warning' : 'text-muted') . '"></i>';
-                    })->implode('');
-                })
-                //fix search
-                ->filter(function ($query) use ($request) {
-                    if ($search = $request->get('search')['value']) {
-                        $query->where(function ($q) use ($search) {
-                            $q->whereHas('order', function ($sub) use ($search) {
-                                $sub->where('order_number', 'like', "%{$search}%")
-                                    ->orWhereHas('user', function ($userSub) use ($search) {
-                                        $userSub->where('name', 'like', "%{$search}%");
-                                    });
-                            })
-                            ->orWhere('status', 'like', "%{$search}%");
-                });
-                
-    }
-})
-                ->rawColumns(['rating'])
-                ->make(true);
+                        return collect(range(1, 5))->map(function ($i) use ($rating) {
+                            return '<i data-lucide="star' . ($i <= $rating ? '' : '-off') . '" class="' . ($i <= $rating ? 'text-warning' : 'text-muted') . '"></i>';
+                        })->implode('');
+                    })
+                    //fix search
+                    ->filter(function ($query) use ($request) {
+                        if ($search = $request->get('search')['value']) {
+                            $query->where(function ($q) use ($search) {
+                                $q->whereHas('order', function ($sub) use ($search) {
+                                    $sub->where('order_number', 'like', "%{$search}%")
+                                        ->orWhereHas('user', function ($userSub) use ($search) {
+                                            $userSub->where('name', 'like', "%{$search}%");
+                                        });
+                                })
+                                    ->orWhere('status', 'like', "%{$search}%");
+                            });
+                        }
+                    })
+                    ->rawColumns(['rating'])
+                    ->make(true);
+            }
+
+            return view('pages.admin.deliveryrider.v_deliveryRating', [
+                'page' => 'My Delivery Rating',
+            ]);
         }
-
-        return view('pages.admin.deliveryrider.v_deliveryRating', [
-            'page' => 'My Delivery Rating',
-        ]);}
         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 

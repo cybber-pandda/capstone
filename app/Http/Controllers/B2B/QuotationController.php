@@ -17,6 +17,7 @@ use App\Models\B2BDetail;
 use App\Models\Notification;
 use App\Models\User;
 use App\Models\Bank;
+use App\Models\PrReserveStock;
 
 class QuotationController extends Controller
 {
@@ -203,6 +204,8 @@ class QuotationController extends Controller
         $pr->status = 'cancelled';
         $pr->pr_remarks_cancel = $request->remarks ?? 'Cancelled by customer.';
         $pr->save();
+
+        PrReserveStock::releaseReservedStock($id, 'cancelled');
 
         // Optional: notify the sales officers
         $officers = User::where('role', 'salesofficer')->get();
