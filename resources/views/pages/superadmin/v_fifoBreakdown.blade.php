@@ -31,6 +31,7 @@
                 <th>Remaining</th>
                 <!-- <th>Cost</th> -->
                 <th>Received Date</th>
+                <th>Expiry Date</th>
                 <th>Note</th>
                 <th>Status</th>
             </tr>
@@ -93,6 +94,12 @@
                 {
                     data: "received_date",
                     name: "received_date",
+                    className: "dt-left-int",
+                    responsivePriority: 1,
+                },
+                {
+                    data: "expiry_date",
+                    name: "expiry_date",
                     className: "dt-left-int",
                     responsivePriority: 1,
                 },

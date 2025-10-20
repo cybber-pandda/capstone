@@ -16,10 +16,12 @@ class CreateStockBatchesTable extends Migration
         Schema::create('stock_batches', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
+            $table->foreignId('inventory_id')->constrained()->onDelete('cascade');
             $table->integer('quantity');
             $table->integer('remaining_quantity');
             $table->decimal('cost_price', 10, 2)->nullable();
             $table->dateTime('received_date');
+            $table->date('expiry_date')->nullable();
             $table->string('note')->nullable(); 
             $table->timestamps();
         });

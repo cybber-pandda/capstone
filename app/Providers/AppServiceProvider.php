@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 use App\Models\PurchaseRequest;
 use App\Models\PurchaseRequestItem;
@@ -15,6 +16,7 @@ use App\Models\CreditPayment;
 use App\Models\CreditPartialPayment;
 use App\Models\B2BDetail;
 use App\Models\Product;
+use App\Models\StockBatch;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -162,6 +164,23 @@ class AppServiceProvider extends ServiceProvider
             $overduePayment = null;
             $b2bDetails = null;
             $showPendingRequirements = false;
+
+            $today = Carbon::today();
+
+            $expiredBatches = StockBatch::whereNotNull('expiry_date')
+                ->where('expiry_date', '<', $today)
+                ->get(['id', 'inventory_id']);
+
+            if ($expiredBatches->isNotEmpty()) {
+                DB::table('stock_batches')
+                    ->whereIn('id', $expiredBatches->pluck('id'))
+                    ->update(['quantity' => 0]);
+
+                DB::table('inventories')
+                    ->whereIn('id', $expiredBatches->pluck('inventory_id')->filter())
+                    ->update(['quantity' => 0]);
+            }
+
 
             if ($user && $user->role === 'b2b') {
                 $b2bDetails = B2BDetail::where('user_id', $user->id)->first();

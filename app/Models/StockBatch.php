@@ -17,10 +17,12 @@ class StockBatch extends Model
 
     protected $fillable = [
         'product_id',
+        'inventory_id',
         'quantity',
         'remaining_quantity',
         'cost_price',
         'received_date',
+        'expiry_date',
         'note'
     ];
 
@@ -149,5 +151,10 @@ class StockBatch extends Model
                 'reference' => $note ?? 'Manual stock return',
             ]);
         }
+    }
+
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class, 'inventory_id');
     }
 }

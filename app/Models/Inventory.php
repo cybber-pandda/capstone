@@ -15,7 +15,6 @@ class Inventory extends Model
         'product_id',
         'type',
         'quantity',
-        'expiry_date',
         'reason'
     ];
 

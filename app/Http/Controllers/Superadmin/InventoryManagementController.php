@@ -136,6 +136,9 @@ class InventoryManagementController extends Controller
                     'received_date' => $batch->received_date
                         ? Carbon::parse($batch->received_date)->format('Y-m-d')
                         : '-',
+                    'expiry_date' => $batch->expiry_date
+                        ? Carbon::parse($batch->expiry_date)->format('Y-m-d')
+                        : '-',
                     'note' => $batch->note ?? '-',
                     'status' => $status,
                 ];
@@ -287,7 +290,6 @@ class InventoryManagementController extends Controller
             $inventory = $product->inventories()->create([
                 'type' => $validated['type'],
                 'quantity' => abs($validated['quantity']),
-                'expiry_date' => $validated['expiry_date'],
                 'reason' => $validated['reason'],
             ]);
 
@@ -295,10 +297,12 @@ class InventoryManagementController extends Controller
             if ($validated['type'] === 'in') {
                 $batch = StockBatch::create([
                     'product_id' => $product->id,
+                    'inventory_id' => $inventory->id,
                     'quantity' => $validated['quantity'],
                     'remaining_quantity' => $validated['quantity'],
                     'cost_price' => $request->input('cost_price', $product->price),
                     'received_date' => Carbon::now(),
+                    'expiry_date' => $validated['expiry_date'],
                     'note' => $validated['reason'] ?? 'Stock added manually',
                 ]);
 

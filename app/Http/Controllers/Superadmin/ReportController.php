@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\Delivery;
 use App\Models\Inventory;
 use App\Models\Product;
+use App\Models\StockBatch;
 
 class ReportController extends Controller
 {
@@ -175,62 +176,6 @@ class ReportController extends Controller
         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
 
-    // public function expiredProductReport(Request $request)
-    // {
-    //      // 1️⃣ If user is NOT logged in → show login page
-    //     if (!Auth::check()) {
-    //         $page = 'Sign In';
-    //         $companysettings = DB::table('company_settings')->first();
-
-    //         return response()
-    //             ->view('auth.login', compact('page', 'companysettings'))
-    //             ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
-    //             ->header('Pragma', 'no-cache')
-    //             ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
-    //     }
-
-    //     // 2️⃣ If user is logged in → check their role
-    //     $user = Auth::user();
-
-    //     // Example role logic (adjust 'role' and role names to match your database)
-
-    //     if ($user->role === 'superadmin') {
-    //     if ($request->ajax()) {
-    //         $today = now()->toDateString();
-
-    //         $products = Inventory::with('product')
-    //             ->whereNotNull('expiry_date')   // ensure expiry_date exists
-    //             ->where('expiry_date', '<', $today) // only expired
-    //             ->get();
-
-    //         $data = $products->map(function ($product) {
-    //             // Stock calculation
-    //             $stockIn = $product->inventories->where('type', 'in')->sum('quantity');
-    //             $stockOut = $product->inventories->where('type', 'out')->sum('quantity');
-    //             $currentStock = $stockIn - $stockOut;
-
-    //             return [
-    //                 'sku'            => $product->sku,
-    //                 'name'           => $product->name,
-    //                 'expiry_date'    => $product->expiry_date,
-    //                 'price'          => number_format($product->price, 2),
-    //                 'stockIn'        => $stockIn,
-    //                 'stockOut'       => $stockOut,
-    //                 'current_stock'  => max($currentStock, 0), // avoid negative
-    //             ];
-    //         });
-
-    //         return datatables()->of($data)->make(true);
-    //     }
-
-    //     return view('pages.superadmin.v_expiredProductReport', [
-    //         'page' => 'Expired Product Report',
-    //         'pageCategory' => 'Reports',
-    //     ]);}
-    //     return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
-    // }
-
-
     public function expiredProductReport(Request $request)
     {
         // 1️⃣ Check if user is logged in
@@ -249,34 +194,36 @@ class ReportController extends Controller
         $user = Auth::user();
 
         if ($user->role === 'superadmin') {
+
             if ($request->ajax()) {
                 $today = now()->toDateString();
 
-                // Get all expired products (grouped by product)
-                $expiredProducts = Inventory::with('product')
+                // ✅ Get all expired stock batches with their products and inventory
+                $expiredProducts = StockBatch::with('product', 'inventory')
                     ->whereNotNull('expiry_date')
                     ->where('expiry_date', '<', $today)
-                    ->get()
-                    ->groupBy('product_id');
+                    ->get();
 
-                $data = $expiredProducts->map(function ($inventories) {
-                    $first = $inventories->first(); // one inventory record
-                    $product = $first->product;
+                // ✅ Transform each record for DataTables
+                $data = $expiredProducts->map(function ($batch) {
+                    $product = $batch->product;
+                    $inventory = $batch->inventory;
 
-                    $stockIn = $inventories->where('type', 'in')->sum('quantity');
-                    $stockOut = $inventories->where('type', 'out')->sum('quantity');
+                    // If quantities are stored in inventory, safely handle nulls
+                    $stockIn = $inventory?->type === 'in' ? ($inventory->quantity ?? 0) : 0;
+                    $stockOut = $inventory?->type === 'out' ? ($inventory->quantity ?? 0) : 0;
                     $currentStock = max($stockIn - $stockOut, 0);
 
                     return [
                         'sku'           => $product?->sku ?? 'N/A',
                         'name'          => $product?->name ?? 'N/A',
-                        'expiry_date'   => $first->expiry_date,
+                        'expiry_date'   => $batch->expiry_date,
                         'price'         => number_format($product?->price ?? 0, 2),
                         'stockIn'       => $stockIn,
                         'stockOut'      => $stockOut,
                         'current_stock' => $currentStock,
                     ];
-                })->values(); // reset array keys
+                });
 
                 return datatables()->of($data)->make(true);
             }
