@@ -39,8 +39,14 @@
                                 </li>
                             </ul>
                         </div>
-                        <div>
-                            <a id="showLimitForMobile">Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}</a>
+                            <div style="display:flex; align-items:center; gap:6px; white-space:nowrap;">
+                                <span id="showLimitForMobile" style="color:white;">
+                                    Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}   
+                                <a href="javascript:void(0);" id="refreshLimitBtn" title="Refresh" 
+                                style="color:white; text-decoration:none; font-size:15px;">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </a>
+                                </span>
                         </div>
                     </div>
                 </li>
@@ -190,3 +196,18 @@
     <!-- /MAIN HEADER -->
 </header>
 <!-- /HEADER -->
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const refreshBtn = document.getElementById('refreshLimitBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                const icon = this.querySelector('i');
+                icon.classList.add('fa-spin');
+                location.reload();
+            });
+        }
+    });
+</script>
+@endpush

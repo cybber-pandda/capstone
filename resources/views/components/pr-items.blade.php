@@ -41,7 +41,7 @@
             <i class="link-icon mb-1" data-lucide="calendar-days"></i>
             {{ date('M j, Y', strtotime($pr->created_at)) }}
         </h6>
-    </div>
+<<!--    </div>
     @if(Auth::user()->role === 'salesofficer')
         <div id="prActions" class="d-flex gap-2">
             <button type="button" class="btn btn-primary" id="sendQuotationBtn">
@@ -55,6 +55,21 @@
         </div>
     @endif
 </div>
+-->
+    </div>
+        @if(Auth::user()->role === 'salesofficer' && $pr->status !== 'reject_quotation')
+            <div id="prActions" class="d-flex gap-2">
+                <button type="button" class="btn btn-primary" id="sendQuotationBtn">
+                    <span class="sendQuotationBtn_button_text">Approve</span>
+                    <span class="sendQuotationBtn_load_data d-none">Loading <i class="loader"></i></span>
+                </button>
+                <button type="button" class="btn btn-inverse-danger" id="rejectQuotationBtn">
+                    <span class="rejectQuotationBtn_button_text">Reject</span>
+                    <span class="rejectQuotationBtn_load_data d-none">Loading <i class="loader"></i></span>
+                </button>
+            </div>
+        @endif
+    </div>
 
 <div class="row p-3">
     <div class="col-md-4 bg-light border border-dark p-3" style="border-radius: 0.375rem;">

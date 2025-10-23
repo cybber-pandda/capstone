@@ -29,10 +29,24 @@
 <!-- /SECTION -->
 
 <!-- SECTION -->
+<!-- SECTION -->
 <div class="section section-scrollable">
     <div class="container">
         <div class="section-title">
-            <h5 class="title" id="hideLimitForMobile">Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}</h5>
+            
+            <!-- Refresh Button (now on top) -->
+            <div style="margin-bottom: 5px;">
+                            <!-- Credit Limit -->
+            <h5 class="title" id="hideLimitForMobile">
+                Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}
+            </h5>
+            </div>
+
+            <!-- Credit Limit -->
+                <button id="refreshBtn" class="btn btn-sm btn-outline-primary">
+                    <i class="fa fa-refresh"></i> Refresh
+                </button>
+
             <div class="section-nav" style="display: none;">
                 <ul class="section-tab-nav tab-nav">
                     <li class="active"><a href="#" class="category-btn" data-id="">All</a></li>
@@ -468,6 +482,15 @@
             );
         }
         //hanggang dito
+        $(document).on('click', '#refreshBtn', function() {
+            const icon = $(this).find('i'); // Target the refresh icon inside the button
+            icon.addClass('fa-spin'); // Start Font Awesome spinning animation
+
+            // Optional: Add a slight delay so users can *see* the spin before reload
+            setTimeout(() => {
+                location.reload();
+            }, 400);
+        });
 
 
     });

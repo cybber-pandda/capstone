@@ -25,7 +25,9 @@
             style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
             <div>
                 <label style="font-weight: normal;">Schedule Delivery (optional)</label>
-                <input class="form-control" type="date" id="expectedDeliveryDate" name="expectedDeliveryDate" .
+                <input class="form-control" type="date" id="expectedDeliveryDate"
+                    name="expectedDeliveryDate"
+                    onkeydown="return false"
                     style="max-width: 300px;">
             </div>
             <div>

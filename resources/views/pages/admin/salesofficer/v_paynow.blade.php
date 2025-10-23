@@ -56,7 +56,7 @@
             'label' => 'Paid Date',
             'type' => 'date',
             'name' => 'paid_date',
-            'attributes' => 'placeholder="Enter delivery date" id="paid_date" required'
+            'attributes' => 'id="paid_date" required onkeydown="return false" onpaste="return false"'
         ]) @endcomponent
 
 

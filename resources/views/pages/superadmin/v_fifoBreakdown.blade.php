@@ -32,7 +32,7 @@
                 <!-- <th>Cost</th> -->
                 <th>Received Date</th>
                 <th>Expiry Date</th>
-                <th>Note</th>
+                <!--<th>Note</th> -->
                 <th>Status</th>
             </tr>
             '
@@ -103,10 +103,10 @@
                     className: "dt-left-int",
                     responsivePriority: 1,
                 },
-                {
-                    data: "note",
-                    name: "note"
-                },
+                //{
+                //    data: "note",
+                //    name: "note"
+                //},
                 {
                     data: "status",
                     name: "status"

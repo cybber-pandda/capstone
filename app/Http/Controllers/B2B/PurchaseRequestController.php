@@ -188,6 +188,16 @@ class PurchaseRequestController extends Controller
         ]);
 
         $userId = auth()->id();
+        // 🚫 Block adding new items if user has a pending PR
+        $hasPendingPR = PurchaseRequest::where('customer_id', $userId)
+            ->where('status', 'pending')
+            ->exists();
+
+        if ($hasPendingPR) {
+            return response()->json([
+                'message' => 'You already have a pending purchase request. Please wait until it is processed before creating a new one.'
+            ], 400);
+        } //new for blocking PR
 
         $purchaseRequest = PurchaseRequest::firstOrCreate([
             'customer_id' => $userId,

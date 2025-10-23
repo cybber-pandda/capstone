@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use App\Exports\SalesSummaryExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Notification;
 use App\Models\B2BAddress;
@@ -86,22 +87,83 @@ class PurchaseRequestController extends Controller
     //     ]);
     // }
 
-    public function index(Request $request)
-    {
-        // 1️⃣ If user is NOT logged in → show login page
-        if (!Auth::check()) {
-            $page = 'Sign In';
-            $companysettings = DB::table('company_settings')->first();
+public function index(Request $request)
+{
+    // 🧠 1️⃣ Auto-reject pending PRs older than 1 day
+    $expiredPRs = PurchaseRequest::where('status', 'pending')
+        ->where('created_at', '<', Carbon::now()->subDay())
+        ->get();
 
-            return response()
-                ->view('auth.login', compact('page', 'companysettings'))
-                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
-                ->header('Pragma', 'no-cache')
-                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+    foreach ($expiredPRs as $pr) {
+        $pr->update([
+            'status' => 'reject_quotation',
+            'pr_remarks' => 'PR got Expired',
+        ]);
+
+        // ✅ Release reserved stock
+        PrReserveStock::releaseReservedStock($pr->id, 'cancelled');
+
+        // ✅ Notify customer
+        if ($pr->customer) {
+            Notification::create([
+                'user_id' => $pr->customer->id,
+                'type' => 'quotation_rejected',
+                'message' => 'Your purchase request #' . $pr->id . ' has expired and was automatically rejected. 
+                    <br><a href="' . route('b2b.purchase-requests.index') . '">Visit Link</a>',
+            ]);
+        }
+    }
+
+    // 🧠 2️⃣ Auto-cancel quotations older than 2 days
+    $expiredQuotations = PurchaseRequest::where('status', 'quotation_sent')
+        ->where('date_issued', '<', Carbon::now()->subDays(2))
+        ->get();
+
+    foreach ($expiredQuotations as $quotation) {
+        $quotation->update([
+            'status' => 'cancelled',
+            'pr_remarks_cancel' => 'Quotation has expired',
+        ]);
+
+        // ✅ Release reserved stock (same as customer cancel)
+        PrReserveStock::releaseReservedStock($quotation->id, 'expired');
+
+        // ✅ Notify customer
+        if ($quotation->customer) {
+            Notification::create([
+                'user_id' => $quotation->customer->id,
+                'type' => 'quotation_expired',
+                'message' => 'Your quotation for PR #' . $quotation->id . ' has expired after 2 days and was automatically cancelled. 
+                    <br><a href="' . route('b2b.purchase-requests.index') . '">Visit Link</a>',
+            ]);
         }
 
-        // 2️⃣ If user is logged in → check their role
-        $user = Auth::user();
+        // ✅ Notify all sales officers
+        $officers = \App\Models\User::where('role', 'salesofficer')->get();
+        foreach ($officers as $officer) {
+            Notification::create([
+                'user_id' => $officer->id,
+                'type' => 'quotation_expired',
+                'message' => 'A quotation (PR #' . $quotation->id . ') from ' . optional($quotation->customer)->name . ' expired and was auto-cancelled. 
+                    <br><a href="' . route('salesofficer.purchase-requests.index') . '">Visit Link</a>',
+            ]);
+        }
+    }
+
+    // 🧠 3️⃣ If user not logged in → redirect to login
+    if (!Auth::check()) {
+        $page = 'Sign In';
+        $companysettings = DB::table('company_settings')->first();
+
+        return response()
+            ->view('auth.login', compact('page', 'companysettings'))
+            ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+            ->header('Pragma', 'no-cache')
+            ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+    }
+
+            // 🧠 3️⃣ Check user role
+            $user = Auth::user();
 
         // Example role logic (adjust 'role' and role names to match your database)
 

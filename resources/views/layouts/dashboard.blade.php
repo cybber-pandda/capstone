@@ -324,7 +324,17 @@
     @if($showCriticalStockModal)
     <script>
         $(function() {
-            $('#criticalStockModal').modal('show');
+            // Check if the modal has already been shown this session
+            if (!sessionStorage.getItem('criticalStockModalShown')) {
+                $('#criticalStockModal').modal('show');
+                // Mark it as shown so it won't appear again this session
+                sessionStorage.setItem('criticalStockModalShown', 'true');
+            }
+
+            // Optional: clear when user logs out (if you use logout button)
+            $(document).on('click', '#logoutButton', function() {
+                sessionStorage.removeItem('criticalStockModalShown');
+            });
         });
     </script>
     @endif

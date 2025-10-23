@@ -225,7 +225,7 @@
                             <label for="cod_flg" class="form-label">Payment Method:</label>
                             <select name="cod_flg" id="cod_flg" class="form-control">
                                 <option value="" selected disabled>-- Select Payment Method --</option>
-                                <option value="1">Cash on Delivery/Cheque</option>
+                                <option value="1">Cash or Cheque</option>
                                 <!-- <option value="0">Bank Transfer</option> -->
                             </select>
                             <div class="invalid-feedback cod_flg_error text-danger"></div>
@@ -403,7 +403,7 @@
                 icon: 'info',
                 showDenyButton: true,
                 showCancelButton: true,
-                confirmButtonText: 'Pay Now',
+                confirmButtonText: 'Pay Via COD',
                 denyButtonText: 'Pay Later',
                 cancelButtonText: 'Cancel',
             }).then((result) => {

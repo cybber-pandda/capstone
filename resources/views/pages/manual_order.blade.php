@@ -101,6 +101,10 @@
         let dd = String(today.getDate()).padStart(2, '0');
         let minDate = `${yyyy}-${mm}-${dd}`;
         $('#orderDate').attr('min', minDate);
+        // Prevent manual typing
+        $('#orderDate').on('keydown paste', function(e) {
+            e.preventDefault();
+        });
         // Hanggang dito
 
 

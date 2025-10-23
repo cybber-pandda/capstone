@@ -277,7 +277,7 @@
             //     }
             // });
 
-            const interval = setInterval(() => {
+        /*    const interval = setInterval(() => {
                 $.ajax({
                     url: `/b2b/quotations/status/${trackId}`,
                     method: 'GET',
@@ -308,7 +308,7 @@
                         Swal.fire('Error', 'Failed to check order status.', 'error');
                     }
                 });
-            }, 3000);
+            }, 3000); */
         }
     });
 </script>
