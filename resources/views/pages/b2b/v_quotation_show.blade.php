@@ -133,7 +133,13 @@
                                 <td>{{ $item->product->sku }}</td>
                                 <td>{{ $item->product->name }}</td>
                                 <td class="text-center">{{ $item->quantity }}</td>
-                                <td class="text-right">₱{{ number_format($price, 2) }}</td>
+                                <td class="text-right">
+                                    ₱{{ number_format($price, 2) }}
+                                    @if($item->product->discount > 0)
+                                        <br>
+                                        <small class="text-success">({{ $item->product->discount }}% off)</small>
+                                    @endif
+                                </td>
                                 <td class="text-right">₱{{ number_format($item->quantity * $price, 2) }}</td>
                             </tr>
                             @endforeach

@@ -17,6 +17,7 @@ use App\Models\CreditPartialPayment;
 use App\Models\B2BDetail;
 use App\Models\Product;
 use App\Models\StockBatch;
+use App\Models\Delivery;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -149,6 +150,46 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('*', function ($view) {
             $user = Auth::user();
+            
+            $showDeliveryPopup = false;
+
+            if ($user && $user->role === 'b2b') {
+                $onTheWayDelivery = Delivery::whereHas('order', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
+                ->where('status', 'on_the_way')
+                ->first();
+
+                if ($onTheWayDelivery) {
+                    $showDeliveryPopup = true;
+                }
+            }
+
+            $view->with([
+                'showDeliveryPopup' => $showDeliveryPopup,
+            ]);
+
+            $deliveryCount = 0;
+
+            if ($user && $user->role === 'b2b') {
+                $deliveryCount = Delivery::whereHas('order', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                })
+                ->where('status', 'on_the_way')
+                ->count();
+            }
+
+            // Finally, share it globally
+            $view->with([
+                // ...existing shared data
+                'deliveryCount' => $deliveryCount,
+            ]);
+            $notificationCount = 0;
+            if ($user) {
+                $notificationCount = \App\Models\Notification::where('user_id', $user->id)
+                    ->where('read_at')
+                    ->count();
+            }
 
             // Default values
             $pendingRequestCount = 0;
@@ -317,6 +358,7 @@ class AppServiceProvider extends ServiceProvider
                 'showPendingRequirements' => $showPendingRequirements,
                 'showCriticalStockModal' => $showCriticalStockModal ?? false,
                 'criticalProducts' => $criticalProducts ?? [],
+                'notificationCount' => $notificationCount, // 👈 Add this line
             ]);
         });
     }

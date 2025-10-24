@@ -130,18 +130,18 @@ class DeliveryController extends Controller
                     $ratingBtn = '';
 
                     if ($order->delivery->sales_invoice_flg == 1) {
-                        $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-file-text" aria-hidden="true"></i> </a>';
+                        $invoiceBtn = '<a href="' . route('b2b.delivery.invoice', $order->delivery->id) . '" class="btn btn-sm btn-primary" title="View Invoice" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-file-text" aria-hidden="true"></i> </a>';
                     }
 
                     if ($status === 'delivered' && $order->delivery->proof_delivery) {
-                        $proofBtn = '<button class="btn btn-sm btn-info view-proof-btn" data-proof="' . asset($order->delivery->proof_delivery) . '" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-file-image" aria-hidden="true"></i> </button>';
-                        $deliveryReceiptBtn = '<a href="' . route('b2b.delivery.receipt', $order->delivery->id) . '" class="btn btn-sm btn-danger" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-clipboard" aria-hidden="true"></i> </a>';
+                        $proofBtn = '<button class="btn btn-sm btn-info view-proof-btn" data-proof="' . asset($order->delivery->proof_delivery) . '" title="View Proof of Delivery" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-file-image" aria-hidden="true"></i> </button>';
+                        $deliveryReceiptBtn = '<a href="' . route('b2b.delivery.receipt', $order->delivery->id) . '" class="btn btn-sm btn-danger" title="View Delivery Receipt" style="margin-right:5px;font-size:10.5px;"> <i class="fa fa-clipboard" aria-hidden="true"></i> </a>';
 
                         if ($hasRiderRating && $hasProductRating) {
                             $ratingBtn = '<button class="btn btn-sm btn-secondary" disabled style="margin-right:5px;background:gray;opacity:0.6;color:black;"> Rated </button>';
                         } else {
-                            $ratingBtn = '<a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" class="btn btn-warning btn-sm" style="font-size:10.5px;"> <i class="fa fa-car" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i> </a> 
-                            <a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" class="btn btn-success btn-sm" style="font-size:10.5px;"> <i class="fa fa-shopping-cart" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i> </a>';
+                            $ratingBtn = '<a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" title="Rate Delivery Driver" class="btn btn-warning btn-sm" style="font-size:10.5px;"> <i class="fa fa-car" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i> </a> 
+                            <a href="' . route('b2b.delivery.product.rate', $order->order_number) . '" title="Rate Products" class="btn btn-success btn-sm" style="font-size:10.5px;"> <i class="fa fa-shopping-cart" aria-hidden="true"></i><i class="fa fa-star" aria-hidden="true"></i> </a>';
                         }
                     }
 

@@ -217,7 +217,7 @@ class DeliveryRiderController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        $user->delete();
+        $user->forceDelete();
 
         return response()->json([
             'type' => 'success',

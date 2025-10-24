@@ -216,7 +216,7 @@ class SalesOfficerController extends Controller
     public function destroy($id)
     {
         $user = User::findOrFail($id);
-        $user->delete();
+        $user->forcedDelete();
 
         return response()->json([
             'type' => 'success',

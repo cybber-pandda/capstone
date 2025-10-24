@@ -1005,6 +1005,41 @@ contactInput.on('paste', function(e) {
         }
         @endif
     });
+
+    @if(isset($showDeliveryPopup) && $showDeliveryPopup) 
+    document.addEventListener('DOMContentLoaded', function() { 
+        if (!sessionStorage.getItem('deliveryPopupShown')) { 
+            Swal.fire({ 
+                title: 'Delivery On The Way! 🚚', 
+                html: `
+                    <p>Your order is now being delivered.</p> 
+                    <button id="trackOrderBtn" class="swal2-confirm swal2-styled" 
+                        style="
+                            background-color:#000a7a; 
+                            margin-top:10px; 
+                            border-radius:5px; 
+                            padding:8px 18px; 
+                            font-size:14px; 
+                            font-weight:500; 
+                        "> 
+                        Track Order 
+                    </button>
+                `, 
+                icon: 'info', 
+                showConfirmButton: false, 
+                allowOutsideClick: false, 
+                didRender: () => { 
+                    document.getElementById('trackOrderBtn').addEventListener('click', function() { 
+                        // Redirects to your Delivery page 
+                        window.location.href = "{{ route('b2b.delivery.index') }}"; 
+                    }); 
+                } 
+            }); 
+            sessionStorage.setItem('deliveryPopupShown', true); 
+        } 
+    }); 
+    @endif
+
     </script>
 
     @endauth

@@ -5,54 +5,74 @@
         <div class="container">
             <ul class="header-links pull-left desktop-only no-link">
                 <li><a><i class="fa fa-phone"></i> {{ $companySettings->company_phone ?? '' }}</a></li>
-                <li class="removeAddressinTablet"><a><i class="fa fa-envelope-o"></i> {{ $companySettings->company_email ?? '' }}</a></li>
+                <li class="removeAddressinTablet"><a><i class="fa fa-envelope"></i> {{ $companySettings->company_email ?? '' }}</a></li>
                 <li class="removeEmailinTablet"><a><i class="fa fa-map-marker"></i> {{ $companySettings->company_address ?? '' }}</a></li>
             </ul>
-            <ul class="header-links pull-right">
-                @auth
-                <li class="dropdown user-dropdown">
-                    <div style="display: flex;justify-content:space-between">
-                        <div>
-                            <a href="{{ route('chat.index') }}">
-                                <i class="fa fa-message"></i>
-                            </a>
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-                                <i class="fa fa-user"></i> Hi, {{ Auth::user()->username }} <span class="caret"></span>
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a href="{{ route('b2b.profile.index') }}"><i class="fa-regular fa-address-card"></i> Profile</a></li>
-                                <li><a href="{{ route('b2b.address.index') }}"> <i class="fa-solid fa-map-location-dot"></i> My Address</a></li>
-                                <li><a href="{{ route('b2b.purchase.index') }}"> <i class="fa-solid fa-bag-shopping"></i> My Purchase</a></li>
-                                <li><a href="{{ route('b2b.purchase.order') }}"> <i class="fa-solid fa-basket-shopping"></i> My Purchase Order</a></li>
-                                <li><a href="{{ route('b2b.purchase.credit') }}"> <i class="fa-solid fa-credit-card"></i> My Credit</a></li>
-                                <li><a href="{{ route('b2b.purchase.rr') }}"><i class="fa-solid fa-right-left"></i> Return/Refund Items</a></li>
-                                <li><a href="{{ route('notification.index') }}"><i class="fa-solid fa-bell"></i> Notification</a></li>
-                                <li role="separator" class="divider"></li>
-                                <li>
-                                    <a href="{{ route('logout') }}"
+                <ul class="header-links pull-right">
+                    @auth
+                    <li class="dropdown user-dropdown">
+                        <div style="display: flex; justify-content:space-between; align-items:center; gap:10px;">
+                            <div>
+                                <a href="{{ route('notification.index') }}" 
+                                title="Notifications" 
+                                style="color:white; text-decoration:none; position:relative; display:inline-block; margin-right:10px;">
+                                    <i class="fa-solid fa-bell"></i>
+                                    @if(isset($notificationCount) && $notificationCount > 0)
+                                        <span class="notification-pulse"></span>
+                                        <span class="notification-number">{{ $notificationCount }}</span>
+                                    @endif
+                                </a>                         
+
+                                <a href="{{ route('chat.index') }}"
+                                title="Messages"
+                                style="color:white; text-decoration:none; margin-right:10px;">
+                                    <i class="fa fa-message"></i>
+                                </a>
+
+                                <a href="#" class="dropdown-toggle"
+                                title="Profile"
+                                data-toggle="dropdown" 
+                                role="button" 
+                                aria-haspopup="true" 
+                                aria-expanded="false"
+                                style="color:white; text-decoration:none; margin-right:10px;">
+                                    <i class="fa fa-user"></i> Hi, {{ Auth::user()->username }} <span class="caret"></span>
+                                </a>
+
+                                <ul class="dropdown-menu">
+                                    <li><a href="{{ route('b2b.profile.index') }}"><i class="fa-regular fa-address-card"></i> Profile</a></li>
+                                    <li><a href="{{ route('b2b.address.index') }}"> <i class="fa-solid fa-map-location-dot"></i> My Address</a></li>
+                                    <li><a href="{{ route('b2b.purchase.index') }}"> <i class="fa-solid fa-bag-shopping"></i> My Purchase</a></li>
+                                    <li><a href="{{ route('b2b.purchase.order') }}"> <i class="fa-solid fa-basket-shopping"></i> My Purchase Order</a></li>
+                                    <li><a href="{{ route('b2b.purchase.credit') }}"> <i class="fa-solid fa-credit-card"></i> My Credit</a></li>
+                                    <li><a href="{{ route('b2b.purchase.rr') }}"><i class="fa-solid fa-right-left"></i> Return/Refund Items</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li>
+                                        <a href="{{ route('logout') }}"
                                         onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                         <i class="fa-solid fa-right-from-bracket"></i> Logout
-                                    </a>
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                                        @csrf
-                                    </form>
-                                </li>
-                            </ul>
-                        </div>
+                                        </a>
+                                        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                                            @csrf
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+
                             <div style="display:flex; align-items:center; gap:6px; white-space:nowrap;">
                                 <span id="showLimitForMobile" style="color:white;">
                                     Credit Limit: {{ number_format(Auth::user()->credit_limit, 2) }}   
-                                <a href="javascript:void(0);" id="refreshLimitBtn" title="Refresh" 
-                                style="color:white; text-decoration:none; font-size:15px;">
-                                    <i class="fa-solid fa-rotate-right"></i>
-                                </a>
+                                    <a href="javascript:void(0);" id="refreshLimitBtn" title="Refresh" 
+                                    style="color:white; text-decoration:none; font-size:15px;">
+                                        <i class="fa-solid fa-rotate-right"></i>
+                                    </a>
                                 </span>
+                            </div>
                         </div>
-                    </div>
-                </li>
-                @else
-                <li><a href="{{ route('login') }}"><i class="fa fa-sign-in"></i> Sign-In</a></li>
-                @endauth
+                    </li>
+                    @else
+                    <li><a href="{{ route('login') }}"><i class="fa fa-sign-in"></i> Sign-In</a></li>
+                    @endauth
 
             </ul>
         </div>
@@ -108,12 +128,18 @@
                         </div>
 
                         <div>
-                            <a href="{{ route('b2b.delivery.index') }}">
+                            <a href="{{ route('b2b.delivery.index') }}" style="position: relative;">
                                 <i class="fa-solid fa-truck"></i>
                                 <span>Delivery</span>
-                                <!-- <div class="qty">2</div> -->
+
+                                @if(isset($deliveryCount) && $deliveryCount > 0)
+                                    <div class="qty">
+                                        {{ $deliveryCount }}
+                                    </div>
+                                @endif
                             </a>
                         </div>
+
 
                         <div>
                             <a href="{{ route('b2b.quotations.review') }}">

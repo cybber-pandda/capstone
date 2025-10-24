@@ -76,6 +76,12 @@
         <div class="modal-content border-0 rounded-0">
             <div class="modal-body p-0">
                 <div id="libremap" style="width:100%; height:400px;"></div>
+                <!-- Coordinates display -->
+                <div class="p-2 bg-light">
+                    <p id="coordDisplay" class="text-center mb-1" style="font-size: 14px; color: #333;">
+                        Drag or tap on the map to adjust your pin.
+                    </p>
+                </div>
                 <div class="p-3 bg-white">
                     <p class="mb-0">Please confirm this location before submitting your address.</p>
                 </div>
@@ -174,7 +180,7 @@
                     $('#libremap').html('');
                     map = new maplibregl.Map({
                         container: 'libremap',
-                        style: 'https://tiles.stadiamaps.com/styles/alidade_smooth.json',
+                        style: 'https://tiles.stadiamaps.com/styles/alidade_smooth.json?api_key=e3a93d7d-52a6-4464-815e-910cfeac8a7d',
                         center: [lon, lat],
                         zoom: 16,
                         attributionControl: true
@@ -182,12 +188,35 @@
 
                     map.addControl(new maplibregl.NavigationControl());
 
+                    // Create draggable marker
                     marker = new maplibregl.Marker({
-                            color: 'red'
-                        })
-                        .setLngLat([lon, lat])
-                        .addTo(map);
-
+                        color: 'blue',
+                        draggable: true
+                    })
+                    .setLngLat([lon, lat])
+                    .addTo(map);
+                    
+                    function updateCoordDisplay(lat, lng) {
+                        $('#coordDisplay').text(`📍 Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`);
+                    }
+                    
+                    // Update lat/lng when the user drags the marker
+                    marker.on('dragend', function() {
+                        const newCoords = marker.getLngLat();
+                        $('#delivery_address_lat').val(newCoords.lat);
+                        $('#delivery_address_lng').val(newCoords.lng);
+                        updateCoordDisplay(newCoords.lat, newCoords.lng);
+                    });
+                
+                    // Allow clicking on the map to move the marker
+                    map.on('click', function(e) {
+                        const coords = e.lngLat;
+                        marker.setLngLat(coords);
+                        $('#delivery_address_lat').val(coords.lat);
+                        $('#delivery_address_lng').val(coords.lng);
+                        updateCoordDisplay(coords.lat, coords.lng);
+                    });
+                
                     map.resize();
                     map.setCenter([lon, lat]);
                 });

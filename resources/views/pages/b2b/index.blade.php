@@ -44,7 +44,7 @@
 
             <!-- Credit Limit -->
                 <button id="refreshBtn" class="btn btn-sm btn-outline-primary">
-                    <i class="fa fa-refresh"></i> Refresh
+                    <i class="fa fa-refresh"></i> Refresh Products
                 </button>
 
             <div class="section-nav" style="display: none;">
