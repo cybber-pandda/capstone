@@ -139,37 +139,36 @@
             <th class="text-right">Subtotal</th>
         </tr>
     </thead>
-    <tbody>
-        @php $subtotal = 0; @endphp
-        @foreach ($quotation->items as $item)
-            @php
-                $price = $item->product->price ?? 0;
-                $discount = $item->product->discount ?? 0;
+<tbody>
+    @php $subtotal = 0; @endphp
+    @foreach ($quotation->items as $item)
+        @php
+            // Use unit_price directly from quotation item
+            $unitPrice = $item->unit_price ?? 0;
+            $itemTotal = $unitPrice * $item->quantity;
+            $subtotal += $itemTotal;
 
-                // Apply discount if applicable
-                $discountedPrice = $discount > 0
-                    ? $price - ($price * ($discount / 100))
-                    : $price;
+            // Optional: show discount if unit_price < product price
+            $productPrice = $item->product->price ?? 0;
+            $discountPercent = $productPrice > 0
+                ? round((($productPrice - $unitPrice) / $productPrice) * 100)
+                : 0;
+        @endphp
 
-                $itemTotal = $discountedPrice * $item->quantity;
-                $subtotal += $itemTotal;
-            @endphp
-
-            <tr>
-                <td>{{ $item->product->sku }}</td>
-                <td>{{ $item->product->name }}</td>
-                <td class="text-center">{{ $item->quantity }}</td>
-                <td class="text-right">
-                    ₱{{ number_format($discountedPrice, 2) }}
-                    @if($discount > 0)
-                        <br>
-                        <small>({{ $discount }}% off)</small>
-                    @endif
-                </td>
-                <td class="text-right">₱{{ number_format($itemTotal, 2) }}</td>
-            </tr>
-        @endforeach
-    </tbody>
+        <tr>
+            <td>{{ $item->product->sku ?? 'N/A' }}</td>
+            <td>{{ $item->product->name ?? 'N/A' }}</td>
+            <td class="text-center">{{ $item->quantity }}</td>
+            <td class="text-right">
+                ₱{{ number_format($unitPrice, 2) }}
+                @if($discountPercent > 0)
+                    <br><small>({{ $discountPercent }}% off)</small>
+                @endif
+            </td>
+            <td class="text-right">₱{{ number_format($itemTotal, 2) }}</td>
+        </tr>
+    @endforeach
+</tbody>
 </table>
 
 @php
@@ -177,7 +176,7 @@
     $vat = $subtotal * ($vatRate / 100);
     $delivery_fee = $quotation->delivery_fee ?? 0;
     $total = $subtotal + $vat + $delivery_fee;
-    $amountPaid = 0;
+    $amountPaid = $quotation->amount_paid ?? 0;
 @endphp
 
 <table style="margin-top: 15px;">

@@ -178,6 +178,17 @@ class ProductManagementController extends Controller
                 'category_id' => $validated['category_id'],
                 'description' => $validated['description'] ?? null,
             ]);
+            // ✅ Update pending PR items with the new unit price
+            $product->purchaseRequestItems()
+                ->whereHas('purchaseRequest', fn($q) => $q->whereNull('status')) // only pending PRs
+                ->each(function ($item) use ($product) {
+                    $price = $product->discount > 0 && $product->discounted_price
+                        ? $product->discounted_price
+                        : $product->price;
+                    $item->unit_price = $price;
+                    $item->subtotal = round($item->quantity * $price, 2);
+                    $item->save();
+                });
 
             if ($request->filled('main_image_id')) {
                 $product->productImages()->update(['is_main' => false]);

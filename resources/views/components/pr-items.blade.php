@@ -183,14 +183,8 @@
                             <td>{{ $item->product->sku }}</td>
                             <td>{{ $item->product->name }}</td>
                             <td class="item-qty">{{ $item->quantity }}</td>
-                            @php
-                                $price = $item->product->discount > 0 
-                                    ? $item->product->discounted_price 
-                                    : $item->product->price;
-                            @endphp
-
-                            <td data-label="Price:" data-price="{{ $price }}">
-                                ₱{{ number_format($price, 2) }}
+                            <td data-label="Price:" data-price="{{ $item->unit_price }}">
+                                ₱{{ number_format($item->unit_price, 2) }}
                             </td>
                             <td data-label="Subtotal:">
                                 ₱{{ number_format($itemSubtotal, 2) }}

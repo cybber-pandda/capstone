@@ -53,65 +53,53 @@ foreach ($purchaseRequests as $pr) {
         $product = $item->product;
         $image = optional($product->productImages->first())->image_path ?? '/assets/shop/img/noimage.png';
 
-        // ✅ Get related return/refund data
-$return = $item->returnRequest;
-$refund = $item->refundRequest;
+        // ✅ Use unit_price from PurchaseRequestItem (actual charged price)
+        $unitPrice = $item->unit_price ?? 0;
+        $subtotal = $unitPrice * $item->quantity;
 
-// ✅ Determine if a return or refund exists
-$hasReturn = $return && !in_array($return->status, ['cancelled']);
-$hasRefund = $refund && !in_array($refund->status, ['cancelled']);
+        // ✅ Determine return/refund actions
+        $return = $item->returnRequest;
+        $refund = $item->refundRequest;
 
-$actions = [];
+        $hasReturn = $return && !in_array($return->status, ['cancelled']);
+        $hasRefund = $refund && !in_array($refund->status, ['cancelled']);
 
-// ✅ NEW ENHANCED LOGIC: Show only the requested type with status
-if ($hasReturn) {
-    $statusText = ucfirst($return->status ?? 'Pending');
-    $btnClass = match ($return->status) {
-        'approved' => 'btn-success',
-        'rejected' => 'btn-danger',
-        default => 'btn-secondary',
-    };
-    // Show only return with its status
-    $actions[] = '<button class="btn btn-xs ' . $btnClass . '" disabled title="Return ' . $statusText . '">Return ' . $statusText . '</button>';
-}
-elseif ($hasRefund) {
-    $statusText = ucfirst($refund->status ?? 'Pending');
-    $btnClass = match ($refund->status) {
-        'approved' => 'btn-success',
-        'rejected' => 'btn-danger',
-        default => 'btn-secondary',
-    };
-    // Show only refund with its status
-    $actions[] = '<button class="btn btn-xs ' . $btnClass . '" disabled title="Refund ' . $statusText . '">Refund ' . $statusText . '</button>';
-}
-else {
-    // No request yet → show both
-    $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">Return</button>';
-    $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">Refund</button>';
-}
-// --- END OF ENHANCED STATUS-BASED LOGIC ---
-
-
-        $actionHtml = implode('&nbsp;', $actions);
-
-        // ✅ Apply discount logic here
-        $unitPrice = $product->discount == 0 
-            ? $product->price 
-            : $product->discounted_price;
+        $actions = [];
+        if ($hasReturn) {
+            $statusText = ucfirst($return->status ?? 'Pending');
+            $btnClass = match ($return->status) {
+                'approved' => 'btn-success',
+                'rejected' => 'btn-danger',
+                default => 'btn-secondary',
+            };
+            $actions[] = '<button class="btn btn-xs ' . $btnClass . '" disabled title="Return ' . $statusText . '">Return ' . $statusText . '</button>';
+        } elseif ($hasRefund) {
+            $statusText = ucfirst($refund->status ?? 'Pending');
+            $btnClass = match ($refund->status) {
+                'approved' => 'btn-success',
+                'rejected' => 'btn-danger',
+                default => 'btn-secondary',
+            };
+            $actions[] = '<button class="btn btn-xs ' . $btnClass . '" disabled title="Refund ' . $statusText . '">Refund ' . $statusText . '</button>';
+        } else {
+            $actions[] = '<button class="btn btn-xs btn-warning btn-return" data-id="' . $item->id . '">Return</button>';
+            $actions[] = '<button class="btn btn-xs btn-danger btn-refund" data-id="' . $item->id . '">Refund</button>';
+        }
 
         $data[] = [
             'id' => $item->id,
             'sku' => $product->sku,
             'name' => $product->name,
-            'price' => number_format($unitPrice, 2),
+            'price' => number_format($unitPrice, 2), // ✅ actual unit price
             'quantity' => $item->quantity,
-            'subtotal' => number_format($item->quantity * $unitPrice, 2),
+            'subtotal' => number_format($subtotal, 2), // ✅ quantity * unit_price
             'image' => '<img src="' . asset($image) . '" width="50" height="50">',
             'created_at' => $item->created_at->toDateTimeString(),
-            'actions' => $actionHtml,
+            'actions' => implode('&nbsp;', $actions),
         ];
     }
 }
+
 
 
             return datatables()->of($data)->rawColumns(['image', 'actions'])->make(true);

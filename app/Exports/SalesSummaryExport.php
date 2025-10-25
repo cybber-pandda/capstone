@@ -49,19 +49,20 @@ public function map($pr): array
 {
     $rows = [];
 
-    // Calculate items subtotal considering discount
+    // Calculate items subtotal considering stored price and discount
     $itemsSubtotal = $pr->items->sum(function($item) {
-        $price = $item->product->price ?? 0;
-        $discount = $item->product->discount ?? 0;
+        $price = $item->unit_price ?? $item->price ?? ($item->product->price ?? 0);
+        $discount = $item->discount ?? ($item->product->discount ?? 0);
         $discountedPrice = $price - ($price * ($discount / 100));
         return $item->quantity * $discountedPrice;
     });
 
-    $vatRate = $pr->vat ?? 0;
+    $vatRate = $pr->vat ?? 12; // default to 12% if missing
     $salesVAT = $itemsSubtotal * ($vatRate / 100);
     $salesInclusive = $itemsSubtotal + $salesVAT;
 
     $deliveryFee = $pr->delivery_fee ?? 0;
+    // deliveryExclusive: remove VAT from gross delivery fee (assume 12% VAT inclusive)
     $deliveryExclusive = $deliveryFee / 1.12;
     $deliveryVAT = $deliveryFee - $deliveryExclusive;
     $deliveryInclusive = $deliveryFee;
@@ -76,9 +77,11 @@ public function map($pr): array
     $invoiceNo = 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
 
     foreach ($pr->items as $index => $item) {
-        $price = $item->product->price ?? 0;
-        $discount = $item->product->discount ?? 0;
+        // Use stored unit_price if available, else fallback to item price, else product price
+        $price = $item->unit_price ?? $item->price ?? ($item->product->price ?? 0);
+        $discount = $item->discount ?? ($item->product->discount ?? 0);
         $discountedPrice = $price - ($price * ($discount / 100));
+        $itemSubtotal = round($item->quantity * $discountedPrice, 2);
 
         $rows[] = [
             $index === 0 ? $transactionDate : '',
@@ -89,8 +92,8 @@ public function map($pr): array
 
             $item->product->name ?? 'No Product Name',
             $item->quantity,
-            (float) $discountedPrice, // Apply discounted price here
-            (float) round($item->quantity * $discountedPrice, 2), // Subtotal per item
+            (float) round($discountedPrice, 2), // discounted unit price
+            (float) $itemSubtotal, // Subtotal per item
             $index === count($pr->items) - 1 ? round($itemsSubtotal, 2) : '',
             $index === count($pr->items) - 1 ? round($salesVAT, 2) : '',
             $index === count($pr->items) - 1 ? round($salesInclusive, 2) : '',
@@ -104,6 +107,9 @@ public function map($pr): array
         ];
     }
 
+    // The exporter expects a single row per map() call, but you are returning multiple rows per PR.
+    // Maatwebsite's WithMapping expects an array, and returning nested rows works if the package version supports it.
+    // If your export flattens incorrectly, you can return only the first row here and handle the rest in collection() instead.
     return $rows;
 }
 

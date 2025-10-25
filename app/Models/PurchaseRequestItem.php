@@ -9,7 +9,7 @@ class PurchaseRequestItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['purchase_request_id', 'product_id', 'quantity', 'subtotal'];
+    protected $fillable = ['purchase_request_id', 'product_id', 'quantity', 'subtotal','unit_price',];
 
     public function purchaseRequest()
     {

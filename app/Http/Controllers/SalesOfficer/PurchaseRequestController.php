@@ -182,8 +182,11 @@ public function index(Request $request)
                         return $pr->items->sum('quantity');
                     })
                     ->addColumn('grand_total', function ($pr) {
-                        $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->discount > 0 ? $item->product->discounted_price : $item->product->price));
-                        $vatRate = $pr->vat ?? 0; // VAT percentage
+                        $subtotal = \DB::table('purchase_request_items')
+                            ->where('purchase_request_id', $pr->id)
+                            ->sum('subtotal');
+
+                        $vatRate = $pr->vat ?? 0;
                         $vatAmount = $subtotal * ($vatRate / 100);
                         $deliveryFee = $pr->delivery_fee ?? 0;
                         $total = $subtotal + $vatAmount + $deliveryFee;

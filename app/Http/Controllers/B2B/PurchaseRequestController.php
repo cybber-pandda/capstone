@@ -223,12 +223,14 @@ class PurchaseRequestController extends Controller
 
         if ($item) {
             $item->quantity += $request->quantity;
-            $item->subtotal = round($item->quantity * $price, 2); // round subtotal
+            $item->unit_price = $price; // ✅ always update unit price
+            $item->subtotal = round($item->quantity * $price, 2);
             $item->save();
         } else {
             $purchaseRequest->items()->create([
                 'product_id' => $request->product_id,
                 'quantity' => $request->quantity,
+                'unit_price' => $price, // ✅ store unit price on create
                 'subtotal' => round($request->quantity * $price, 2)
             ]);
         }
@@ -285,7 +287,8 @@ class PurchaseRequestController extends Controller
         $price = $this->calculateProductPrice($item->product);
 
         $item->quantity = $request->quantity;
-        $item->subtotal = round($item->quantity * $price, 2); // round subtotal
+        $item->unit_price = $price; // ✅ keep it updated
+        $item->subtotal = round($item->quantity * $price, 2);
         $item->save();
 
         return response()->json([
@@ -306,7 +309,8 @@ class PurchaseRequestController extends Controller
         ]);
 
         // Get the purchase requests to check ownership
-        $purchaseRequests = PurchaseRequest::where('customer_id', $user->id)
+        $purchaseRequests = PurchaseRequest::with(['items.product']) // include items and products
+            ->where('customer_id', $user->id)
             ->whereIn('id', $request->prids)
             ->whereNull('status')
             ->get();
@@ -329,7 +333,19 @@ class PurchaseRequestController extends Controller
                     ], 400);
                 }
 
-                $availableStock = $product->stockBatches()->sum('remaining_quantity') - PrReserveStock::getTotalReservedStock($product->id);
+                // ✅ Recalculate price and subtotal dynamically
+                $price = $product->discount > 0 && $product->discounted_price
+                    ? $product->discounted_price
+                    : $product->price;
+
+                $item->subtotal = $item->quantity * $price; // ensure latest subtotal is used
+
+                // 🔹 Optional: save updated subtotal in DB for data consistency
+                // (only if you want to store updated value permanently)
+                $item->update(['subtotal' => $item->subtotal]);
+
+                $availableStock = $product->stockBatches()->sum('remaining_quantity')
+                    - PrReserveStock::getTotalReservedStock($product->id);
 
                 if ($availableStock < $item->quantity) {
                     return response()->json([
@@ -340,10 +356,8 @@ class PurchaseRequestController extends Controller
             }
         }
 
-        // Update all purchase requests
         $updatedCount = PurchaseRequest::whereIn('id', $purchaseRequests->pluck('id'))
             ->update([
-                // 'transaction_uuid' => $this->generateTransactionUid(),
                 'status' => 'pending',
                 'b2b_delivery_date' => $request->expected_delivery_date
             ]);

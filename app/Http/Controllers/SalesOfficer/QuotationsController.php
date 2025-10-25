@@ -45,27 +45,18 @@ class QuotationsController extends Controller
                 ->addColumn('total_items', function ($pr) {
                     return $pr->items->sum('quantity');
                 })
-        ->addColumn('grand_total', function ($pr) {
-            $subtotal = $pr->items->sum(function ($item) {
-                $price = $item->product->price ?? 0;
-                $discountedPrice = $item->product->discounted_price ?? $price;
-                $quantity = $item->quantity;
+                    ->addColumn('grand_total', function ($pr) {
+                        $subtotal = \DB::table('purchase_request_items')
+                            ->where('purchase_request_id', $pr->id)
+                            ->sum('subtotal');
 
-                // Use discounted price if product has a discount
-                $finalPrice = ($item->product->discount > 0 ? $discountedPrice : $price) * $quantity;
+                        $vatRate = $pr->vat ?? 0;
+                        $vatAmount = $subtotal * ($vatRate / 100);
+                        $deliveryFee = $pr->delivery_fee ?? 0;
+                        $total = $subtotal + $vatAmount + $deliveryFee;
 
-                return $finalPrice;
-            });
-
-            $vatRate = $pr->vat ?? 0; // VAT percentage
-            $vatAmount = $subtotal * ($vatRate / 100);
-
-            $deliveryFee = $pr->delivery_fee ?? 0;
-
-            $total = $subtotal + $vatAmount + $deliveryFee;
-
-            return '₱' . number_format($total, 2);
-        })
+                        return '₱' . number_format($total, 2);
+                    })
                 ->editColumn('created_at', function ($pr) {
                     return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
                 })

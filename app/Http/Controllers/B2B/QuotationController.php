@@ -67,18 +67,18 @@ class QuotationController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(function ($item) {
-                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
-                        return $item->quantity * ($price ?? 0);
+                    $subtotal = $pr->items->sum(function($item) {
+                        return ($item->subtotal ?? ($item->unit_price * $item->quantity));
                     });
-                    
-                    $vatRate = $pr->vat ?? 0;
+
+                    $vatRate = floatval($pr->vat ?? 0);
                     $vatAmount = $subtotal * ($vatRate / 100);
-                    $deliveryFee = $pr->delivery_fee ?? 0;
+                    $deliveryFee = floatval($pr->delivery_fee ?? 0);
                     $total = $subtotal + $vatAmount + $deliveryFee;
 
-                    return '₱' . number_format($total, 2);
+                    return '₱' . number_format($total, 2, '.', ',');    
                 })
+
                 ->editColumn('created_at', function ($pr) {
                     return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
                 })

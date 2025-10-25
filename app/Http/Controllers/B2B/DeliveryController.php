@@ -61,30 +61,35 @@ class DeliveryController extends Controller
                 ->addColumn('order_number', fn($order) => $order->order_number ?? 'N/A')
                 ->addColumn('delivery_name', fn($order) => optional($order->delivery->deliveryUser)->name ?? 'Unassigned')
                 ->addColumn('total_items', fn($order) => $order->items->sum('quantity') ?? 0)
-                ->addColumn('grand_total', function ($order) {
-                    $subtotal = $order->items->sum(function ($item) {
-                        $price = $item->product->discount == 0 ? $item->product->price : $item->product->discounted_price;
-                        return $item->quantity * ($price ?? 0);
-                    });
+            ->addColumn('grand_total', function ($order) {
+                $purchaseRequestId = null;
+                
+                if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
+                    $purchaseRequestId = $matches[1];
+                }
 
-                    // Default values
-                    $vatRate = 0;
-                    $deliveryFee = 0;
+                $subtotal = 0;
+                $vatRate = 0;
+                $deliveryFee = 0;
 
-                    if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
-                        $purchaseRequestId = $matches[1];
-                        $purchaseRequest = PurchaseRequest::find($purchaseRequestId);
-                        if ($purchaseRequest) {
-                            $vatRate = $purchaseRequest->vat ?? 0;
-                            $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
-                        }
+                if ($purchaseRequestId) {
+                    $subtotal = \DB::table('purchase_request_items')
+                        ->where('purchase_request_id', $purchaseRequestId)
+                        ->sum('subtotal');
+
+                    $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+                    if ($purchaseRequest) {
+                        $vatRate = $purchaseRequest->vat ?? 0;
+                        $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
                     }
+                }
 
-                    $vat = $subtotal * ($vatRate / 100);
-                    $grandTotal = $subtotal + $vat + $deliveryFee;
+                $vatAmount = $subtotal * ($vatRate / 100);
+                $grandTotal = $subtotal + $vatAmount + $deliveryFee;
 
-                    return '₱' . number_format($grandTotal, 2);
-                })
+                return '₱' . number_format($grandTotal, 2);
+            })
+
                 ->addColumn('status', function ($order) {
                     $status = $order->delivery->status ?? 'unknown';
                     $messages = [

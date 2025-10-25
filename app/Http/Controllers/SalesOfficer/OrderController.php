@@ -50,15 +50,18 @@ class OrderController extends Controller
                 ->addColumn('total_items', function ($pr) {
                     return $pr->items->sum('quantity');
                 })
-                ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(fn($item) => $item->quantity * ($item->product->price ?? 0));
-                    $vatRate = $pr->vat ?? 0; // VAT percentage
-                    $vatAmount = $subtotal * ($vatRate / 100);
-                    $deliveryFee = $pr->delivery_fee ?? 0;
-                    $total = $subtotal + $vatAmount + $deliveryFee;
+                    ->addColumn('grand_total', function ($pr) {
+                        $subtotal = \DB::table('purchase_request_items')
+                            ->where('purchase_request_id', $pr->id)
+                            ->sum('subtotal');
 
-                    return '₱' . number_format($total, 2);
-                })
+                        $vatRate = $pr->vat ?? 0;
+                        $vatAmount = $subtotal * ($vatRate / 100);
+                        $deliveryFee = $pr->delivery_fee ?? 0;
+                        $total = $subtotal + $vatAmount + $deliveryFee;
+
+                        return '₱' . number_format($total, 2);
+                    })
                 ->editColumn('created_at', function ($pr) {
                     return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
                 })
@@ -112,23 +115,18 @@ class OrderController extends Controller
                 ->addColumn('total_items', function ($pr) {
                     return $pr->items->sum('quantity');
                 })
-                ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(function ($item) {
-                        // Check if the product has a discount
-                        $unitPrice = $item->product->discount > 0
-                            ? ($item->product->discounted_price ?? $item->product->price)
-                            : $item->product->price;
+                    ->addColumn('grand_total', function ($pr) {
+                        $subtotal = \DB::table('purchase_request_items')
+                            ->where('purchase_request_id', $pr->id)
+                            ->sum('subtotal');
 
-                        return $item->quantity * $unitPrice;
-                    });
+                        $vatRate = $pr->vat ?? 0;
+                        $vatAmount = $subtotal * ($vatRate / 100);
+                        $deliveryFee = $pr->delivery_fee ?? 0;
+                        $total = $subtotal + $vatAmount + $deliveryFee;
 
-                    $vatRate = $pr->vat ?? 0; // VAT percentage
-                    $vatAmount = $subtotal * ($vatRate / 100);
-                    $deliveryFee = $pr->delivery_fee ?? 0;
-                    $total = $subtotal + $vatAmount + $deliveryFee;
-
-                    return '₱' . number_format($total, 2);
-                })
+                        return '₱' . number_format($total, 2);
+                    })
 
                 ->editColumn('created_at', function ($pr) {
                     return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');

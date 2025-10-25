@@ -83,7 +83,14 @@
                         </center>
                     </td>
                     </td>
-                    <td data-label="Subtotal:">₱{{ number_format($item->subtotal, 2) }}</td>
+                    @php
+                        $price = ($product->discount > 0 && $product->discounted_price)
+                            ? $product->discounted_price
+                            : $product->price;
+                        $computedSubtotal = $price * $item->quantity;
+                    @endphp
+                    <td data-label="Subtotal:">₱{{ number_format($computedSubtotal, 2) }}</td>
+
                     <td data-label="Date:">{{ $item->created_at->toDateTimeString() }}</td>
                     <td>
                         <center>

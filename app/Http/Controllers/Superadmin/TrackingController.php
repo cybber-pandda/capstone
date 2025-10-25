@@ -56,19 +56,15 @@ class TrackingController extends Controller
                     return $pr->items->sum('quantity');
                 })
                 ->addColumn('grand_total', function ($pr) {
-                    $subtotal = $pr->items->sum(function ($item) {
-                        $unitPrice = ($item->product->discount > 0)
-                            ? ($item->product->discounted_price ?? $item->product->price)
-                            : ($item->product->price ?? 0);
-                        return $item->quantity * $unitPrice;
+                    // ✅ Use PR-specific subtotal if exists
+                    $subtotal = $pr->items->sum(function($item) {
+                        return ($item->subtotal ?? ($item->unit_price * $item->quantity));
                     });
 
-                    $vatRate = $pr->vat ?? 0;
-                    $vatAmount = $subtotal * ($vatRate / 100);
+                    $vat = $subtotal * (($pr->vat ?? 0)/100);
                     $deliveryFee = $pr->delivery_fee ?? 0;
-                    $total = $subtotal + $vatAmount + $deliveryFee;
 
-                    return '₱' . number_format($total, 2);
+                    return '₱' . number_format($subtotal + $vat + $deliveryFee, 2);
                 })
 
                 ->addColumn('is_credit', function ($pr) {
@@ -278,22 +274,22 @@ class TrackingController extends Controller
                     return $order->order_number ?? '-';
                 })
                 ->addColumn('total_amount', function ($order) {
-                    $subtotal = $order->items->sum(function ($item) {
-                        $unitPrice = ($item->product->discount > 0)
-                            ? ($item->product->discounted_price ?? $item->product->price)
-                            : ($item->product->price ?? 0);
+                    $purchaseRequestId = null;
+                    
+                    if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
+                        $purchaseRequestId = $matches[1];
+                    }
 
-                        return $item->quantity * $unitPrice;
-                    });
-
+                    $subtotal = 0;
                     $vatRate = 0;
                     $deliveryFee = 0;
 
-                    // Extract Purchase Request ID from Order Number
-                    if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
-                        $purchaseRequestId = $matches[1];
-                        $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+                    if ($purchaseRequestId) {
+                        $subtotal = \DB::table('purchase_request_items')
+                            ->where('purchase_request_id', $purchaseRequestId)
+                            ->sum('subtotal');
 
+                        $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
                         if ($purchaseRequest) {
                             $vatRate = $purchaseRequest->vat ?? 0;
                             $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
@@ -301,9 +297,9 @@ class TrackingController extends Controller
                     }
 
                     $vatAmount = $subtotal * ($vatRate / 100);
-                    $total = $subtotal + $vatAmount + $deliveryFee;
+                    $grandTotal = $subtotal + $vatAmount + $deliveryFee;
 
-                    return '₱' . number_format($total, 2);
+                    return '₱' . number_format($grandTotal, 2);
                 })
 
                 ->addColumn('total_items', function ($order) {
@@ -434,12 +430,34 @@ class TrackingController extends Controller
                 ->addColumn('order_number', fn($order) => $order->order_number ?? 'N/A')
                 ->addColumn('customer_name', fn($order) => optional($order->user)->name ?? 'N/A')
                 ->addColumn('total_items', fn($order) => $order->items->sum('quantity') ?? 0)
-                ->addColumn('grand_total', function ($order) {
-                    $total = $order->items->sum(function ($item) {
-                        return $item->quantity * ($item->product->price ?? 0);
-                    });
-                    return '₱' . number_format($total, 2);
-                })
+            ->addColumn('grand_total', function ($order) {
+                $purchaseRequestId = null;
+                
+                if (preg_match('/REF (\d+)-/', $order->order_number, $matches)) {
+                    $purchaseRequestId = $matches[1];
+                }
+
+                $subtotal = 0;
+                $vatRate = 0;
+                $deliveryFee = 0;
+
+                if ($purchaseRequestId) {
+                    $subtotal = \DB::table('purchase_request_items')
+                        ->where('purchase_request_id', $purchaseRequestId)
+                        ->sum('subtotal');
+
+                    $purchaseRequest = \App\Models\PurchaseRequest::find($purchaseRequestId);
+                    if ($purchaseRequest) {
+                        $vatRate = $purchaseRequest->vat ?? 0;
+                        $deliveryFee = $purchaseRequest->delivery_fee ?? 0;
+                    }
+                }
+
+                $vatAmount = $subtotal * ($vatRate / 100);
+                $grandTotal = $subtotal + $vatAmount + $deliveryFee;
+
+                return '₱' . number_format($grandTotal, 2);
+            })
                 ->addColumn('address', fn($order) => optional($order->b2bAddress)->full_address ?? 'N/A')
                 ->addColumn('action', function ($order) {
                     $status = $order->delivery->status ?? 'unknown';

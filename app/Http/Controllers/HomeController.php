@@ -535,59 +535,60 @@ class HomeController extends Controller
     {
         $page = 'Summary List of Sales';
 
-        $purchaseRequests = PurchaseRequest::with(['items.product'])
+        $purchaseRequests = PurchaseRequest::with(['items'])
             ->whereIn('status', ['delivered', 'invoice_sent'])
             ->get();
 
-        // Subtotal of items with discount applied (excluding VAT & delivery fee)
-        $subtotal = $purchaseRequests->sum(function ($pr) {
-            return $pr->items->sum(function ($item) {
-                $price = $item->product->price ?? 0;
-                $discount = $item->product->discount ?? 0; // Discount in percentage
-                $discountedPrice = $price - ($price * ($discount / 100));
-                return $item->quantity * $discountedPrice;
-            });
+    $subtotal = $purchaseRequests->sum(function ($pr) {
+        return $pr->items->sum(function ($item) {
+            // ✅ prioritize unit_price, then price, then product->price
+            $price = $item->unit_price ?? $item->price ?? $item->product->price ?? 0;
+            $discount = $item->discount ?? $item->product->discount ?? 0;
+
+            $discountedPrice = $price - ($price * ($discount / 100));
+            return $item->quantity * $discountedPrice;
+        });
+    });
+
+
+
+    $vatAmount = $purchaseRequests->sum(function ($pr) {
+        $vatRate = $pr->vat ?? 12; // ✅ default 12% if missing
+
+        $prSubtotal = $pr->items->sum(function ($item) {
+            $price = $item->unit_price ?? $item->price ?? 0;
+            $discount = $item->discount ?? 0;
+
+            $discountedPrice = $price - ($price * ($discount / 100));
+            return $item->quantity * $discountedPrice;
         });
 
-        // VAT computation per PR (based on item subtotal only)
-        $vatAmount = $purchaseRequests->sum(function ($pr) {
-            $prSubtotal = $pr->items->sum(function ($item) {
-                $price = $item->product->price ?? 0;
-                $discount = $item->product->discount ?? 0;
-                $discountedPrice = $price - ($price * ($discount / 100));
-                return $item->quantity * $discountedPrice;
-            });
-            return $prSubtotal * (($pr->vat ?? 0) / 100);
-        });
+        return $prSubtotal * ($vatRate / 100);
+    });
 
-        // Keep delivery fee separately (gross, includes VAT)
+
+        // Delivery fee (gross, includes VAT)
         $deliveryFee = $purchaseRequests->sum(fn($pr) => $pr->delivery_fee ?? 0);
 
-        // Calculate VAT component of delivery fee
-        $deliveryVAT = $deliveryFee * (0.12 / 1.12); // Extract 12% from gross
-
-        // Delivery fee without VAT
+        // Compute VAT portion of delivery fee
+        $deliveryVAT = $deliveryFee * (0.12 / 1.12);
         $deliveryExclusive = $deliveryFee - $deliveryVAT;
 
         // Total VAT (sales VAT + delivery VAT)
         $totalVAT = $vatAmount + $deliveryVAT;
 
-        // VAT exclusive = subtotal only, exclude delivery
+        // Totals
         $vatExclusive = $subtotal;
-
-        // Total = subtotal + VAT only, exclude delivery
         $total = $subtotal + $vatAmount;
-
-        // Grand total including delivery fee (no change)
         $grandTotal = $total + $deliveryFee;
 
         return view('pages.summary_sales', compact(
             'page',
             'purchaseRequests',
             'subtotal',
-            'vatAmount',        // Sales VAT
-            'deliveryVAT',      // Delivery VAT
-            'totalVAT',         // Total VAT
+            'vatAmount',
+            'deliveryVAT',
+            'totalVAT',
             'vatExclusive',
             'deliveryExclusive',
             'deliveryFee',
@@ -601,42 +602,30 @@ class HomeController extends Controller
         $dateFrom = Carbon::parse($date_from)->startOfDay();
         $dateTo   = Carbon::parse($date_to)->addDay()->startOfDay();
 
-        $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items.product'])
+        $query = PurchaseRequest::with(['customer', 'address', 'detail', 'items'])
             ->where('created_at', '>=', $dateFrom)
             ->where('created_at', '<', $dateTo)
             ->whereIn('status', ['delivered', 'invoice_sent'])
             ->get();
 
         return DataTables::of($query)
-            ->addColumn('created_at', function ($pr) {
-                return $pr->created_at->format('F d, Y h:i A');
-            })
-            ->addColumn('invoice_no', function ($pr) {
-                return 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT);
-            })
-            ->addColumn('customer', function ($pr) {
-                return ($pr->detail->business_name ?? 'No Company Name') . '/' . (optional($pr->customer)->name ?? '-');
-            })
-            ->addColumn('tin', function ($pr) {
-                return $pr->detail->tin_number ?? 'No provided tin number';
-            })
-            ->addColumn('address', function ($pr) {
-                return $pr->address->full_address ?? 'No provided address';
-            })
-            ->addColumn('total_items', function ($pr) {
-                return $pr->items->sum('quantity');
-            })
+            ->addColumn('created_at', fn($pr) => $pr->created_at->format('F d, Y h:i A'))
+            ->addColumn('invoice_no', fn($pr) => 'INV-' . str_pad($pr->id, 5, '0', STR_PAD_LEFT))
+            ->addColumn('customer', fn($pr) => ($pr->detail->business_name ?? 'No Company Name') . '/' . (optional($pr->customer)->name ?? '-'))
+            ->addColumn('tin', fn($pr) => $pr->detail->tin_number ?? 'No provided tin number')
+            ->addColumn('address', fn($pr) => $pr->address->full_address ?? 'No provided address')
+            ->addColumn('total_items', fn($pr) => $pr->items->sum('quantity'))
             ->addColumn('avg_price', function ($pr) {
                 return number_format($pr->items->avg(function ($item) {
-                    $price = $item->product->price ?? 0;
-                    $discount = $item->product->discount ?? 0;
+                    $price = $item->price ?? 0;       // ✅ use stored price
+                    $discount = $item->discount ?? 0; // ✅ use stored discount
                     return $price - ($price * ($discount / 100));
                 }), 2);
             })
             ->addColumn('subtotal', function ($pr) {
                 $subtotal = $pr->items->sum(function ($item) {
-                    $price = $item->product->price ?? 0;
-                    $discount = $item->product->discount ?? 0;
+                    $price = $item->unit_price ?? $item->price ?? 0;
+                    $discount = $item->discount ?? 0;
                     $discountedPrice = $price - ($price * ($discount / 100));
                     return $item->quantity * $discountedPrice;
                 });
@@ -644,22 +633,22 @@ class HomeController extends Controller
             })
             ->addColumn('vat_amount', function ($pr) {
                 $subtotal = $pr->items->sum(function ($item) {
-                    $price = $item->product->price ?? 0;
-                    $discount = $item->product->discount ?? 0;
+                    $price = $item->unit_price ?? $item->price ?? 0;
+                    $discount = $item->discount ?? 0;
                     $discountedPrice = $price - ($price * ($discount / 100));
                     return $item->quantity * $discountedPrice;
                 });
-                $vatRate = $pr->vat ?? 0;
+                $vatRate = $pr->vat ?? 12;
                 return number_format($subtotal * ($vatRate / 100), 2);
             })
             ->addColumn('vat_inclusive', function ($pr) {
                 $subtotal = $pr->items->sum(function ($item) {
-                    $price = $item->product->price ?? 0;
-                    $discount = $item->product->discount ?? 0;
+                    $price = $item->unit_price ?? $item->price ?? 0;
+                    $discount = $item->discount ?? 0;
                     $discountedPrice = $price - ($price * ($discount / 100));
                     return $item->quantity * $discountedPrice;
                 });
-                $vatRate = $pr->vat ?? 0;
+                $vatRate = $pr->vat ?? 12;
                 return number_format($subtotal + ($subtotal * ($vatRate / 100)), 2);
             })
             ->addColumn('delivery_fee_exclusive', function ($pr) {
@@ -670,13 +659,11 @@ class HomeController extends Controller
                 $deliveryFee = $pr->delivery_fee ?? 0;
                 return number_format($deliveryFee * (0.12 / 1.12), 2);
             })
-            ->addColumn('delivery_fee_inclusive', function ($pr) {
-                return number_format($pr->delivery_fee ?? 0, 2);
-            })
+            ->addColumn('delivery_fee_inclusive', fn($pr) => number_format($pr->delivery_fee ?? 0, 2))
             ->addColumn('total_vat', function ($pr) {
                 $subtotal = $pr->items->sum(function ($item) {
-                    $price = $item->product->price ?? 0;
-                    $discount = $item->product->discount ?? 0;
+                    $price = $item->unit_price ?? $item->price ?? 0;
+                    $discount = $item->discount ?? 0;
                     $discountedPrice = $price - ($price * ($discount / 100));
                     return $item->quantity * $discountedPrice;
                 });
@@ -686,8 +673,8 @@ class HomeController extends Controller
             })
             ->addColumn('grand_total', function ($pr) {
                 $subtotal = $pr->items->sum(function ($item) {
-                    $price = $item->product->price ?? 0;
-                    $discount = $item->product->discount ?? 0;
+                    $price = $item->unit_price ?? $item->price ?? 0;
+                    $discount = $item->discount ?? 0;
                     $discountedPrice = $price - ($price * ($discount / 100));
                     return $item->quantity * $discountedPrice;
                 });
@@ -702,6 +689,7 @@ class HomeController extends Controller
     {
         return Excel::download(new SalesSummaryExport($date_from, $date_to), 'sales_summary.xlsx');
     }
+
 
     public function summary_sales_manualorder()
     {

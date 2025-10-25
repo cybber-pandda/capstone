@@ -22,27 +22,25 @@
             </thead>
             <tbody>
                 @foreach($purchaseRequests as $pr)
-                @php
-                    // Compute subtotal using discounted prices
-                    $subtotal = $pr->items->sum(function ($item) {
-                        $unitPrice = $item->product->discount == 0 
-                            ? $item->product->price 
-                            : $item->product->discounted_price;
-                        return $item->quantity * $unitPrice;
-                    });
+                    @php
+                        // Compute subtotal using actual unit_price from PurchaseRequestItem
+                        $subtotal = $pr->items->sum(function ($item) {
+                            $unitPrice = $item->unit_price ?? 0; // use the actual charged price
+                            return $item->quantity * $unitPrice;
+                        });
 
-                    $vatRate = $pr->vat ?? 0; // VAT percentage
-                    $vatAmount = $subtotal * ($vatRate / 100);
-                    $deliveryFee = $pr->delivery_fee ?? 0;
-                    $total = $subtotal + $vatAmount + $deliveryFee;
-                @endphp
-                <tr>
-                    <td data-label="PR #:">{{ $pr->id }}-{{ date('Ymd', strtotime($pr->created_at)) }}</td>
-                    <td data-label="QTY:">{{ $pr->items->sum('quantity') }}</td>
-                    <td data-label="Grand Total:">₱{{ number_format($total, 2) }}</td>
-                    <td data-label="Status:">
-                        @php
-                            $statusClass = match($pr->status) {
+                        $vatRate = $pr->vat ?? 0; // VAT percentage
+                        $vatAmount = $subtotal * ($vatRate / 100);
+                        $deliveryFee = $pr->delivery_fee ?? 0;
+                        $total = $subtotal + $vatAmount + $deliveryFee;
+                    @endphp
+                    <tr>
+                        <td data-label="PR #:">{{ $pr->id }}-{{ date('Ymd', strtotime($pr->created_at)) }}</td>
+                        <td data-label="QTY:">{{ $pr->items->sum('quantity') }}</td>
+                        <td data-label="Grand Total:">₱{{ number_format($total, 2) }}</td>
+                        <td data-label="Status:">
+                            @php
+                                $statusClass = match($pr->status) {
                                 'delivered' => 'text-success',
                                 'pending' => 'text-warning',
                                 default => 'text-secondary',

@@ -74,4 +74,8 @@ class Product extends Model
     {
         return $this->hasMany(PrReserveStock::class, 'product_id');
     }
+    public function purchaseRequestItems()
+    {
+    return $this->hasMany(PurchaseRequestItem::class, 'product_id');
+    }
 }

@@ -3,37 +3,36 @@
 @section('content')
 <div class="section section-scrollable" style="margin-bottom: 20px;">
     <div class="container">
-    
+
         <div class="section-title" style="display:none;">
             <h3 class="title">{{ $page }}</h3>
         </div>
 
         <div class="row" style="margin-bottom: 20px;" id="downloadtoPDF">
+
             <!-- Customer Info Column -->
-            <div class="col-sm-4 col-xs-12" style="margin-bottom: 20px;padding:20px;border:2px solid black;border-radius:10px;">
-                <h3 style="font-weight:bold;text-transform:uppercase;font-size:21px;"><i>Tanctuco Construction & Trading Corporation</i></h3>
-                <div style="display: flex; flex-direction: column;margin-bottom:10px;">
+            <div class="col-sm-4 col-xs-12" style="margin-bottom: 20px; padding:20px; border:2px solid black; border-radius:10px;">
+                <h3 style="font-weight:bold; text-transform:uppercase; font-size:21px;"><i>Tanctuco Construction & Trading Corporation</i></h3>
+
+                <div style="display: flex; flex-direction: column; margin-bottom:10px;">
                     <strong>Balubal, Sariaya, Quezon</strong>
                     <span>VAT Reg TIN: {{ $companySettings->company_vat_reg ?? 'No VAT Reg TIN provided' }}</span>
                     <span>Tel: {{ $companySettings->company_tel ?? 'No Tel provided' }}</span>
                     <span>Telefax: {{ $companySettings->company_telefax ?? 'No Telefax provided' }}</span>
                 </div>
 
-                <div style="display: flex; flex-direction: column;margin-bottom:20px;">
+                <div style="display: flex; flex-direction: column; margin-bottom:20px;">
                     <h4 style="margin-bottom: 0px;"><strong>Purchase Order</strong></h4>
                     <span><b>No:</b> {{ $quotation->id ?? 'No PO provided' }}-{{ date('Ymd', strtotime($quotation->created_at)) }}</span>
                     <span><b>Date Issued:</b> {{ $quotation->date_issued ?? 'No date issued provided' }}</span>
                     <span><strong>Disclaimer:</strong>
-                            <i>
-                                This document is system-generated and provided for internal/business reference only. 
-                                It is not BIR-accredited and shall not be considered as an official receipt or invoice 
-                                for tax or accounting purposes.
-                            </i>
+                        <i>This document is system-generated and provided for internal/business reference only. 
+                        It is not BIR-accredited and shall not be considered as an official receipt or invoice 
+                        for tax or accounting purposes.</i>
                     </span>
                 </div>
 
-
-                <div style="display: flex; flex-direction: column;margin-bottom:20px;">
+                <div style="display: flex; flex-direction: column; margin-bottom:20px;">
                     <h4 style="margin-bottom: 0px;"><strong>Billed To</strong></h4>
                     <span><b>Name:</b> {{ $quotation->customer->name ?? 'No customer name provided' }}</span>
                     <span><b>Address:</b> {{ $b2bAddress->full_address ?? 'No full address provided' }}</span>
@@ -46,16 +45,15 @@
 
                 <div style="display: flex; flex-direction: column;">
                     <span style="margin-bottom:20px;"><b>Prepared By:</b><br>{{ $superadmin->name ?? 'No superadmin name provided' }}</span>
-                    <span><b>Authorized Representative:</b><br> {{ $salesOfficer->name ?? 'No sales officer name provided' }}</span>
+                    <span><b>Authorized Representative:</b><br>{{ $salesOfficer->name ?? 'No sales officer name provided' }}</span>
                 </div>
-
             </div>
 
             <!-- Table Column -->
             <div class="col-sm-8 col-xs-12">
                 <div style="overflow-x: auto; width: 100%;">
 
-                    <table class="table table-bordered" style="min-width: 600px;margin-top: 20px;margin-bottom:20px;">
+                    <table class="table table-bordered" style="min-width: 600px; margin-top:20px; margin-bottom:20px;">
                         <thead>
                             <tr>
                                 <th>SKU</th>
@@ -66,80 +64,56 @@
                             </tr>
                         </thead>
                         <tbody>
+                            @php
+                                $subtotal = 0;
+                            @endphp
                             @foreach ($quotation->items as $item)
-                            <tr>
-                                <td>{{ $item->product->sku }}</td>
-                                <td>{{ $item->product->name }}</td>
-                                <td class="text-center">{{ $item->quantity }}</td>
                                 @php
-                                    $unitPrice = $item->product->discount == 0 
-                                        ? $item->product->price 
-                                        : $item->product->discounted_price;
+                                    $unitPrice = $item->unit_price ?? ($item->product->discounted_price ?? $item->product->price);
+                                    $itemSubtotal = $unitPrice * $item->quantity;
+                                    $subtotal += $itemSubtotal;
                                 @endphp
-
-                                <td class="text-end">
-                                    ₱{{ number_format($unitPrice, 2) }}
-                                    @if($item->product->discount > 0)
-                                        <br><small class="text-success">({{ $item->product->discount }}% off)</small>
-                                    @endif
-                                </td>
-
-                                <td class="text-end">
-                                    ₱{{ number_format($item->quantity * $unitPrice, 2) }}
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td>{{ $item->product->sku }}</td>
+                                    <td>{{ $item->product->name }}</td>
+                                    <td class="text-center">{{ $item->quantity }}</td>
+                                    <td class="text-end">
+                                        ₱{{ number_format($unitPrice, 2) }}
+                                    </td>
+                                    <td class="text-end">₱{{ number_format($itemSubtotal, 2) }}</td>
+                                </tr>
                             @endforeach
                         </tbody>
 
                         @php
-                        $subtotal = $quotation->items->sum('subtotal');
-                        $vatRate = $quotation->vat ?? 0;
-                        $vat = $subtotal * ($vatRate / 100);
-                        $delivery_fee = $quotation->delivery_fee ?? 0;
-                        $total = $subtotal + $vat + $delivery_fee;
-                        $vatableSales = $subtotal;
-                        $amountPaid = 0.00;
+                            $vatRate = $quotation->vat ?? 0;
+                            $vat = $subtotal * ($vatRate / 100);
+                            $delivery_fee = $quotation->delivery_fee ?? 0;
+                            $total = $subtotal + $vat + $delivery_fee;
+                            $vatableSales = $subtotal;
+                            $amountPaid = 0.00;
 
-                        $b2bDate = $quotation->b2b_delivery_date;
-                        $delivery_date = null;
-                        $show_note = false;
+                            // Delivery date logic
+                            $b2bDate = $quotation->b2b_delivery_date;
+                            $delivery_date = null;
+                            $show_note = false;
+                            $note_message = '';
 
-                        if (!is_null($b2bDate)) {
-                            // User chose a delivery date
-                            $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
-
-                            // Check if chosen date is less than 2 days from today
-                            $diffDays = \Carbon\Carbon::parse($b2bDate)->diffInDays(now());
-
-                            if ($diffDays < 2) {
+                            if (!is_null($b2bDate)) {
+                                $delivery_date = \Carbon\Carbon::parse($b2bDate)->format('F j, Y');
+                                $diffDays = \Carbon\Carbon::parse($b2bDate)->diffInDays(now());
+                                if ($diffDays < 2) {
+                                    $show_note = true;
+                                    $note_message = "Selected date is preferred only, not guaranteed (due to volume).";
+                                }
+                            } elseif ($quotation->status !== 'pending') {
+                                $start = now()->addDays(1)->format('F j, Y');
+                                $end   = now()->addDays(3)->format('F j, Y');
+                                $delivery_date = $start . ' to ' . $end;
                                 $show_note = true;
-                                $note_message = "Selected date is preferred only, not guaranteed (due to volume).";
+                                $note_message = "Expect delay if too many orders since we are preparing it.";
                             }
-                        } elseif ($quotation->status !== 'pending') {
-                            // No date chosen → default 1 to 3 days
-                            $start = now()->addDays(1)->format('F j, Y');
-                            $end   = now()->addDays(3)->format('F j, Y');
-                            $delivery_date = $start . ' to ' . $end;
-                            $show_note = true;
-                            $note_message = "Expect delay if too many orders since we are preparing it.";
-                        }
-
-                        /*
-                        // OLD CODE with quantity condition
-                        elseif ($quotation->status !== 'pending') {
-                            if ($isLargeOrder) {
-                                $start = now()->addDays(7)->format('F j, Y');
-                                $end   = now()->addDays(14)->format('F j, Y');
-                                $delivery_date = $start . ' to ' . $end;
-                            } else {
-                                $start = now()->addDays(2)->format('F j, Y');
-                                $end   = now()->addDays(7)->format('F j, Y');
-                                $delivery_date = $start . ' to ' . $end;
-                            }
-                            $show_note = true;
-                        }
-                        */
-                    @endphp
+                        @endphp
 
                         <tfoot>
                             <tr>
@@ -174,23 +148,21 @@
                         <span style="margin-bottom:5px;">
                             <b>Delivery Date:</b><br>
                             {{ $delivery_date }}
-                                @if($show_note && !empty($note_message))
+                            @if($show_note && !empty($note_message))
                                 <br><small><i>Note: {{ $note_message }}</i></small>
-                                @endif
+                            @endif
                         </span>
                         <span><b>Payment Terms:</b><br> {{ $quotation->credit == 1 ? '1 month' : 'Cash Payment' }}</span>
                     </div>
 
                 </div>
             </div>
+
         </div>
-
     </div>
-
-
-
 </div>
 @endsection
+
 
 @push('scripts')
 <script>
