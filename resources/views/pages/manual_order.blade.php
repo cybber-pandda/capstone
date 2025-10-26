@@ -12,7 +12,7 @@
             @if(Auth::user()->role === 'salesofficer')
             <a href="{{ url('/salesofficer/email-manual-order') }}" class="btn btn-secondary"><i class="link-icon" data-lucide="arrow-big-left-dash"></i> Back</a>
             @endif
-            @endauth      
+            @endauth
         </div>
 
     </div>
@@ -35,11 +35,11 @@
                 <label>Customer Address</label>
                 <input type="text" name="customer_address" class="form-control" required>
             </div>
-                <div class="col-md-4">
-                    <label>Customer Phone Number</label>
-                    <input type="text" name="customer_phone_number" class="form-control" required
-                        pattern="\d{1,11}" maxlength="11" title="Only numbers are allowed, up to 11 digits">
-                </div>
+            <div class="col-md-4">
+                <label>Customer Phone Number</label>
+                <input type="text" name="customer_phone_number" class="form-control" required
+                    pattern="\d{1,11}" maxlength="11" title="Only numbers are allowed, up to 11 digits">
+            </div>
         </div>
 
         <div class="row mb-3">
@@ -51,7 +51,7 @@
             @endif
             <div class="{{ $type != 'walkin' ? 'col-md-4' : 'col-md-6' }}">
                 <label>Order Date</label>
-                <input type="date" name="order_date" id="orderDate" class="form-control" required>   {{-- ITO --}}
+                <input type="date" name="order_date" id="orderDate" class="form-control" required> {{-- ITO --}}
             </div>
         </div>
 
@@ -286,6 +286,13 @@
                                 .join(""),
                             icon: "error"
                         });
+                    } else if (xhr.status === 400) {
+                        // Insufficient stock
+                        Swal.fire({
+                            title: "Stock Error",
+                            text: xhr.responseJSON.message || "Insufficient stock for some products.",
+                            icon: "error"
+                        });
                     } else {
                         Swal.fire({
                             title: "Error",
@@ -296,7 +303,7 @@
                 }
             });
         });
-        
+
         $(document).on('input', 'input[name="customer_name"]', function() {
             this.value = this.value.replace(/[^A-Za-z\s]/g, '');
         });

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Notification;
 
 use App\Models\ManualEmailOrder;
 use App\Models\Inventory;
+use App\Models\StockBatch;
 
 class EmailManualOrderController extends Controller
 {
@@ -124,6 +125,8 @@ class EmailManualOrderController extends Controller
                             'quantity'   => $item['qty'],
                             'reason'     => 'sold',
                         ]);
+
+                        StockBatch::reduceFIFO($item['product_id'],  $item['qty'], 'Manual Order (For product id #' .  $item['product_id'] . ')');
                     }
                 }
 

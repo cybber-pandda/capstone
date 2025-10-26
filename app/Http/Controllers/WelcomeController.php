@@ -12,6 +12,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\ManualEmailOrder;
 use App\Models\Inventory;
+use App\Models\PrReserveStock;
 
 class WelcomeController extends Controller
 {
@@ -148,12 +149,45 @@ class WelcomeController extends Controller
             'products.*.qty.required'          => 'Please enter quantity for each product row.',
             'products.*.qty.min'               => 'Quantity must be at least 1 in each product row.',
         ]);
+        // foreach ($validated['products'] as &$product) {
+        //     $dbProduct = Product::find($product['product_id']);
+        //     $product['price'] = ($dbProduct->discounted_price > 0) ? $dbProduct->discounted_price : $dbProduct->price;
+
+        //     // check each purchase remaing stock  verify if this is oaky 
+        //     $availableStock = $product->stockBatches()->sum('remaining_quantity')
+        //         - PrReserveStock::getTotalReservedStock($product->id);
+
+        //     if ($availableStock < $validated['qty']) {
+        //         return response()->json([
+        //             'success' => false,
+        //             'message' => 'Insufficient stock for product: ' . $product->name
+        //         ], 400);
+        //     }
+        // }
+
         foreach ($validated['products'] as &$product) {
             $dbProduct = Product::find($product['product_id']);
-            $product['price'] = ($dbProduct->discounted_price > 0) ? $dbProduct->discounted_price : $dbProduct->price;
+
+            $product['price'] = ($dbProduct->discounted_price > 0)
+                ? $dbProduct->discounted_price
+                : $dbProduct->price;
+
+            // Correct stock check using $dbProduct
+            $availableStock = $dbProduct->stockBatches()->sum('remaining_quantity')
+                - PrReserveStock::getTotalReservedStock($dbProduct->id);
+
+            if ($availableStock < $product['qty']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient stock for product: ' . $dbProduct->name
+                ], 400);
+            }
         }
+
+
         $status = $request->customer_type === 'walkin' ? 'approve' : 'pending';
         $customer_type = $request->customer_type === 'walkin' ? 'Walk-In' : 'Manual Order';
+
 
         if ($request->filled('order_id')) {
             // Update existing order
@@ -184,15 +218,6 @@ class WelcomeController extends Controller
             ]);
 
             $message = 'Manual purchase request saved successfully!';
-        }
-
-        foreach ($validated['products'] as $product) {
-            Inventory::create([
-                'product_id' => $product['product_id'],
-                'type'       => 'out',
-                'quantity'   => $product['qty'],
-                'reason'     => 'sold',
-            ]);
         }
 
         return response()->json([

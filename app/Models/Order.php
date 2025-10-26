@@ -32,4 +32,5 @@ class Order extends Model
     {
         return $this->belongsTo(B2BAddress::class, 'b2b_address_id');
     }
+    
 }

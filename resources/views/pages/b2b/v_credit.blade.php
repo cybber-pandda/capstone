@@ -131,7 +131,7 @@
                 </div>
                 <div class="modal-body">
                     <div class="table-responsive">
-                        <table id="partialPaymentsTable" class="table table-striped table-bordered" style="width:100%">
+                        <table class="table-2" style="width:100%" id='partialPaymentsTable'>
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -368,7 +368,8 @@
                         credit_id: creditId
                     }
                 },
-                columns: [{
+                columns: [
+                    {
                         data: "id",
                         render: function(data) {
                             return `INV-${String(data).padStart(5, '0')}`;
@@ -451,7 +452,17 @@
                             }
                         }
                     }
-                ]
+                ],
+                createdRow: function(row, data, dataIndex) {
+                    $('td', row).eq(0).attr('data-label', 'ID:');
+                    $('td', row).eq(1).attr('data-label', 'Amount Paid:');
+                    $('td', row).eq(2).attr('data-label', 'Due Date:');
+                    $('td', row).eq(3).attr('data-label', 'Amount to Pay:');
+                    $('td', row).eq(4).attr('data-label', 'Payment Date:');
+                    $('td', row).eq(5).attr('data-label', 'Status:');
+                    $('td', row).eq(6).attr('data-label', 'Proof:');
+                    $('td', row).eq(7).attr('data-label', 'Action:');
+                }
 
             });
 

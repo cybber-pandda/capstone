@@ -10,22 +10,20 @@
             <th>Subtotal</th>
         </tr>
     </thead>
-<tbody>
-    @foreach($order->items as $item)
-        @php
-            $finalPrice = ($item->product->discount ?? 0) == 0 
-                ? ($item->product->price ?? 0) 
-                : ($item->product->discounted_price ?? $item->product->price ?? 0);
-            $subtotal = $item->quantity * $finalPrice;
-        @endphp
-        <tr>
-            <td data-label="Product:">{{ $item->product->name ?? 'N/A' }}</td>
-            <td data-label="Qty:">{{ $item->quantity }}</td>
-            <td data-label="Price:">₱{{ number_format($finalPrice, 2) }}</td>
-            <td data-label="Subtotal:">₱{{ number_format($subtotal, 2) }}</td>
-        </tr>
-    @endforeach
-</tbody>
+    <tbody>
+        @foreach($purchaseRequestItems as $item)
+            @php
+                $finalPrice = $item->unit_price ?? 0;
+                $subtotal = $item->quantity * $finalPrice;
+            @endphp
+            <tr>
+                <td data-label="Product:">{{ $item->product->name ?? 'N/A' }}</td>
+                <td data-label="Qty:">{{ $item->quantity }}</td>
+                <td data-label="Price:">₱{{ number_format($finalPrice, 2) }}</td>
+                <td data-label="Subtotal:">₱{{ number_format($subtotal, 2) }}</td>
+            </tr>
+        @endforeach
+    </tbody>
 </table>
 
 <h6 class="mt-4 mb-2">Delivery History</h6>
