@@ -137,7 +137,8 @@
                         </div>
 
                         <div>
-                            <a href="{{ route('b2b.purchase-requests.index') }}" class="{{ Route::is('b2b.purchase-requests.index') ? 'active-icon' : '' }}">
+                            <a href="{{ route('b2b.purchase-requests.index') }}" 
+                            class="{{ Route::is('b2b.purchase-requests.index') ? 'active-icon' : '' }}">
                                 <i class="fa-solid fa-box"></i>
                                 <span>PR</span>
                             </a>

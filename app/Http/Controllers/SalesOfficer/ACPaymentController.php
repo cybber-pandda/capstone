@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 use App\Models\PurchaseRequest;
 use App\Models\CreditPayment;
+use App\Models\Notification;
 use App\Models\CreditPartialPayment;
 use App\Models\PaidPayment;
 use App\Models\User;
@@ -346,6 +347,25 @@ class ACPaymentController extends Controller
         $payment->notes = request()->input('reason');
         $payment->save();
 
+        // ✅ Get the B2B user who owns the PR
+    $purchaseRequest = PurchaseRequest::find($payment->purchase_request_id);
+
+    if ($purchaseRequest && $purchaseRequest->customer_id) {
+        $b2bUserId = $purchaseRequest->customer_id;
+
+Notification::create([
+    'user_id' => $b2bUserId,
+    'type'    => 'payment_rejected',
+    'message' => 'Your payment for your purchase request <strong>#' . 
+        e($payment->purchase_request_id) . 
+        '</strong> with the reference number <strong>' . 
+        e($payment->reference_number ?? 'N/A') . 
+        '</strong> has been rejected. <br><strong>Reason:</strong> ' . 
+        e($payment->notes ?? $reason ?? 'No reason provided'),
+]);
+} else {
+    \Log::warning('❌ Payment rejection notification failed: No valid B2B user for payment #' . $payment->id);
+}
         return response()->json(['message' => 'Payment has been rejected successfully.']);
     }
 
@@ -700,4 +720,148 @@ public function account_receivable(Request $request)
 
         return response()->json(['payments' => $payments]);
     }
+    public function rejectedIndex(Request $request) {
+        // permission/role check same as your other methods
+        if (!Auth::check() || Auth::user()->role !== 'salesofficer') {
+            return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
+        }
+
+        return view('pages.admin.salesofficer.v_historypaylater', [
+            'page' => 'Rejected Payments'
+        ]);
+    }
+    public function rejectedData(Request $request) {
+        if (!Auth::check() || Auth::user()->role !== 'salesofficer') {
+            abort(403);
+        }
+
+        $paymentType = $request->get('payment_type', 'straight');
+
+        if ($paymentType === 'straight') {
+            $query = CreditPayment::with(['purchaseRequest.customer', 'bank'])
+                ->where('status', 'reject')
+                ->latest();
+            
+            return DataTables::of($query)
+                ->addColumn('customer_name', fn($p) => optional($p->purchaseRequest->customer)->name)
+                ->addColumn('bank_name', fn($p) => optional($p->bank)->name ?? '--')
+                ->addColumn('paid_amount', fn($p) => '₱' . number_format($p->paid_amount, 2))
+                ->addColumn('paid_date', fn($p) => optional($p->paid_date)->format('F d, Y') ?? '--')
+                ->addColumn('proof_payment', function($p){
+                    return $p->proof_payment ? '<a href="'.asset($p->proof_payment).'" target="_blank">Show Proof</a>' : '--';
+                })
+                ->addColumn('reference_number', fn($p) => $p->reference_number ?? '--')
+                ->addColumn('status', fn($p) => '<span class="badge bg-danger">Rejected</span>')
+                ->addColumn('rejection_reason', fn($p) => e($p->notes ?? '--'))
+                ->rawColumns(['proof_payment','status'])
+                    // ✅ This part enables searching by related model fields
+                ->filter(function ($query) use ($request) {
+                    $search = $request->get('search')['value'] ?? null;
+
+                        if ($search) {
+                            $query->where(function ($q) use ($search) {
+                                $q->whereHas('purchaseRequest.customer', function ($c) use ($search) {
+                                    $c->where('name', 'like', "%{$search}%");
+                                })
+                                ->orWhereHas('bank', function ($b) use ($search) {
+                                    $b->where('name', 'like', "%{$search}%");
+                                })
+                                ->orWhere('reference_number', 'like', "%{$search}%")
+                                ->orWhere('notes', 'like', "%{$search}%")
+                                ->orWhere('paid_amount', 'like', "%{$search}%")
+                                // ✅ moved inside $q closure
+                                ->orWhereDate('paid_date', $search)
+                                ->orWhereRaw("DATE_FORMAT(paid_date, '%M %d, %Y') LIKE ?", ["%{$search}%"]);
+                            });
+                        }
+                    })
+                ->make(true);
+        } else { // partial
+            $query = CreditPartialPayment::with(['purchaseRequest.customer', 'bank'])
+                ->where('status', 'reject')
+                ->latest();
+
+            return DataTables::of($query)
+                ->addColumn('customer_name', fn($p) => optional($p->purchaseRequest->customer)->name)
+                ->addColumn('bank_name', fn($p) => optional($p->bank)->name ?? '--')
+                ->addColumn('amount_to_pay', fn($p) => '₱' . number_format($p->amount_to_pay, 2))
+                ->addColumn('due_date', fn($p) => $p->due_date ? Carbon::parse($p->due_date)->format('F d, Y') : '--')
+                ->addColumn('reference_number', fn($p) => $p->reference_number ?: '--')
+                ->addColumn('proof_payment', function ($p) {
+                    return $p->proof_payment
+                        ? '<a href="' . asset($p->proof_payment) . '" target="_blank" class="text-primary">View Proof</a>'
+                        : '<span class="text-muted">No proof uploaded</span>';
+                })
+                ->addColumn('rejection_reason', fn($p) => e($p->notes ?? 'No reason provided'))
+                ->addColumn('status', fn() => '<span class="badge bg-danger">Rejected</span>')
+                ->rawColumns(['proof_payment', 'status'])
+                    // ✅ This part enables searching by related model fields
+                ->filter(function ($query) use ($request) {
+                    $search = $request->get('search')['value'] ?? null;
+
+                        if ($search) {
+                            $query->where(function ($q) use ($search) {
+                                $q->whereHas('purchaseRequest.customer', function ($c) use ($search) {
+                                    $c->where('name', 'like', "%{$search}%");
+                                })
+                                ->orWhereHas('bank', function ($b) use ($search) {
+                                    $b->where('name', 'like', "%{$search}%");
+                                })
+                                ->orWhere('reference_number', 'like', "%{$search}%")
+                                ->orWhere('notes', 'like', "%{$search}%")
+                                ->orWhere('paid_amount', 'like', "%{$search}%")
+                                // ✅ moved inside $q closure
+                                ->orWhereDate('paid_date', $search)
+                                ->orWhereRaw("DATE_FORMAT(paid_date, '%M %d, %Y') LIKE ?", ["%{$search}%"]);
+                            });
+                        }
+                    })
+
+                ->make(true);
+        }
+    }
+    public function storeRejectedPayment(Request $request) {
+        $request->validate([
+            'payment_id' => 'required|integer',
+            'payment_type' => 'required|string|in:straight,partial',
+            'reason' => 'required|string|max:1000',
+        ]);
+
+        $paymentId = $request->payment_id;
+        $paymentType = $request->payment_type;
+        $reason = $request->reason;
+
+        if ($paymentType === 'straight') {
+            $payment = CreditPayment::find($paymentId);
+        } else {
+            $payment = CreditPartialPayment::find($paymentId);
+        }
+
+        if (!$payment) {
+            return response()->json(['message' => 'Payment not found.'], 404);
+        }
+
+        if ($payment->status === 'reject') {
+            return response()->json(['message' => 'Payment already rejected.'], 400);
+        }
+
+        $payment->status = 'reject';
+        $payment->notes = $reason;
+        $payment->rejected_at = now();
+        $payment->rejected_by = auth()->id();
+        $payment->save();
+
+        // create notification to B2B user if needed
+        $purchaseRequest = PurchaseRequest::find($payment->purchase_request_id);
+        if ($purchaseRequest && $purchaseRequest->customer_id) {
+            Notification::create([
+                'user_id' => $purchaseRequest->customer_id,
+                'type' => 'payment_rejected',
+                'message' => 'Your payment for PR #'.e($purchaseRequest->id).' (Ref: '.e($payment->reference_number ?? 'N/A').') was rejected. Reason: '.e($reason),
+            ]);
+        }
+
+        return response()->json(['message' => 'Payment rejected successfully.']);
+    }
+
 }

@@ -344,8 +344,8 @@ class PurchaseRequestController extends Controller
                 // (only if you want to store updated value permanently)
                 $item->update(['subtotal' => $item->subtotal]);
 
-                $availableStock = $product->stockBatches()->sum('remaining_quantity')
-                    - PrReserveStock::getTotalReservedStock($product->id);
+                $availableStock = $product->stockBatches()->sum('remaining_quantity');
+
 
                 if ($availableStock < $item->quantity) {
                     return response()->json([

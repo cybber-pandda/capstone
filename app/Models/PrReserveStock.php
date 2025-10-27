@@ -84,7 +84,7 @@ class PrReserveStock extends Model
                 }
 
                 // Use stock batches for accurate stock
-                $availableStock = $product->stockBatches()->sum('remaining_quantity') - self::getTotalReservedStock($product->id);
+                $availableStock = $product->stockBatches()->sum('remaining_quantity');
 
                 if ($availableStock < $item->quantity) {
                     throw new \Exception('Insufficient stock for product: ' . $product->name);

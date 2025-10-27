@@ -120,7 +120,7 @@
                     <div class="header-ctn">
 
                         <div>
-                            <a href="{{ route('home') }}">
+                            <a href="{{ route('home') }}" class="{{ Route::is('home') ? 'active-icon' : '' }}">
                                 <i class="fa-solid fa-home"></i>
                                 <span>Home</span>
                                 <!-- <div class="qty">2</div> -->
@@ -128,7 +128,7 @@
                         </div>
 
                         <div>
-                            <a href="{{ route('b2b.delivery.index') }}" style="position: relative;">
+                            <a href="{{ route('b2b.delivery.index') }}" class="{{ Route::is('b2b.delivery.index') ? 'active-icon' : '' }}" style="position: relative;">
                                 <i class="fa-solid fa-truck"></i>
                                 <span>Delivery</span>
 
@@ -142,7 +142,7 @@
 
 
                         <div>
-                            <a href="{{ route('b2b.quotations.review') }}">
+                            <a href="{{ route('b2b.quotations.review') }}" class="{{ Route::is('b2b.quotations.review') ? 'active-icon' : '' }}">
                                 <i class="fa-solid fa-receipt"></i>
                                 <span>Quotation</span>
                                 @if( $sentQuotationCount > 0 )
@@ -152,7 +152,7 @@
                         </div>
 
                         <div class="dropdown">
-                            <a class="dropdown-toggle" data-toggle="dropdown" aria-expanded="true" style="cursor: pointer;">
+                            <a class="dropdown-toggle {{ Route::is('b2b.purchase-requests.index') ? 'active-icon' : '' }}   " data-toggle="dropdown" aria-expanded="true" style="cursor: pointer;">
                                 <i class="fa-solid fa-box"></i>
                                 <span>PR</span>
                                 @if($pendingRequestCount > 0)

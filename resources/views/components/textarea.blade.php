@@ -1,3 +1,7 @@
+@php
+    $attributes = $attributes ?? '';
+@endphp
+
 <div class="form-group mb-3">
     <label class="form-label">{{ $label }}</label>
     <textarea

@@ -74,4 +74,66 @@ class QuotationsController extends Controller
         ]);}
         return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
     }
+    public function rejectedQuotations(Request $request)
+    {
+        // 1️⃣ If user is NOT logged in → show login page
+        if (!Auth::check()) {
+            $page = 'Sign In';
+            $companysettings = \DB::table('company_settings')->first();
+
+            return response()
+                ->view('auth.login', compact('page', 'companysettings'))
+                ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        }
+
+        $user = Auth::user();
+
+        if ($user->role === 'salesofficer') {
+
+            if ($request->ajax()) {
+                $query = PurchaseRequest::with(['customer', 'items.product'])
+    ->where('status', 'reject_quotation') // match the actual status in DB
+    ->latest();
+
+                return DataTables::of($query)
+    ->addColumn('customer_name', function ($pr) {
+        return optional($pr->customer)->name ?? 'N/A';
+    })
+    ->addColumn('total_items', function ($pr) {
+        return $pr->items->sum('quantity');
+    })
+                    ->addColumn('grand_total', function ($pr) {
+                        $subtotal = \DB::table('purchase_request_items')
+                            ->where('purchase_request_id', $pr->id)
+                            ->sum('subtotal');
+
+                        $vatRate = $pr->vat ?? 0;
+                        $vatAmount = $subtotal * ($vatRate / 100);
+                        $deliveryFee = $pr->delivery_fee ?? 0;
+                        $total = $subtotal + $vatAmount + $deliveryFee;
+
+                        return '₱' . number_format($total, 2);
+                    })
+    ->editColumn('created_at', function ($pr) {
+        return Carbon::parse($pr->created_at)->format('Y-m-d H:i:s');
+    })
+    ->addColumn('status', function ($pr) {
+        return '<span class="badge bg-danger">Rejected</span>';
+    })
+    ->addColumn('rejection_reason', fn($pr) => $pr->pr_remarks ?? 'No reason provided')
+    ->rawColumns(['status'])
+    ->make(true);
+
+            }
+
+            return view('pages.admin.salesofficer.v_rejectedQuotations', [
+                'page' => 'Rejected Quotations'
+            ]);
+        }
+
+        return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
+    }
+
 }

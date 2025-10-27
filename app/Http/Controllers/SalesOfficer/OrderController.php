@@ -225,4 +225,109 @@ class OrderController extends Controller
             ], 500);
         }
     }
+    // ✅ Added new method for Sent Sales Invoice
+    public function sent_sales_invoice(Request $request) {
+            // 🔐 Redirect to login if user not authenticated
+            if (!Auth::check()) {
+                $page = 'Sign In';
+                $companysettings = \DB::table('company_settings')->first();
+
+                return response()
+                    ->view('auth.login', compact('page', 'companysettings'))
+                    ->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate')
+                    ->header('Pragma', 'no-cache')
+                    ->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+            }
+
+            $user = Auth::user();
+
+            // 🧩 Check if the user is a Sales Officer
+            if ($user->role === 'salesofficer') {
+
+                if ($request->ajax()) {
+                    // ✅ Fetch only sent invoices (status = invoice_sent)
+                    $query = PurchaseRequest::with(['customer', 'items.product'])
+                        ->where('status', 'invoice_sent')
+                        ->latest();
+
+                    return DataTables::of($query)
+                        ->addColumn('customer_name', fn($pr) => optional($pr->customer)->name)
+                        ->addColumn('total_items', fn($pr) => $pr->items->sum('quantity'))
+                        ->addColumn('sent_at', function ($row) {
+                            // Show the date when invoice was marked as "invoice_sent"
+                            if ($row->status === 'invoice_sent') {
+                                return Carbon::parse($row->updated_at)->format('Y-m-d H:i');
+                            }
+                            return '—';
+                        })
+                    ->addColumn('grand_total', function ($pr) {
+                        $subtotal = \DB::table('purchase_request_items')
+                            ->where('purchase_request_id', $pr->id)
+                            ->sum('subtotal');
+
+                        $vatRate = $pr->vat ?? 0;
+                        $vatAmount = $subtotal * ($vatRate / 100);
+                        $deliveryFee = $pr->delivery_fee ?? 0;
+                        $total = $subtotal + $vatAmount + $deliveryFee;
+
+                        return '₱' . number_format($total, 2);
+                    })
+                        ->editColumn('created_at', fn($pr) => Carbon::parse($pr->created_at)->format('Y-m-d H:i:s'))
+                        ->addColumn('status', fn($pr) => '<span class="badge bg-info text-dark">Invoice Sent</span>')
+                        ->addColumn('action', function ($pr) {
+                            $url = route('salesofficer.sent.sales.invoice.show', $pr->id);
+                            return '<a href="' . $url . '" class="btn btn-sm btn-inverse-dark p-2">
+                                        <i class="link-icon" data-lucide="eye"></i> View Invoice
+                                    </a>';
+                        })
+                        ->rawColumns(['status', 'action'])
+                        ->make(true);
+                }
+
+                // 📄 Load the new view for Sent Sales Invoices
+                return view('pages.admin.salesofficer.v_sentSalesInvoice', [
+                    'page' => 'Sent Sales Invoice'
+                ]);
+            }
+
+            // 🚫 Redirect non-salesofficers
+            return redirect()->route('home')->with('info', 'Redirected to your dashboard.');
+        }
+    public function show_sent_sales_invoice($id) {
+            $status = ['invoice_sent']; // Only show if invoice was sent
+
+            $quotation = \App\Models\PurchaseRequest::with(['items.product.productImages'])
+                ->whereIn('status', $status)
+                ->findOrFail($id);
+
+            $page = 'View Sent Sales Invoice';
+            $b2bReq = null;
+            $b2bAddress = null;
+            $salesOfficer = null;
+            $superadmin = \App\Models\User::where('role', 'superadmin')->first();
+
+            if ($quotation->customer_id) {
+                $b2bReq = \App\Models\B2BDetail::where('user_id', $quotation->customer_id)
+                    ->where('status', 'approved')
+                    ->first();
+
+                $b2bAddress = \App\Models\B2BAddress::where('user_id', $quotation->customer_id)
+                    ->where('status', 'active')
+                    ->first();
+            }
+
+            if ($quotation->prepared_by_id) {
+                $salesOfficer = \App\Models\User::find($quotation->prepared_by_id);
+            }
+
+            return view('pages.admin.salesofficer.v_showSentInvoice', compact(
+                'quotation',
+                'b2bReq',
+                'b2bAddress',
+                'salesOfficer',
+                'superadmin',
+                'page'
+            ));
+    }
+
 }

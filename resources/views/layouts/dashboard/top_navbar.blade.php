@@ -163,10 +163,12 @@
                             <li class="nav-item {{ Route::is('salesofficer.purchase-requests.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.purchase-requests.index') }}">B2B Pending PR</a></li>
                             <li class="category-heading text-dark fw-bolder">Quotation</li>
                             <li class="nav-item {{ Route::is('salesofficer.sent-quotations.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.send-quotations.index') }}">Sent Quotations</a></li>
+                            <li class="nav-item {{ Route::is('salesofficer.rejected-quotations.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.rejected-quotations.index') }}">Rejected Quotations</a></li>
                             <li class="category-heading text-dark fw-bolder">Purchase Order</li>
                             <li class="nav-item {{ Route::is('salesofficer.submitted-order.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.submitted-order.index') }}">B2B Submitted PO</a></li>
                             <li class="category-heading text-dark fw-bolder">Sales Invoice</li>
                             <li class="nav-item {{ Route::is('salesofficer.sales.invoice') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.sales.invoice') }}">B2B Sales Invoice</a></li>
+                            <li class="nav-item {{ Route::is('salesofficer.sent-sales-invoice.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.sent-sales-invoice.index') }}">Sent Sales Invoice HIstory</a></li>
                         </ul>
                     </div>
                 </li>
@@ -197,6 +199,7 @@
                             <li class="nav-item {{ Route::is('salesofficer.paynow.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.paynow.index') }}">Pay-now</a></li>
                             <li class="category-heading text-dark fw-bolder">(Pay-Later) Payment Method</li>
                             <li class="nav-item {{ Route::is('salesofficer.paylater.index') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.paylater.index') }}">Pay-later</a></li>
+                            <li class="nav-item {{ Route::is('salesofficer.rejected-payments.*') ? 'active' : '' }}"><a class="nav-link" href="{{ route('salesofficer.rejected-payments.index') }}">Rejected Payments History</a></li>
                         </ul>
                     </div>
                 </li>

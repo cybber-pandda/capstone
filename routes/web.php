@@ -107,6 +107,15 @@ Route::middleware(['prevent-back-history', 'auth', 'verified', 'check.status'])-
         Route::post('/return/{return}/reject', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'rejectReturn'])->name('return.reject');
         Route::post('/refund/{refund}/approve', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'approveRefund'])->name('refund.approve');
         Route::post('/refund/{refund}/reject', [App\Http\Controllers\SalesOfficer\ReturnRefundController::class, 'rejectRefund'])->name('refund.reject');
+         // ✅ Added new route for Sent Sales Invoice page
+        Route::get('/sent-sales-invoice/all', [App\Http\Controllers\SalesOfficer\OrderController::class, 'sent_sales_invoice'])->name('sent-sales-invoice.index');
+        Route::get('/sent-sales-invoice/{id}', [App\Http\Controllers\SalesOfficer\OrderController::class, 'show_sent_sales_invoice'])->name('sent.sales.invoice.show');
+        // Rejected Quotations List
+        Route::get('/rejected-quotations/all', [App\Http\Controllers\SalesOfficer\QuotationsController::class, 'rejectedQuotations'])->name('rejected-quotations.index');
+        Route::get('/rejected-payments', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'rejectedIndex'])->name('rejected-payments.index');
+        Route::get('/rejected-payments/all', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'rejectedData'])->name('rejected-payments.all');
+        Route::post('/rejected-payments/store', [App\Http\Controllers\SalesOfficer\ACPaymentController::class, 'storeRejectedPayment'])->name('rejected-payments.store');
+
     });
 
     /* Delivery */
